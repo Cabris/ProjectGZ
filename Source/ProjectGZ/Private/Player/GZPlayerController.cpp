@@ -6,6 +6,7 @@
 #include <EnhancedInputComponent.h>
 #include "InputActionValue.h"
 #include "Character/GZCharacterBase.h"
+#include "Interfactions/CameraControllable.h"
 
 AGZPlayerController::AGZPlayerController()
 {
@@ -16,14 +17,14 @@ void AGZPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 	check(GZContext);
-	auto inputSubsys=ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer());
+	auto inputSubsys = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer());
 	check(inputSubsys);
-	inputSubsys->AddMappingContext(GZContext,0);
-	bShowMouseCursor=false;
-	DefaultMouseCursor= EMouseCursor::Default;
+	inputSubsys->AddMappingContext(GZContext, 0);
+	bShowMouseCursor = false;
+	DefaultMouseCursor = EMouseCursor::Default;
 	FInputModeGameAndUI InputModeData;
 	InputModeData.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
-	InputModeData.SetHideCursorDuringCapture(false);
+	InputModeData.SetHideCursorDuringCapture(true);
 	SetInputMode(InputModeData);
 }
 
@@ -34,6 +35,7 @@ void AGZPlayerController::SetupInputComponent()
 	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AGZPlayerController::Move);
 	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AGZPlayerController::Jump);
 	EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &AGZPlayerController::Crouch);
+	EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AGZPlayerController::Look);
 }
 
 void AGZPlayerController::PlayerTick(float DeltaTime)
@@ -54,6 +56,19 @@ void AGZPlayerController::Move(const FInputActionValue& inputActionValue)
 	{
 		ControlledPawn->AddMovementInput(ForwardDirection, inputAxisVector.Y);
 		ControlledPawn->AddMovementInput(RightDirection, inputAxisVector.X);
+	}
+}
+
+void AGZPlayerController::Look(const FInputActionValue& inputActionValue)
+{
+	FVector2D inputAxisVector = inputActionValue.Get<FVector2D>();
+	AGZCharacterBase* ControlledPawn = GetGZCharacter();
+
+	ICameraControllable* CameraControllable = Cast<ICameraControllable>(ControlledPawn);
+	if (CameraControllable)
+	{
+		CameraControllable->PitchCamera(inputAxisVector.Y);
+		CameraControllable->YawCamera(inputAxisVector.X);
 	}
 }
 
@@ -79,7 +94,7 @@ void AGZPlayerController::Crouch(const FInputActionValue& inputActionValue)
 	}
 }
 
-AGZCharacterBase* AGZPlayerController::GetGZCharacter()const
+AGZCharacterBase* AGZPlayerController::GetGZCharacter() const
 {
 	try
 	{

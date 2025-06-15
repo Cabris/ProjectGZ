@@ -20,10 +20,17 @@ AGZPlayerCharacter::AGZPlayerCharacter()
 	GetCharacterMovement()->RotationRate = FRotator(0, DEFAULT_GZ_ROTATE_RATE_YAW, 0);
 	GetCharacterMovement()->bConstrainToPlane = true;
 	GetCharacterMovement()->bSnapToPlaneAtStart = true;
-
+	GetCharacterMovement()->bUseControllerDesiredRotation = false;
+	
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
+
+	SpringArm->bUsePawnControlRotation = true;
+	SpringArm->bInheritPitch = true;
+	SpringArm->bInheritRoll = false;
+	SpringArm->bInheritYaw = true;
+	Camera->bUsePawnControlRotation = false;
 }
 
 void AGZPlayerCharacter::PossessedBy(AController* NewController)
@@ -40,8 +47,10 @@ void AGZPlayerCharacter::OnRep_PlayerState()
 
 void AGZPlayerCharacter::PitchCamera(float AxisValue)
 {
+	AddControllerPitchInput(AxisValue);
 }
 
 void AGZPlayerCharacter::YawCamera(float AxisValue)
 {
+	AddControllerYawInput(AxisValue);
 }

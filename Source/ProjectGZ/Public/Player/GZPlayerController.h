@@ -33,8 +33,11 @@ private:
 	TObjectPtr<UInputAction> JumpAction;
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> CrouchAction;
+	UPROPERTY(EditAnywhere, Category = "Input")
+	TObjectPtr<UInputAction> LookAction;
 	void Move(const FInputActionValue& inputActionValue);
 	void Jump(const FInputActionValue& inputActionValue);
 	void Crouch(const FInputActionValue& inputActionValue);
-	AGZCharacterBase* GetGZCharacter()const;
+	void Look(const FInputActionValue& inputActionValue);
+	AGZCharacterBase* GetGZCharacter() const;
 };
