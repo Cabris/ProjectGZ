@@ -6,6 +6,9 @@
 #include <EnhancedInputComponent.h>
 #include "InputActionValue.h"
 #include "Character/GZCharacterBase.h"
+#include "Component/GZAimMotionComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Interfactions/AimControllable.h"
 #include "Interfactions/CameraControllable.h"
 
 AGZPlayerController::AGZPlayerController()
@@ -36,6 +39,7 @@ void AGZPlayerController::SetupInputComponent()
 	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AGZPlayerController::Jump);
 	EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &AGZPlayerController::Crouch);
 	EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AGZPlayerController::Look);
+	EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Triggered, this, &AGZPlayerController::Aim);
 }
 
 void AGZPlayerController::PlayerTick(float DeltaTime)
@@ -65,10 +69,42 @@ void AGZPlayerController::Look(const FInputActionValue& inputActionValue)
 	AGZCharacterBase* ControlledPawn = GetGZCharacter();
 
 	ICameraControllable* CameraControllable = Cast<ICameraControllable>(ControlledPawn);
-	if (CameraControllable)
+	if (!CameraControllable)
 	{
-		CameraControllable->PitchCamera(inputAxisVector.Y);
-		CameraControllable->YawCamera(inputAxisVector.X);
+		UE_LOG(LogTemp, Warning, TEXT("Pawn: %s do not implement ICameraControllable."), *ControlledPawn->GetName());
+		return;
+	}
+	CameraControllable->PitchCamera(inputAxisVector.Y);
+	CameraControllable->YawCamera(inputAxisVector.X);
+}
+
+void AGZPlayerController::Aim(const FInputActionValue& inputActionValue)
+{
+	bool inputBool = inputActionValue.Get<bool>();
+	if (inputBool)
+	{
+		AGZCharacterBase* ControlledPawn = GetGZCharacter();
+		IAimControllable* AimControllable = Cast<IAimControllable>(ControlledPawn);
+		if (!AimControllable)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Pawn: %s do not implement IAimControllable."), *ControlledPawn->GetName());
+			return;
+		}
+		auto AMC = AimControllable->GetAimMotionComponent();
+		if (!AMC)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Pawn: %s do not have AimMotionComponent."), *ControlledPawn->GetName());
+			return;
+		}
+		if (!AMC->GetIsAiming())
+		{
+			FRotator cRotation = GetControlRotation();
+			AMC->AimAtRotation(cRotation);
+		}
+		else
+		{
+			AMC->UnAim();
+		}
 	}
 }
 
@@ -90,7 +126,17 @@ void AGZPlayerController::Crouch(const FInputActionValue& inputActionValue)
 	{
 		AGZCharacterBase* ControlledPawn = GetGZCharacter();
 		if (ControlledPawn)
-			ControlledPawn->Crouch();
+		{
+			// bool CanEverCrouch = ControlledPawn->GetCharacterMovement()->CanEverCrouch();
+			// bool IsSimulatingPhysics = ControlledPawn->GetRootComponent()->IsSimulatingPhysics();
+			// UE_LOG(LogTemp, Warning, TEXT("CanEverCrouch is %s"), ( CanEverCrouch ? TEXT("true"): TEXT("false") ));
+			// UE_LOG(LogTemp, Warning, TEXT("IsSimulatingPhysics is %s"), ( IsSimulatingPhysics ? TEXT("true"): TEXT("false") ));
+			const auto CMC = ControlledPawn->GetCharacterMovement();
+			if (!CMC->IsCrouching())
+				ControlledPawn->Crouch();
+			else
+				ControlledPawn->UnCrouch();
+		}
 	}
 }
 

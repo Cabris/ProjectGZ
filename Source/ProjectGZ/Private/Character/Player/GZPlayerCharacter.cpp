@@ -2,8 +2,8 @@
 
 
 #include "Character/Player/GZPlayerCharacter.h"
-
 #include "Camera/CameraComponent.h"
+#include "Component/GZAimMotionComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "ProjectGZ/ProjectGZ.h"
@@ -16,12 +16,16 @@ AGZPlayerCharacter::AGZPlayerCharacter()
 	Camera = CreateDefaultSubobject<UCameraComponent>("Camera");
 	Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
 
-	GetCharacterMovement()->bOrientRotationToMovement = true;
-	GetCharacterMovement()->RotationRate = FRotator(0, DEFAULT_GZ_ROTATE_RATE_YAW, 0);
-	GetCharacterMovement()->bConstrainToPlane = true;
-	GetCharacterMovement()->bSnapToPlaneAtStart = true;
-	GetCharacterMovement()->bUseControllerDesiredRotation = false;
-	
+	AimMotionComponent = CreateDefaultSubobject<UGZAimMotionComponent>("AimMotion");
+	//AimMotionComponent->RegisterComponent();
+	const auto CMC = GetCharacterMovement();
+	CMC->bOrientRotationToMovement = true;
+	CMC->RotationRate = FRotator(0, DEFAULT_GZ_ROTATE_RATE_YAW, 0);
+	CMC->bConstrainToPlane = true;
+	CMC->bSnapToPlaneAtStart = true;
+	CMC->bUseControllerDesiredRotation = false;
+	CMC->GetNavAgentPropertiesRef().bCanCrouch = true;
+
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
@@ -53,4 +57,9 @@ void AGZPlayerCharacter::PitchCamera(float AxisValue)
 void AGZPlayerCharacter::YawCamera(float AxisValue)
 {
 	AddControllerYawInput(AxisValue);
+}
+
+UGZAimMotionComponent* AGZPlayerCharacter::GetAimMotionComponent()
+{
+	return AimMotionComponent.Get();
 }
