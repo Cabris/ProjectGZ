@@ -5,12 +5,25 @@
 void UGZCharacterAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
-	Character = Cast<AGZCharacterBase>(TryGetPawnOwner());
+	InitializeCharacter();
+	IsFirstFrame = true;
+	ElapsedTimeSinceMovementInput = 0;
 }
 
 void UGZCharacterAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeThreadSafeUpdateAnimation(DeltaSeconds);
+}
+
+void UGZCharacterAnimInstance::InitializeCharacter()
+{
+	Character = Cast<AGZCharacterBase>(TryGetPawnOwner());
+	CMC = Character->GetCharacterMovement();
+	//RootMotion take over movement
+	CMC->MovementMode = MOVE_None;
+	CMC->bUseControllerDesiredRotation = false;
+	CMC->bOrientRotationToMovement = false;
+	//RootMotionMode = ERootMotionMode::Type::RootMotionFromMontagesOnly; // 或 Everything
 }
 
 void UGZCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
@@ -21,12 +34,31 @@ void UGZCharacterAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		auto Velocity = Character->GetVelocity();
 		Velocity.Z = 0;
 		Speed = Velocity.Size();
-		bIsAccelerating = Character->GetCharacterMovement()->GetCurrentAcceleration().Size() > 0.0f;
-		bIsInAir = Character->GetCharacterMovement()->IsFalling();
+		bIsAccelerating = CMC->GetCurrentAcceleration().Size() > 0.0f;
+		bIsInAir = CMC->IsFalling();
 		// Character->GetCharacterMovement()->IsCrouching();
+		LastMovementInputVector = CMC->GetLastInputVector();
+		bHasMovementInput = LastMovementInputVector.Size() < 0.1f;
+		
+		//Character->GetControlRotation();
+		if (IsFirstFrame)
+		{
+			IsFirstFrame = false;
+			ElapsedTimeSinceMovementInput = 0;
+		}
+
+		//increase ElapsedTime
+		if (bHasMovementInput)
+		{
+			ElapsedTimeSinceMovementInput += DeltaSeconds;
+		}
+		else
+		{
+			ElapsedTimeSinceMovementInput = 0;
+		}
 	}
 	else
 	{
-		Character = Cast<AGZCharacterBase>(TryGetPawnOwner());
+		InitializeCharacter();
 	}
 }
