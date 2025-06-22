@@ -17,25 +17,19 @@ public:
 	virtual void NativeThreadSafeUpdateAnimation(float DeltaSeconds) override;
 
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Character")
+	UPROPERTY(BlueprintReadOnly, Category = "Character")
 	TObjectPtr<AGZCharacterBase> Character;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+	UPROPERTY(BlueprintReadOnly, Category = "Character")
 	TObjectPtr<UCharacterMovementComponent> CMC;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+	UPROPERTY(BlueprintReadOnly, Category = "Movement")
 	float Speed;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
-	float Direction;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+	UPROPERTY(BlueprintReadOnly, Category = "Movement")
+	FVector Direction;
+	UPROPERTY(BlueprintReadOnly, Category = "Movement")
 	bool bIsInAir;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
-	bool bIsAccelerating;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
-	bool bHasMovementInput;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
-	FVector LastMovementInputVector;
-	float ElapsedTimeSinceMovementInput;
+	UPROPERTY(BlueprintReadOnly, Category = "Movement")
+	bool bIsCrouch;
+
 private:
 	void InitializeCharacter();
-	bool IsFirstFrame;
 };
