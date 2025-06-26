@@ -17,26 +17,12 @@ void UGZPlayerCharacterAnimInst::NativeUpdateAnimation(float DeltaSeconds)
 	Super::NativeUpdateAnimation(DeltaSeconds);
 	if (Character)
 	{
-		// if (bIsFirstFrame)
-		// {
-		// 	bIsFirstFrame = false;
-		// }
 		LastMovementInputVector = CMC->GetLastInputVector();
 		bHasMovementInput = LastMovementInputVector.Size() > KINDA_SMALL_NUMBER;
-
-		const FRotator ControlRot = Character->GetControlRotation();
-		const FRotator YawRot(0, ControlRot.Yaw, 0);
-		const FVector ForwardDir = FRotationMatrix(YawRot).GetUnitAxis(EAxis::X);
-		const FVector RightDir = FRotationMatrix(YawRot).GetUnitAxis(EAxis::Y);
-
-		DesiredDirection = (ForwardDir * LastMovementInputVector.Y +
-			RightDir * LastMovementInputVector.X).GetSafeNormal();
-
+		DesiredDirection = bHasMovementInput ? LastMovementInputVector : FVector::ZeroVector;
 		const auto Velocity = Character->GetVelocity();
 		DirectionAngle = UKismetAnimationLibrary::CalculateDirection(Velocity, Character->GetActorRotation());
-
-		AngleDeltaDegrees = FMath::RadiansToDegrees(
-			FMath::Acos(FVector::DotProduct(DesiredDirection, Character->GetActorForwardVector())));
+		AngleDeltaDegrees = UKismetAnimationLibrary::CalculateDirection(DesiredDirection, Character->GetActorRotation());
 
 		//increase ElapsedTime
 		if (bHasMovementInput)
@@ -48,5 +34,23 @@ void UGZPlayerCharacterAnimInst::NativeUpdateAnimation(float DeltaSeconds)
 			ElapsedTimeSinceMovementInput = 0;
 		}
 		bIsStandToMove = ElapsedTimeSinceMovementInput >= StandToMoveThreshold;
+	}
+
+	FString Msg = FString::Printf(TEXT(
+		"DirectionAngle: %f | DesiredDirection: %s | AngleDeltaDegrees: %f"),
+	                              DirectionAngle, *DesiredDirection.ToString(), AngleDeltaDegrees);
+	GEngine->AddOnScreenDebugMessage(2, 0.0f, FColor::Cyan, Msg);
+
+	Msg = FString::Printf(TEXT(
+		"bHasMovementInput: %d | LastMovementInputVector: %s | bIsStandToMove: %d"),
+	                      bHasMovementInput, *LastMovementInputVector.ToString(), bIsStandToMove);
+	GEngine->AddOnScreenDebugMessage(3, 0.0f, FColor::Magenta, Msg);
+
+	if (Character)
+	{
+		FVector Start = Character->GetActorLocation();
+		float Length = 100.0f; // 箭頭長度
+		FVector End = Start + DesiredDirection * Length;
+		DrawDebugDirectionalArrow(GetWorld(), Start, End, 100.0f, FColor::Blue, false, 0.0f, 1, 2.0f);
 	}
 }

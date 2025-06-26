@@ -10,6 +10,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Interfactions/AimControllable.h"
 #include "Interfactions/CameraControllable.h"
+#include "Interfactions/Strafingable.h"
 
 AGZPlayerController::AGZPlayerController()
 {
@@ -40,6 +41,7 @@ void AGZPlayerController::SetupInputComponent()
 	EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &AGZPlayerController::Crouch);
 	EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AGZPlayerController::Look);
 	EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Triggered, this, &AGZPlayerController::Aim);
+	EnhancedInputComponent->BindAction(StrafeAction, ETriggerEvent::Triggered, this, &AGZPlayerController::Strafe);
 }
 
 void AGZPlayerController::PlayerTick(float DeltaTime)
@@ -108,6 +110,23 @@ void AGZPlayerController::Aim(const FInputActionValue& inputActionValue)
 	}
 }
 
+void AGZPlayerController::Strafe(const FInputActionValue& inputActionValue)
+{
+	bool inputBool = inputActionValue.Get<bool>();
+	if (inputBool)
+	{
+		AGZCharacterBase* ControlledPawn = GetGZCharacter();
+		IStrafingable* Strafingable = Cast<IStrafingable>(ControlledPawn);
+		if (Strafingable)
+		{
+			if (!Strafingable->IsStrafing())
+				Strafingable->Strafe();
+			else
+				Strafingable->Unstrafe();
+		}
+	}
+}
+
 void AGZPlayerController::Jump(const FInputActionValue& inputActionValue)
 {
 	bool inputBool = inputActionValue.Get<bool>();
@@ -118,6 +137,7 @@ void AGZPlayerController::Jump(const FInputActionValue& inputActionValue)
 			ControlledPawn->Jump();
 	}
 }
+
 
 void AGZPlayerController::Crouch(const FInputActionValue& inputActionValue)
 {

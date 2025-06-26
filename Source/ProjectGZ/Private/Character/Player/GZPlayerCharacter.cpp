@@ -63,3 +63,18 @@ UGZAimMotionComponent* AGZPlayerCharacter::GetAimMotionComponent()
 {
 	return AimMotionComponent.Get();
 }
+
+void AGZPlayerCharacter::Strafe()
+{
+	bIsStrafing=true;
+}
+
+void AGZPlayerCharacter::Unstrafe()
+{
+	bIsStrafing=false;
+}
+
+bool AGZPlayerCharacter::IsStrafing()
+{
+	return bIsStrafing;
+}

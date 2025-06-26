@@ -24,12 +24,13 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Movement")
 	float Speed;
 	UPROPERTY(BlueprintReadOnly, Category = "Movement")
-	FVector Direction;
+	FVector Direction;	//pawn facing direction
 	UPROPERTY(BlueprintReadOnly, Category = "Movement")
 	bool bIsInAir;
 	UPROPERTY(BlueprintReadOnly, Category = "Movement")
 	bool bIsCrouch;
-
+	UPROPERTY(BlueprintReadOnly, Category = "Movement")
+	bool bIsStrafing;
 private:
 	void InitializeCharacter();
 };
