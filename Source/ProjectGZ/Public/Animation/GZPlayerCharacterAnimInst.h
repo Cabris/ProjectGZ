@@ -18,13 +18,27 @@ public:
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 	virtual void NativeInitializeAnimation() override;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Anim Sequences")
+	TObjectPtr<UAnimSequenceBase> TurnRight90Anim;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Anim Sequences")
+	TObjectPtr<UAnimSequenceBase> TurnRight180Anim;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Anim Sequences")
+	TObjectPtr<UAnimSequenceBase> TurnLeft90Anim;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Anim Sequences")
+	TObjectPtr<UAnimSequenceBase> TurnLeft180Anim;
+
+	UFUNCTION(BlueprintCallable)
+	UAnimSequenceBase* GetTurnAnim(float deltaAngle);
+
 protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Movement")
 	float DirectionAngle; //angle between velocity and facing
 	UPROPERTY(BlueprintReadOnly, Category = "Movement")
 	FVector DesiredDirection; //world space direction that move input axis vector 
 	UPROPERTY(BlueprintReadOnly, Category = "Movement")
-	float AngleDeltaDegrees; //angle between DesiredDirection and facing
+	float DeltaAngle; //angle between DesiredDirection and facing
+	UPROPERTY(BlueprintReadOnly, Category = "Movement")
+	bool bShouldTurn;
 
 	UPROPERTY(BlueprintReadOnly, Category = "Input")
 	bool bHasMovementInput;
