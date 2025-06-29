@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "Animation/GZCharacterAnimInstance.h"
+#include "Structs/RootBoneMode.h"
+#include "Structs/TurnAnims.h"
 #include "GZPlayerCharacterAnimInst.generated.h"
 
 /**
@@ -18,18 +20,39 @@ public:
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 	virtual void NativeInitializeAnimation() override;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Anim Sequences")
-	TObjectPtr<UAnimSequenceBase> TurnRight90Anim;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Anim Sequences")
-	TObjectPtr<UAnimSequenceBase> TurnRight180Anim;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Anim Sequences")
-	TObjectPtr<UAnimSequenceBase> TurnLeft90Anim;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Anim Sequences")
-	TObjectPtr<UAnimSequenceBase> TurnLeft180Anim;
-
+	///RootMotionTurn
 	UFUNCTION(BlueprintCallable)
 	UAnimSequenceBase* GetTurnAnim(float deltaAngle);
+	UPROPERTY(EditAnywhere, Category = "Animations")
+	FTurnAnims TurnAnims;
+	UPROPERTY(EditAnywhere, Category = "Animations")
+	ERootBoneMode RootBoneMode;
 
+	UFUNCTION(BlueprintCallable)
+	void UpdateRootYawOffetData(float deltaTime);
+
+	UFUNCTION(BlueprintCallable)
+	void UpdateActorYawDelta();
+
+	UFUNCTION(BlueprintCallable)
+	void SetRootYawOffset(float newRootYawOffest);
+
+	UFUNCTION(BlueprintCallable)
+	void ProcessTurnYawCurve();
+
+	float LastRootYawOffet;
+	float RootYawOffset;
+
+	float ActorYawDelta;
+	float ActorYaw;
+	float LastActorYaw;
+
+	float TurnYawCurveValue;
+	float LastTurnYawCurveValue;
+
+	FName TurnYawWeight = TEXT("TurnYawWeight");
+	FName RemainingTurnYaw = TEXT("RemainingTurnYaw");
+	///
 protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Movement")
 	float DirectionAngle; //angle between velocity and facing
@@ -52,4 +75,5 @@ protected:
 private:
 	//bool bIsFirstFrame;
 	float ElapsedTimeSinceMovementInput;
+	float CurrentTurnAnimTime;
 };
