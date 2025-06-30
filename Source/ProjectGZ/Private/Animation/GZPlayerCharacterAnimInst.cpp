@@ -15,16 +15,28 @@ void UGZPlayerCharacterAnimInst::NativeInitializeAnimation()
 	DesiredDirection = FVector::ZeroVector;
 }
 
-UAnimSequenceBase* UGZPlayerCharacterAnimInst::GetTurnAnim(float deltaAngle)
+UAnimSequenceBase* UGZPlayerCharacterAnimInst::GetTurnAnim()
 {
-	if (deltaAngle > 0 && deltaAngle <= 90)
-		return TurnAnims.TurnRight90Anim;
-	if (deltaAngle > 90 && deltaAngle <= 180)
-		return TurnAnims.TurnRight180Anim;
-	if (deltaAngle < 0 && deltaAngle <= -90)
-		return TurnAnims.TurnLeft90Anim;
-	if (deltaAngle < -90 && deltaAngle >= -180)
-		return TurnAnims.TurnLeft180Anim;
+	const float turnYawOffset = UKismetMathLibrary::NormalizeAxis(RootYawOffset);
+	const float angleThreshold = TurnYawOffsetThreshold;
+	if (TurnPose == ETurnPoses::TurnCW)
+	{
+		if (FMath::Abs(turnYawOffset) > angleThreshold)
+			return TurnAnims.TurnRight180Anim;
+		else
+		{
+			return TurnAnims.TurnRight90Anim;
+		}
+	}
+	else if (TurnPose == ETurnPoses::TurnCCW)
+	{
+		if (FMath::Abs(turnYawOffset) > angleThreshold)
+			return TurnAnims.TurnLeft180Anim;
+		else
+		{
+			return TurnAnims.TurnLeft90Anim;
+		}
+	}
 	return nullptr;
 }
 
@@ -81,6 +93,7 @@ void UGZPlayerCharacterAnimInst::ProcessTurnYawCurve()
 		}
 	}
 }
+
 
 void UGZPlayerCharacterAnimInst::NativeUpdateAnimation(float DeltaSeconds)
 {
