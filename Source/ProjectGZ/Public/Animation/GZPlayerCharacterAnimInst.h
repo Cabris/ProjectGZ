@@ -37,12 +37,16 @@ public:
 	float LastRootYawOffet;
 	UPROPERTY(BlueprintReadWrite, Category = "TurnInPlace")
 	float RootYawOffset;
+
+	
 	UPROPERTY(BlueprintReadWrite, Category = "TurnInPlace")
 	float ActorYawDelta;
 	UPROPERTY(BlueprintReadWrite, Category = "TurnInPlace")
 	float ActorYaw;
 	UPROPERTY(BlueprintReadWrite, Category = "TurnInPlace")
 	float LastActorYaw;
+
+	
 	UPROPERTY(BlueprintReadWrite, Category = "TurnInPlace")
 	float TurnYawCurveValue;
 	UPROPERTY(BlueprintReadWrite, Category = "TurnInPlace")
@@ -60,7 +64,6 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, Category = "TurnInPlace")
 	float TurnYawOffsetThreshold = 50;
-
 	UPROPERTY(BlueprintReadWrite, Category = "TurnInPlace")
 	FName TurnYawWeight = TEXT("TurnYawWeight");
 	UPROPERTY(BlueprintReadWrite, Category = "TurnInPlace")
