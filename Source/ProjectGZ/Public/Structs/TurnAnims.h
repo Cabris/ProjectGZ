@@ -13,11 +13,11 @@ struct FTurnAnims
 	GENERATED_BODY()
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Anim Sequences")
-	TObjectPtr<UAnimSequenceBase> TurnRight90Anim;
+	TObjectPtr<UAnimSequence> TurnRight90Anim;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Anim Sequences")
-	TObjectPtr<UAnimSequenceBase> TurnRight180Anim;
+	TObjectPtr<UAnimSequence> TurnRight180Anim;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Anim Sequences")
-	TObjectPtr<UAnimSequenceBase> TurnLeft90Anim;
+	TObjectPtr<UAnimSequence> TurnLeft90Anim;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Anim Sequences")
-	TObjectPtr<UAnimSequenceBase> TurnLeft180Anim;
+	TObjectPtr<UAnimSequence> TurnLeft180Anim;
 };
