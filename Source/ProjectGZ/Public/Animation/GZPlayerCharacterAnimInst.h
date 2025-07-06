@@ -4,9 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Animation/GZCharacterAnimInstance.h"
-#include "Structs/RootBoneMode.h"
-#include "Structs/TurnAnims.h"
-#include "Structs/TurnPoses.h"
+#include "Structs/TurnInPlase.h"
 #include "GZPlayerCharacterAnimInst.generated.h"
 
 /**

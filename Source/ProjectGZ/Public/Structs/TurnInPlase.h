@@ -1,12 +1,8 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-#pragma once
-
+﻿#pragma once
 #include "CoreMinimal.h"
-#include "TurnAnims.generated.h"
-/**
- * 
- */
+#include "UObject/Object.h"
+#include "TurnInPlase.generated.h"
+
 USTRUCT(BlueprintType)
 struct FTurnAnims
 {
@@ -20,4 +16,21 @@ struct FTurnAnims
 	TObjectPtr<UAnimSequence> TurnLeft90Anim;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Anim Sequences")
 	TObjectPtr<UAnimSequence> TurnLeft180Anim;
+};
+
+UENUM(BlueprintType)
+enum class ETurnPoses :uint8
+{
+	NoTurn UMETA(DisplayName="No Turn"),
+	TurnCW UMETA(DisplayName="Turn Clockwise"),
+	TurnCCW UMETA(DisplayName="Turn Counterclockwise"),
+};
+
+
+UENUM(BlueprintType)
+enum class  ERootBoneMode :uint8
+{
+	Accumulate UMETA(DisplayName="Accumulate"),
+	BlendOut UMETA(DisplayName="BlendOut"),
+	HoldOn UMETA(DisplayName="HoldOn")
 };

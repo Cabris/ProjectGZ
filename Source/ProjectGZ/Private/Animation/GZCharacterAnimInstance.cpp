@@ -1,6 +1,9 @@
 #include "Animation/GZCharacterAnimInstance.h"
+#include "Animation/AnimNode_SequencePlayer.h"
+#include "SequencePlayerLibrary.h"
 #include "Character/GZCharacterBase.h"
 #include "GameFramework/CharacterMovementComponent.h"
+#include "HAL/ThreadManager.h"
 #include "Interfactions/Strafingable.h"
 
 void UGZCharacterAnimInstance::NativeInitializeAnimation()
@@ -13,6 +16,56 @@ void UGZCharacterAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSecond
 {
 	Super::NativeThreadSafeUpdateAnimation(DeltaSeconds);
 }
+
+void UGZCharacterAnimInstance::UpdateMyLogic(const FVector& InVelocity, FVector& OutVelocity, float& OutAngle)
+{
+}
+
+void UGZCharacterAnimInstance::UpdateMyLogic2(const FVector InVelocity, FVector& OutVelocity, float& OutAngle)
+{
+}
+
+void UGZCharacterAnimInstance::MyOnBecomeRelevant(const FAnimUpdateContext& Context, const FAnimNodeReference& Node)
+{
+	uint32 ThreadId = FPlatformTLS::GetCurrentThreadId();
+	FString ThreadName = FThreadManager::Get().GetThreadName(ThreadId);
+	UE_LOG(LogTemp, Log, TEXT("Thread: %s"), *ThreadName)
+	EAnimNodeReferenceConversionResult result;
+	FSequencePlayerReference SequencePlayer = USequencePlayerLibrary::ConvertToSequencePlayer(Node, result);
+	//參考: UAnimDistanceMatchingLibrary::SetPlayrateToMatchSpeed
+	if (result == EAnimNodeReferenceConversionResult::Succeeded)
+	{
+		SequencePlayer.CallAnimNodeFunction<FAnimNode_SequencePlayer>(
+			TEXT("UGZCharacterAnimInstance::MyOnBecomeRelevant::CustomFunction"),
+			[=](FAnimNode_SequencePlayer& InSequencePlayer)
+			{
+				if (const UAnimSequence* AnimSequence = Cast<UAnimSequence>(InSequencePlayer.GetSequence()))
+				{
+					const float AnimLength = AnimSequence->GetPlayLength();
+					UE_LOG(LogTemp, Warning,
+					       TEXT("UGZCharacterAnimInstance::MyOnBecomeRelevant::CustomFunction: AnimLength: %f"
+					       ), AnimLength);
+				}
+				else
+				{
+					UE_LOG(LogTemp, Warning,
+					       TEXT(
+						       "UGZCharacterAnimInstance::MyOnBecomeRelevant::CustomFunction: Sequence player does not have an anim sequence to play."
+					       ));
+				}
+			});
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("UGZCharacterAnimInstance::MyOnBecomeRelevant: Not a Sequence player"));
+	}
+}
+
+UAnimSequence* UGZCharacterAnimInstance::GetSomeSequence(const ECardinalDirections InDirection)
+{
+	return nullptr;
+}
+
 
 void UGZCharacterAnimInstance::InitializeCharacter()
 {
