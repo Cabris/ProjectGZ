@@ -20,4 +20,6 @@ public:
 	TArray<FRoadItemStruct> PlaceableItems;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Road Items")
 	TArray<FRoadCurvedStruct> CurvedItems;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Road Items")
+	TArray<FRoadCurvedStruct> ChainedItems;
 };
