@@ -21,5 +21,5 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Road Items")
 	TArray<FRoadCurvedStruct> CurvedItems;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Road Items")
-	TArray<FRoadCurvedStruct> ChainedItems;
+	TArray<FChainedItemStruct> ChainedItems;
 };
