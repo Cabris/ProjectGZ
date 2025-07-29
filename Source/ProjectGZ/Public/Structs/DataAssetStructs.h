@@ -1,8 +1,20 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "UObject/NoExportTypes.h"
 #include "DataAssetStructs.generated.h"
+
+class UInputAction;
+USTRUCT(BlueprintType)
+struct FInputActionConfig
+{
+	GENERATED_BODY()
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="InputTag")
+	FGameplayTag InputTag;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="InputTag")
+	UInputAction* InputAction;
+};
 
 USTRUCT(BlueprintType)
 struct FBuildingStruct

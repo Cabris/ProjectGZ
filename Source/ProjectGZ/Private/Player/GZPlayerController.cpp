@@ -11,6 +11,9 @@
 #include "Interfactions/AimControllable.h"
 #include "Interfactions/CameraControllable.h"
 #include "Interfactions/Strafingable.h"
+#include "DataAsset/Input/GZDataAssetInputConfig.h"
+#include "Game/GZGameplayTags.h"
+#include "Game/GZInputComponent.h"
 
 AGZPlayerController::AGZPlayerController()
 {
@@ -20,10 +23,16 @@ AGZPlayerController::AGZPlayerController()
 void AGZPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
-	check(GZContext);
-	auto inputSubsys = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer());
-	check(inputSubsys);
-	inputSubsys->AddMappingContext(GZContext, 0);
+	auto InputSubsys = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer());
+	check(InputSubsys);
+
+
+	//	check(GZContext);
+	//	inputSubsys->AddMappingContext(GZContext, 0);
+
+	check(InputConfigDA);
+	InputSubsys->AddMappingContext(InputConfigDA->DefaultMappingContext, 0);
+
 	bShowMouseCursor = false;
 	DefaultMouseCursor = EMouseCursor::Default;
 	FInputModeGameAndUI InputModeData;
@@ -35,13 +44,24 @@ void AGZPlayerController::BeginPlay()
 void AGZPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
+	/*
 	UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InputComponent);
-	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AGZPlayerController::Move);
+	//EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AGZPlayerController::Move);
 	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AGZPlayerController::Jump);
 	EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &AGZPlayerController::Crouch);
-	EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AGZPlayerController::Look);
+	//EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AGZPlayerController::Look);
 	EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Triggered, this, &AGZPlayerController::Aim);
 	EnhancedInputComponent->BindAction(StrafeAction, ETriggerEvent::Triggered, this, &AGZPlayerController::Strafe);
+*/
+
+	UGZInputComponent* InputCPM = CastChecked<UGZInputComponent>(InputComponent);
+	InputCPM->BindNativeInputAction(InputConfigDA, GZGameplayTags::InputTag_Move, ETriggerEvent::Triggered, this, &ThisClass::Move);
+	InputCPM->BindNativeInputAction(InputConfigDA, GZGameplayTags::InputTag_Look, ETriggerEvent::Triggered, this, &ThisClass::Look);
+	InputCPM->BindNativeInputAction(InputConfigDA, GZGameplayTags::InputTag_Jump, ETriggerEvent::Triggered, this, &ThisClass::Jump);
+	InputCPM->BindNativeInputAction(InputConfigDA, GZGameplayTags::InputTag_Aim, ETriggerEvent::Triggered, this, &ThisClass::Aim);
+	InputCPM->BindNativeInputAction(InputConfigDA, GZGameplayTags::InputTag_Crouch, ETriggerEvent::Triggered, this, &ThisClass::Crouch);
+	InputCPM->BindNativeInputAction(InputConfigDA, GZGameplayTags::InputTag_Sprint, ETriggerEvent::Triggered, this, &ThisClass::Sprint);
+	InputCPM->BindNativeInputAction(InputConfigDA, GZGameplayTags::InputTag_Strafe, ETriggerEvent::Triggered, this, &ThisClass::Strafe);
 }
 
 void AGZPlayerController::PlayerTick(float DeltaTime)
@@ -125,6 +145,10 @@ void AGZPlayerController::Strafe(const FInputActionValue& inputActionValue)
 				Strafingable->Unstrafe();
 		}
 	}
+}
+
+void AGZPlayerController::Sprint(const FInputActionValue& inputActionValue)
+{
 }
 
 void AGZPlayerController::Jump(const FInputActionValue& inputActionValue)

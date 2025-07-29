@@ -1,0 +1,16 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+
+#include "NativeGameplayTags.h"
+
+namespace GZGameplayTags
+{
+	PROJECTGZ_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Move)
+	PROJECTGZ_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Look)
+	PROJECTGZ_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Jump)
+	PROJECTGZ_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Sprint)
+	PROJECTGZ_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Crouch)
+	PROJECTGZ_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Aim)
+	PROJECTGZ_API UE_DECLARE_GAMEPLAY_TAG_EXTERN(InputTag_Strafe)
+}

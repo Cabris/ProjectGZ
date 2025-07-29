@@ -10,7 +10,8 @@
  * 
  */
 class AGZCharacterBase;
-class UInputMappingContext;;
+class UInputMappingContext;
+class UGZDataAssetInputConfig;
 class UInputAction;
 struct FInputActionValue;
 
@@ -18,13 +19,18 @@ UCLASS()
 class PROJECTGZ_API AGZPlayerController : public APlayerController
 {
 	GENERATED_BODY()
+
 public:
 	AGZPlayerController();
-	virtual  void SetupInputComponent() override;
-	virtual  void BeginPlay() override;
-	virtual  void PlayerTick(float DeltaTime) override;
+	virtual void SetupInputComponent() override;
+	virtual void BeginPlay() override;
+	virtual void PlayerTick(float DeltaTime) override;
+
 protected:
 private:
+	UPROPERTY(EditAnywhere, Category = "Input")
+	UGZDataAssetInputConfig* InputConfigDA;
+/*
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputMappingContext> GZContext;
 	UPROPERTY(EditAnywhere, Category = "Input")
@@ -39,11 +45,14 @@ private:
 	TObjectPtr<UInputAction> AimAction;
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> StrafeAction;
+*/
+	
 	void Move(const FInputActionValue& inputActionValue);
 	void Jump(const FInputActionValue& inputActionValue);
 	void Crouch(const FInputActionValue& inputActionValue);
 	void Look(const FInputActionValue& inputActionValue);
 	void Aim(const FInputActionValue& inputActionValue);
 	void Strafe(const FInputActionValue& inputActionValue);
+	void Sprint(const FInputActionValue& inputActionValue);
 	AGZCharacterBase* GetGZCharacter() const;
 };
