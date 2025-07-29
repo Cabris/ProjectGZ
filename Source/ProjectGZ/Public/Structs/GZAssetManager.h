@@ -14,4 +14,5 @@ public:
 	virtual  void StartInitialLoading() override;
 	static const FPrimaryAssetType DynamicMeshDataAsset;
 	static const FPrimaryAssetType RoadMeshDataAsset;
+	static const FPrimaryAssetType BuildingDataAsset;
 };

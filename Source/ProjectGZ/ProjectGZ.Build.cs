@@ -8,9 +8,9 @@ public class ProjectGZ : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "GameplayAbilities" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "GameplayAbilities", "PCG" });
 
-		PrivateDependencyModuleNames.AddRange(new string[] { "AnimGraphRuntime" ,"GameplayTags","GameplayTasks" });
+		PrivateDependencyModuleNames.AddRange(new string[] { "AnimGraphRuntime" ,"GameplayTags","GameplayTasks", "PCG" });
 
 		// Uncomment if you are using Slate UI
 		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
