@@ -30,6 +30,16 @@ public:
 	virtual void Unstrafe() override;
 	virtual bool IsStrafing() override;
 
+	FORCEINLINE virtual UGZAbilitySystemComponent* GetAbilitySystemComponent() const override
+	{
+		return AbilitySystemComponent;
+	}
+
+	FORCEINLINE virtual UGZAttributeSet* GetAttributeSet() const override
+	{
+		return AttributeSet;
+	}
+
 protected:
 	UPROPERTY(EditAnywhere, Category = "Camera")
 	TObjectPtr<UCameraComponent> Camera;
@@ -38,6 +48,11 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Aim")
 	TObjectPtr<UGZAimMotionComponent> AimMotionComponent;
 
+	UPROPERTY(VisibleAnywhere, Category = "Ability")
+	TObjectPtr<UGZAbilitySystemComponent> AbilitySystemComponent;
+	UPROPERTY(VisibleAnywhere, Category = "Ability")
+	TObjectPtr<UGZAttributeSet> AttributeSet;
 private:
 	bool bIsStrafing;
+	void InitializeAbilitySystem();
 };

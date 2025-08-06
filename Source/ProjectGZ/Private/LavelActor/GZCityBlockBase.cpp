@@ -11,10 +11,10 @@ AGZCityBlockBase::AGZCityBlockBase()
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
 	Spline = CreateDefaultSubobject<USplineComponent>("Spline");
-	//Spline->SetupAttachment(GetRootComponent());
-	Spline->AttachToComponent(GetRootComponent(), FAttachmentTransformRules(
+	Spline->SetupAttachment(GetRootComponent());
+	/*Spline->AttachToComponent(GetRootComponent(), FAttachmentTransformRules(
 		EAttachmentRule::KeepRelative, EAttachmentRule::KeepWorld,
-		EAttachmentRule::KeepWorld, false));
+		EAttachmentRule::KeepWorld, false));*/
 
 	PCG = CreateDefaultSubobject<UPCGComponent>("PCG");
 	//PCG->SetupAttachment(GetRootComponent());

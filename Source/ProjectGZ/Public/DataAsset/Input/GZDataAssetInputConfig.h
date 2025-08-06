@@ -2,7 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Engine/DataAsset.h"
-#include "Structs/DataAssetStructs.h"
+#include "DataAsset/DataAssetStructs.h"
 #include "GZDataAssetInputConfig.generated.h"
 
 /**

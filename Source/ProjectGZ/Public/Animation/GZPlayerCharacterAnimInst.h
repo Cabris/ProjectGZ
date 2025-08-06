@@ -4,12 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "Animation/GZCharacterAnimInstance.h"
-#include "Structs/TurnInPlase.h"
+#include "Animation/AnimationStructs.h"
 #include "GZPlayerCharacterAnimInst.generated.h"
 
-/**
- * 
- */
+
 UCLASS()
 class PROJECTGZ_API UGZPlayerCharacterAnimInst : public UGZCharacterAnimInstance
 {
@@ -36,7 +34,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, Category = "TurnInPlace")
 	float RootYawOffset;
 
-	
+
 	UPROPERTY(BlueprintReadWrite, Category = "TurnInPlace")
 	float ActorYawDelta;
 	UPROPERTY(BlueprintReadWrite, Category = "TurnInPlace")
@@ -44,7 +42,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, Category = "TurnInPlace")
 	float LastActorYaw;
 
-	
+
 	UPROPERTY(BlueprintReadWrite, Category = "TurnInPlace")
 	float TurnYawCurveValue;
 	UPROPERTY(BlueprintReadWrite, Category = "TurnInPlace")
@@ -66,7 +64,7 @@ public:
 	FName TurnYawWeight = TEXT("TurnYawWeight");
 	UPROPERTY(BlueprintReadWrite, Category = "TurnInPlace")
 	FName RemainingTurnYaw = TEXT("RemainingTurnYaw");
-	
+
 	///
 protected:
 	UPROPERTY(BlueprintReadOnly, Category = "Movement")

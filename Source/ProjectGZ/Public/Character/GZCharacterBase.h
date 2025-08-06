@@ -4,26 +4,21 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "Interfactions/GZAbilitySystemInterface.h"
 #include "GZCharacterBase.generated.h"
 
+class UGZAbilitySystemComponent;
+
 UCLASS()
-class PROJECTGZ_API AGZCharacterBase : public ACharacter
+class PROJECTGZ_API AGZCharacterBase : public ACharacter, public IGZAbilitySystemInterface
 {
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this character's properties
 	AGZCharacterBase();
+	virtual UGZAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	virtual UGZAttributeSet* GetAttributeSet() const override;
 
 protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
+private:
 };

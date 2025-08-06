@@ -3,32 +3,17 @@
 
 #include "Character/GZCharacterBase.h"
 
-// Sets default values
 AGZCharacterBase::AGZCharacterBase()
 {
- 	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
 }
 
-// Called when the game starts or when spawned
-void AGZCharacterBase::BeginPlay()
+UGZAbilitySystemComponent* AGZCharacterBase::GetAbilitySystemComponent() const
 {
-	Super::BeginPlay();
-	
+	return nullptr;
 }
 
-// Called every frame
-void AGZCharacterBase::Tick(float DeltaTime)
+UGZAttributeSet* AGZCharacterBase::GetAttributeSet() const
 {
-	Super::Tick(DeltaTime);
-
+	return nullptr;
 }
-
-// Called to bind functionality to input
-void AGZCharacterBase::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
-}
-

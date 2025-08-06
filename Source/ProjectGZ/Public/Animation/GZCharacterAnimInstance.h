@@ -1,7 +1,7 @@
 #pragma once
 #include "CoreMinimal.h"
 #include "Animation/AnimInstance.h"
-#include "Structs/CardinalDirection.h"
+#include "Animation/CardinalDirection.h"
 #include "GZCharacterAnimInstance.generated.h"
 
 class AGZCharacterBase;

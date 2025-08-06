@@ -3,10 +3,9 @@
 
 #include "Player//GZPlayerController.h"
 #include "EnhancedInputSubsystems.h"
-#include <EnhancedInputComponent.h>
 #include "InputActionValue.h"
 #include "Character/GZCharacterBase.h"
-#include "Component/GZAimMotionComponent.h"
+#include "Character/GZAimMotionComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Interfactions/AimControllable.h"
 #include "Interfactions/CameraControllable.h"
@@ -18,20 +17,17 @@
 AGZPlayerController::AGZPlayerController()
 {
 	bReplicates = true; //for multiplayer usage
+	InputConfigDA = nullptr;
 }
 
 void AGZPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
 	auto InputSubsys = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer());
-	check(InputSubsys);
-
-
-	//	check(GZContext);
-	//	inputSubsys->AddMappingContext(GZContext, 0);
-
 	check(InputConfigDA);
-	InputSubsys->AddMappingContext(InputConfigDA->DefaultMappingContext, 0);
+
+	if (InputSubsys)
+		InputSubsys->AddMappingContext(InputConfigDA->DefaultMappingContext, 0);
 
 	bShowMouseCursor = false;
 	DefaultMouseCursor = EMouseCursor::Default;
@@ -44,15 +40,6 @@ void AGZPlayerController::BeginPlay()
 void AGZPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
-	/*
-	UEnhancedInputComponent* EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(InputComponent);
-	//EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AGZPlayerController::Move);
-	EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Triggered, this, &AGZPlayerController::Jump);
-	EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Triggered, this, &AGZPlayerController::Crouch);
-	//EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &AGZPlayerController::Look);
-	EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Triggered, this, &AGZPlayerController::Aim);
-	EnhancedInputComponent->BindAction(StrafeAction, ETriggerEvent::Triggered, this, &AGZPlayerController::Strafe);
-*/
 
 	UGZInputComponent* InputCPM = CastChecked<UGZInputComponent>(InputComponent);
 	InputCPM->BindNativeInputAction(InputConfigDA, GZGameplayTags::InputTag_Move, ETriggerEvent::Triggered, this, &ThisClass::Move);
@@ -161,7 +148,6 @@ void AGZPlayerController::Jump(const FInputActionValue& inputActionValue)
 			ControlledPawn->Jump();
 	}
 }
-
 
 void AGZPlayerController::Crouch(const FInputActionValue& inputActionValue)
 {

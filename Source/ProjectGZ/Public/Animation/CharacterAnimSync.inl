@@ -1,0 +1,1 @@
+﻿SYNC_PROP(AAA, float)

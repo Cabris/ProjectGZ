@@ -30,23 +30,7 @@ protected:
 private:
 	UPROPERTY(EditAnywhere, Category = "Input")
 	UGZDataAssetInputConfig* InputConfigDA;
-/*
-	UPROPERTY(EditAnywhere, Category = "Input")
-	TObjectPtr<UInputMappingContext> GZContext;
-	UPROPERTY(EditAnywhere, Category = "Input")
-	TObjectPtr<UInputAction> MoveAction;
-	UPROPERTY(EditAnywhere, Category = "Input")
-	TObjectPtr<UInputAction> JumpAction;
-	UPROPERTY(EditAnywhere, Category = "Input")
-	TObjectPtr<UInputAction> CrouchAction;
-	UPROPERTY(EditAnywhere, Category = "Input")
-	TObjectPtr<UInputAction> LookAction;
-	UPROPERTY(EditAnywhere, Category = "Input")
-	TObjectPtr<UInputAction> AimAction;
-	UPROPERTY(EditAnywhere, Category = "Input")
-	TObjectPtr<UInputAction> StrafeAction;
-*/
-	
+
 	void Move(const FInputActionValue& inputActionValue);
 	void Jump(const FInputActionValue& inputActionValue);
 	void Crouch(const FInputActionValue& inputActionValue);

@@ -2,11 +2,16 @@
 
 
 #include "Character/Player/GZPlayerCharacter.h"
+
+#include "AbilitySystem/GZAbilitySystemComponent.h"
 #include "Camera/CameraComponent.h"
-#include "Component/GZAimMotionComponent.h"
+#include "Character/GZAimMotionComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Player/GZPlayerController.h"
+#include "Player/GZPlayerState.h"
 #include "ProjectGZ/ProjectGZ.h"
+#include "UI/HUD/GZHUD.h"
 
 AGZPlayerCharacter::AGZPlayerCharacter()
 {
@@ -17,7 +22,6 @@ AGZPlayerCharacter::AGZPlayerCharacter()
 	Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
 
 	AimMotionComponent = CreateDefaultSubobject<UGZAimMotionComponent>("AimMotion");
-	//AimMotionComponent->RegisterComponent();
 	const auto CMC = GetCharacterMovement();
 	CMC->bOrientRotationToMovement = true;
 	CMC->RotationRate = FRotator(0, DEFAULT_GZ_ROTATE_RATE_YAW, 0);
@@ -41,12 +45,16 @@ void AGZPlayerCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
 	//called on the server
+	InitializeAbilitySystem();
+	UE_LOG(LogTemp, Log, TEXT("AGZPlayerCharacter::InitializeAbilitySystem called on the server"));
 }
 
 void AGZPlayerCharacter::OnRep_PlayerState()
 {
 	Super::OnRep_PlayerState();
 	//called on the client
+	InitializeAbilitySystem();
+	UE_LOG(LogTemp, Log, TEXT("AGZPlayerCharacter::InitializeAbilitySystem called on the client"));
 }
 
 void AGZPlayerCharacter::PitchCamera(float AxisValue)
@@ -66,15 +74,35 @@ UGZAimMotionComponent* AGZPlayerCharacter::GetAimMotionComponent()
 
 void AGZPlayerCharacter::Strafe()
 {
-	bIsStrafing=true;
+	bIsStrafing = true;
 }
 
 void AGZPlayerCharacter::Unstrafe()
 {
-	bIsStrafing=false;
+	bIsStrafing = false;
 }
 
 bool AGZPlayerCharacter::IsStrafing()
 {
 	return bIsStrafing;
+}
+
+void AGZPlayerCharacter::InitializeAbilitySystem()
+{
+	AGZPlayerState* GZPlayerState = GetPlayerState<AGZPlayerState>();
+	check(GZPlayerState);
+	AbilitySystemComponent = GZPlayerState->GetAbilitySystemComponent();
+	AttributeSet = GZPlayerState->GetAttributeSet();
+
+	AbilitySystemComponent->InitAbilityActorInfo(GZPlayerState, this);
+
+	AGZPlayerController* GZPlayerController = Cast<AGZPlayerController>(GetController());
+	if (GZPlayerController)
+	{
+		//init HUD
+		if (AGZHUD* HUD = GZPlayerController->GetHUD<AGZHUD>())
+		{
+			HUD->InitializeOverlay(GZPlayerController, GZPlayerState, AbilitySystemComponent, AttributeSet);
+		}
+	}
 }

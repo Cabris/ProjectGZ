@@ -8,7 +8,8 @@ public class ProjectGZ : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "GameplayAbilities", "PCG" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", 
+			"EnhancedInput", "GameplayAbilities", "PCG"});
 
 		PrivateDependencyModuleNames.AddRange(new string[] { "AnimGraphRuntime" ,"GameplayTags","GameplayTasks", "PCG" });
 
