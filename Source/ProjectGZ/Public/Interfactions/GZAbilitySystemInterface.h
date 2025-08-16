@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AbilitySystemInterface.h"
 #include "AbilitySystem/GZAbilitySystemComponent.h"
 #include "AbilitySystem/GZAttributeSet.h"
 #include "UObject/Interface.h"
@@ -14,10 +15,11 @@ class UGZAbilitySystemInterface : public UInterface
 	GENERATED_BODY()
 };
 
-class PROJECTGZ_API IGZAbilitySystemInterface
+class PROJECTGZ_API IGZAbilitySystemInterface : public IAbilitySystemInterface
 {
 	GENERATED_BODY()
+
 public:
-	virtual UGZAbilitySystemComponent* GetAbilitySystemComponent() const = 0;
-	virtual UGZAttributeSet* GetAttributeSet() const = 0;	
+	virtual UGZAbilitySystemComponent* GetAbilitySystemComponent() const override = 0;
+	virtual UGZAttributeSet* GetAttributeSet() const = 0;
 };

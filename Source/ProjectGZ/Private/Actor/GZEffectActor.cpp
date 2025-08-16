@@ -33,6 +33,11 @@ void AGZEffectActor::ApplyEffectToTarget(AActor* TargetActor, FEffectParams& InE
 		//Infinite Effect won't self expire, so EffectHandle needs to be store for later remove.
 		ActiveEffectHandles.Add(EffectHandle, TargetASC);
 	}
+
+	if (EffectSpec->Def->DurationPolicy== EGameplayEffectDurationType::Instant&& bDestroyOnEffectRemoval) 
+	{
+		Destroy();
+	}
 }
 
 void AGZEffectActor::OnOverlap(AActor* TargetActor)

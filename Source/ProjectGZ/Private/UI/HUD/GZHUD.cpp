@@ -1,23 +1,40 @@
 ﻿#include "UI/HUD/GZHUD.h"
+
+#include "UI/Widget/GZInventoryWidget.h"
 #include "UI/Widget/GZUserWidget.h"
+#include "UI/WidgetController/GZInventoryWidgetController.h"
+#include "UI/WidgetController/GZOverlayWidgetController.h"
 #include "UI/WidgetController/GZWidgetController.h"
 
 void AGZHUD::InitializeOverlay(AGZPlayerController* PC, AGZPlayerState* PS, UGZAbilitySystemComponent* ASC, UGZAttributeSet* AS)
 {
 	checkf(OverlayWidgetClass, TEXT("OverlayWidgetClass is not set!"));
 	checkf(OverlayWidgetControllerClass, TEXT("OverlayWidgetControllerClass is not set!"));
-	UGZUserWidget* UserWidget = CreateWidget<UGZUserWidget>(GetWorld(), OverlayWidgetClass);
-	check(UserWidget);
-	OverlayWidget = UserWidget;
+	FWidgetControllerParams WidgetParams(PC,PS);
 
-	if (!IsValid(OverlayWidgetController))
+	/*UGZUserWidget* UserWidget = CreateWidget<UGZUserWidget>(GetWorld(), OverlayWidgetClass);
+	check(UserWidget);
+	OverlayWidget = UserWidget;*/
+	OverlayWidget = GetOrCreateWidget(OverlayWidget, OverlayWidgetClass);
+
+	/*if (!IsValid(OverlayWidgetController))
 	{
-		UGZWidgetController* WidgetController = NewObject<UGZWidgetController>(this, OverlayWidgetControllerClass);
+		UGZOverlayWidgetController* WidgetController = NewObject<UGZOverlayWidgetController>(this, OverlayWidgetControllerClass);
 		check(WidgetController);
 		OverlayWidgetController = WidgetController;
-	}
-	FWidgetControllerParams WidgetParams(PC, PS, ASC, AS);
+	}*/
+	OverlayWidgetController = GetWidgetController(OverlayWidgetController, OverlayWidgetControllerClass);
 	OverlayWidgetController->SetWidgetControllerParams(WidgetParams);
+	OverlayWidget->SetWidgetController(OverlayWidgetController);
 	OverlayWidgetController->BindCallbacksToDependencies();
+	OverlayWidgetController->BroadcastInitialValues();
 	OverlayWidget->AddToViewport();
+
+	InventoryWidget = GetOrCreateWidget(InventoryWidget, InventoryWidgetClass);
+	InventoryWidgetController = GetWidgetController(InventoryWidgetController, InventoryWidgetControllerClass);
+	InventoryWidgetController->SetWidgetControllerParams(WidgetParams);
+	InventoryWidget->SetWidgetController(InventoryWidgetController);
+	InventoryWidgetController->BindCallbacksToDependencies();
+	InventoryWidgetController->BroadcastInitialValues();
+	InventoryWidget->AddToViewport();
 }

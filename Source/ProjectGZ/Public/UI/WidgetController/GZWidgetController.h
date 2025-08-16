@@ -1,11 +1,12 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
+#include "Interfactions/GZPawnFeatureInterface.h"
+#include "Player/GZPlayerState.h"
 #include "UObject/Object.h"
 #include "GZWidgetController.generated.h"
 
 class AGZPlayerController;
-class AGZPlayerState;
 class UGZAbilitySystemComponent;
 class UGZAttributeSet;
 
@@ -15,11 +16,22 @@ struct FWidgetControllerParams
 	GENERATED_BODY()
 	FWidgetControllerParams() = default;
 
-	FWidgetControllerParams(AGZPlayerController* PC, AGZPlayerState* PS, UGZAbilitySystemComponent* ASC, UGZAttributeSet* AS)
-	: PlayerController(PC), PlayerState(PS), AbilitySystemComponent(ASC), AttributeSet(AS)
+	FWidgetControllerParams(AGZPlayerController* PC, AGZPlayerState* PS)
 	{
+		PawnFeature = PS->GetPawnFeature();
+		PlayerState = PS;
+		PlayerController = PC;
+		AbilitySystemComponent = PS->GetAbilitySystemComponent();
+		AttributeSet = PS->GetAttributeSet();
 	}
 
+
+	/*FWidgetControllerParams(AGZPlayerController* PC, AGZPlayerState* PS, UGZAbilitySystemComponent* ASC, UGZAttributeSet* AS)
+		: PlayerController(PC), PlayerState(PS), AbilitySystemComponent(ASC), AttributeSet(AS)
+	{
+	}*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TObjectPtr<UGZPawnFeatureComponent> PawnFeature;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<AGZPlayerController> PlayerController = nullptr;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
@@ -29,7 +41,6 @@ struct FWidgetControllerParams
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	TObjectPtr<UGZAttributeSet> AttributeSet = nullptr;
 };
-
 
 UCLASS(BlueprintType, Blueprintable)
 class PROJECTGZ_API UGZWidgetController : public UObject
@@ -51,5 +62,7 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category="Widget Controller")
 	TObjectPtr<UGZAttributeSet> AttributeSet = nullptr;
 
+	UPROPERTY(BlueprintReadOnly, Category="Widget Controller")
+	TObjectPtr<UGZPawnFeatureComponent> PawnFeatureComponent;
 private:
 };

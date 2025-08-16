@@ -3,12 +3,10 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "GameFramework/PlayerController.h"
 #include "GZPlayerController.generated.h"
 
-/**
- * 
- */
 class AGZCharacterBase;
 class UInputMappingContext;
 class UGZDataAssetInputConfig;
@@ -38,5 +36,8 @@ private:
 	void Aim(const FInputActionValue& inputActionValue);
 	void Strafe(const FInputActionValue& inputActionValue);
 	void Sprint(const FInputActionValue& inputActionValue);
+	virtual void PostProcessInput(const float DeltaTime, const bool bGamePaused) override;
+	void AbilityInputPressed(FGameplayTag InputTag);
+	void AbilityInputReleased(FGameplayTag InputTag);
 	AGZCharacterBase* GetGZCharacter() const;
 };

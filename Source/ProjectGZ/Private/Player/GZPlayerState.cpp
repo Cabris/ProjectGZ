@@ -1,14 +1,37 @@
 #include "Player/GZPlayerState.h"
 #include "AbilitySystem/GZAbilitySystemComponent.h"
 #include "AbilitySystem/GZAttributeSet.h"
+#include "Character//GZPawnFeatureComponent.h"
+#include "Equipment/GZEquipmentManagerComponent.h"
+#include "Equipment/GZWeaponMenuComponent.h"
+#include "Inventory/GZInventoryManagerComponent.h"
 
 
 AGZPlayerState::AGZPlayerState()
 {
 	SetNetUpdateFrequency(100.f);
-	AbilitySystemComponent=CreateDefaultSubobject<UGZAbilitySystemComponent>("AbilitySystemComponent");
+	AttributeSet = CreateDefaultSubobject<UGZAttributeSet>("AttributeSet");
+	AbilitySystemComponent = CreateDefaultSubobject<UGZAbilitySystemComponent>("AbilitySystemComponent");
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
-	AttributeSet=CreateDefaultSubobject<UGZAttributeSet>("AttributeSet");
-}
 
+	InventoryManager = CreateDefaultSubobject<UGZInventoryManagerComponent>("InventoryManagerComponent");
+	InventoryManager->SetIsReplicated(true);
+
+	EquipmentManager = CreateDefaultSubobject<UGZEquipmentManagerComponent>("EquipmentManagerComponent");
+	EquipmentManager->SetIsReplicated(true);
+
+	WeaponMenu = CreateDefaultSubobject<UGZWeaponMenuComponent>("WeaponMenuComponent");
+	WeaponMenu->SetIsReplicated(true);
+
+	FPawnFeatureStruct PawnFeatureStruct;
+	PawnFeatureStruct.AbilitySystemComponent = AbilitySystemComponent;
+	PawnFeatureStruct.AttributeSet = AttributeSet;
+	PawnFeatureStruct.InventoryManager = InventoryManager;
+	PawnFeatureStruct.EquipmentManager = EquipmentManager;
+	PawnFeatureStruct.WeaponMenu = WeaponMenu;
+
+	PawnFeature = CreateDefaultSubobject<UGZPawnFeatureComponent>("PawnFeatureComponent");
+	PawnFeature->SetIsReplicated(true);
+	PawnFeature->SetupPawnFeature(PawnFeatureStruct);
+}

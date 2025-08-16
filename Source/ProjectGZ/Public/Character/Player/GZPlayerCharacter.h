@@ -6,6 +6,7 @@
 #include "Character/GZCharacterBase.h"
 #include "Interfactions/AimControllable.h"
 #include "Interfactions/CameraControllable.h"
+#include "Interfactions/GZPawnFeatureInterface.h"
 #include "Interfactions/Strafingable.h"
 #include "GZPlayerCharacter.generated.h"
 
@@ -15,7 +16,7 @@ class UGZAimMotionComponent;
 
 UCLASS()
 class PROJECTGZ_API AGZPlayerCharacter : public AGZCharacterBase, public ICameraControllable, public IAimControllable,
-                                         public IStrafingable
+                                         public IStrafingable, public IGZPawnFeatureInterface
 {
 	GENERATED_BODY()
 
@@ -30,29 +31,30 @@ public:
 	virtual void Unstrafe() override;
 	virtual bool IsStrafing() override;
 
-	FORCEINLINE virtual UGZAbilitySystemComponent* GetAbilitySystemComponent() const override
-	{
-		return AbilitySystemComponent;
-	}
+	virtual UGZAbilitySystemComponent* GetAbilitySystemComponent() const override;
 
-	FORCEINLINE virtual UGZAttributeSet* GetAttributeSet() const override
+	virtual UGZAttributeSet* GetAttributeSet() const override;
+
+	FORCEINLINE virtual UGZPawnFeatureComponent* GetPawnFeature() override
 	{
-		return AttributeSet;
+		return UGZPawnFeature;
 	}
 
 protected:
-	UPROPERTY(EditAnywhere, Category = "Camera")
+	UPROPERTY(VisibleAnywhere, Category = "Character|Camera")
 	TObjectPtr<UCameraComponent> Camera;
-	UPROPERTY(EditAnywhere, Category = "Camera")
+	UPROPERTY(VisibleAnywhere, Category = "Character|Camera")
 	TObjectPtr<USpringArmComponent> SpringArm;
-	UPROPERTY(EditAnywhere, Category = "Aim")
+	UPROPERTY(VisibleAnywhere, Category = "Character|Aim")
 	TObjectPtr<UGZAimMotionComponent> AimMotionComponent;
 
-	UPROPERTY(VisibleAnywhere, Category = "Ability")
-	TObjectPtr<UGZAbilitySystemComponent> AbilitySystemComponent;
-	UPROPERTY(VisibleAnywhere, Category = "Ability")
-	TObjectPtr<UGZAttributeSet> AttributeSet;
+	UPROPERTY(EditDefaultsOnly, Category = "Character|AbilitySet")
+	TSubclassOf<UGZInputGameplayAbilitySet> AbilitySetClass;
+
+	UPROPERTY(VisibleAnywhere, Category = "Character|PawnFeature")
+	TObjectPtr<UGZPawnFeatureComponent> UGZPawnFeature;
+
 private:
 	bool bIsStrafing;
-	void InitializeAbilitySystem();
+	void InitializePawnFeature();
 };

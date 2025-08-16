@@ -3,3 +3,8 @@
 
 #include "Character/Enemy/GZEnemyCharacterBase.h"
 
+void AGZEnemyCharacterBase::BeginPlay()
+{
+	Super::BeginPlay();
+	
+}

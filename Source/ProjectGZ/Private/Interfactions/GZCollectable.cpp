@@ -1,0 +1,1 @@
+﻿#include "Interfactions/GZCollectable.h"

@@ -1,7 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-
-
-#include "UI/WidgetController/GZWidgetController.h"
+﻿#include "UI/WidgetController/GZWidgetController.h"
 
 void UGZWidgetController::SetWidgetControllerParams(const FWidgetControllerParams& WidgetControllerParams)
 {
@@ -9,6 +6,7 @@ void UGZWidgetController::SetWidgetControllerParams(const FWidgetControllerParam
 	PlayerState = WidgetControllerParams.PlayerState;
 	AbilitySystemComponent = WidgetControllerParams.AbilitySystemComponent;
 	AttributeSet = WidgetControllerParams.AttributeSet;
+	PawnFeatureComponent = WidgetControllerParams.PawnFeature;
 }
 
 void UGZWidgetController::BroadcastInitialValues()

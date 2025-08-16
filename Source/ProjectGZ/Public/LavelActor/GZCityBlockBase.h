@@ -20,13 +20,8 @@ public:
 	TObjectPtr<USplineComponent> Spline;
 	UPROPERTY(EditAnywhere, Category="CityBlock")
 	TObjectPtr<UPCGComponent> PCG;
-	
-	
 	UPROPERTY(EditAnywhere, Category="CityBlock")
 	FString CityBlockId;
-
-
-
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

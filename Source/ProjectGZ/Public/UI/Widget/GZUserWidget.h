@@ -1,7 +1,7 @@
 ﻿#pragma once
-
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "UI/WidgetController/GZWidgetController.h"
 #include "GZUserWidget.generated.h"
 
 class UGZWidgetController;
@@ -12,7 +12,7 @@ class PROJECTGZ_API UGZUserWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
-	UFUNCTION(Blueprintable)
+	UFUNCTION(BlueprintCallable)
 	void SetWidgetController(UGZWidgetController* Controller);
 
 protected:
@@ -20,5 +20,14 @@ protected:
 	TObjectPtr<UGZWidgetController> WidgetController;
 	UFUNCTION(BlueprintImplementableEvent, Category="Widget")
 	void WidgetControllerSet();
+
+	template <typename WidgetControllerType>
+	WidgetControllerType* GetWidgetController()
+	{
+		if (!IsValid(WidgetController))
+			return nullptr;
+		return Cast<WidgetControllerType>(WidgetController);
+	}
+
 private:
 };

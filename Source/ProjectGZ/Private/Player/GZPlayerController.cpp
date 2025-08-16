@@ -10,7 +10,7 @@
 #include "Interfactions/AimControllable.h"
 #include "Interfactions/CameraControllable.h"
 #include "Interfactions/Strafingable.h"
-#include "DataAsset/Input/GZDataAssetInputConfig.h"
+#include "ProjectGZ/Public/Data/Input/GZDataAssetInputConfig.h"
 #include "Game/GZGameplayTags.h"
 #include "Game/GZInputComponent.h"
 
@@ -27,7 +27,7 @@ void AGZPlayerController::BeginPlay()
 	check(InputConfigDA);
 
 	if (InputSubsys)
-		InputSubsys->AddMappingContext(InputConfigDA->DefaultMappingContext, 0);
+		InputSubsys->AddMappingContext(InputConfigDA->GetInputMappingContext(), 0);
 
 	bShowMouseCursor = false;
 	DefaultMouseCursor = EMouseCursor::Default;
@@ -49,6 +49,9 @@ void AGZPlayerController::SetupInputComponent()
 	InputCPM->BindNativeInputAction(InputConfigDA, GZGameplayTags::InputTag_Crouch, ETriggerEvent::Triggered, this, &ThisClass::Crouch);
 	InputCPM->BindNativeInputAction(InputConfigDA, GZGameplayTags::InputTag_Sprint, ETriggerEvent::Triggered, this, &ThisClass::Sprint);
 	InputCPM->BindNativeInputAction(InputConfigDA, GZGameplayTags::InputTag_Strafe, ETriggerEvent::Triggered, this, &ThisClass::Strafe);
+
+	InputCPM->BindAbilityInputActions(InputConfigDA, ETriggerEvent::Triggered, this, &ThisClass::AbilityInputPressed);
+	InputCPM->BindAbilityInputActions(InputConfigDA, ETriggerEvent::Completed, this, &ThisClass::AbilityInputReleased);
 }
 
 void AGZPlayerController::PlayerTick(float DeltaTime)
@@ -138,6 +141,37 @@ void AGZPlayerController::Sprint(const FInputActionValue& inputActionValue)
 {
 }
 
+void AGZPlayerController::PostProcessInput(const float DeltaTime, const bool bGamePaused)
+{
+	Super::PostProcessInput(DeltaTime, bGamePaused);
+	AGZCharacterBase* GZCharacter = GetGZCharacter();
+	UGZAbilitySystemComponent* ASC = GZCharacter->GetAbilitySystemComponent();
+	if (ASC)
+	{
+		ASC->PostProcessInput(DeltaTime,bGamePaused);
+	}
+}
+
+void AGZPlayerController::AbilityInputPressed(FGameplayTag InputTag)
+{
+	AGZCharacterBase* GZCharacter = GetGZCharacter();
+	UGZAbilitySystemComponent* ASC = GZCharacter->GetAbilitySystemComponent();
+	if (ASC)
+	{
+		ASC->AbilityInputPressed(InputTag);
+	}
+}
+
+void AGZPlayerController::AbilityInputReleased(FGameplayTag InputTag)
+{
+	AGZCharacterBase* GZCharacter = GetGZCharacter();
+	UGZAbilitySystemComponent* ASC = GZCharacter->GetAbilitySystemComponent();
+	if (ASC)
+	{
+		ASC->AbilityInputReleased(InputTag);
+	}
+}
+
 void AGZPlayerController::Jump(const FInputActionValue& inputActionValue)
 {
 	bool inputBool = inputActionValue.Get<bool>();
@@ -182,4 +216,5 @@ AGZCharacterBase* AGZPlayerController::GetGZCharacter() const
 	{
 		UE_LOG(LogTemp, Warning, TEXT("No pawn controlled"));
 	}
+	return nullptr;
 }

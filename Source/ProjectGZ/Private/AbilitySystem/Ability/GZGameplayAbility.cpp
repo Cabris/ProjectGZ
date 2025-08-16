@@ -1,5 +1,9 @@
 ﻿#include "AbilitySystem/Ability/GZGameplayAbility.h"
 #include "AbilitySystemComponent.h"
+#include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
+#include "Abilities/Tasks/AbilityTask_WaitInputRelease.h"
+#include "AbilitySystem/GZAbilitySystemComponent.h"
+#include "Character/GZCharacterBase.h"
 
 
 void UGZGameplayAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
@@ -21,20 +25,35 @@ void UGZGameplayAbility::OnRemoveAbility(const FGameplayAbilityActorInfo* ActorI
 }
 
 void UGZGameplayAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
-	const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
+                                         const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
+	//UAbilityTask_WaitInputRelease::WaitInputRelease(this, bTestAlreadyReleased);
+	//CommitAbility(Handle,ActorInfo,ActivationInfo);
 }
 
 void UGZGameplayAbility::EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
                                     const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
-	if (ActivationPolicy == EAbilityActivationPolicy::OnGiven)
-	{
-		if (ActorInfo)
-		{
-			ActorInfo->AbilitySystemComponent->ClearAbility(Handle);
-		}
-	}
+}
+
+EAbilityActivationPolicy UGZGameplayAbility::GetActivationPolicy() const
+{
+	return ActivationPolicy;
+}
+
+UGZAbilitySystemComponent* UGZGameplayAbility::GetAbilitySystemComponent() const
+{
+	if (!CurrentActorInfo) return nullptr;
+	auto ASC = CurrentActorInfo->AbilitySystemComponent.Get();
+	return Cast<UGZAbilitySystemComponent>(ASC);
+}
+
+AGZCharacterBase* UGZGameplayAbility::GetCharacter() const
+{
+	if (!CurrentActorInfo) return nullptr;
+	auto AvatarActor = CurrentActorInfo->AvatarActor.Get();
+	if (!AvatarActor) return nullptr;
+	return Cast<AGZCharacterBase>(AvatarActor);
 }

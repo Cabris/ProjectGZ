@@ -1,11 +1,9 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "Character/Player/GZPlayerCharacter.h"
-
 #include "AbilitySystem/GZAbilitySystemComponent.h"
+#include "AbilitySystem/GZInputGameplayAbilitySet.h"
 #include "Camera/CameraComponent.h"
 #include "Character/GZAimMotionComponent.h"
+#include "Character/GZPawnFeatureComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Player/GZPlayerController.h"
@@ -45,16 +43,16 @@ void AGZPlayerCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
 	//called on the server
-	InitializeAbilitySystem();
-	UE_LOG(LogTemp, Log, TEXT("AGZPlayerCharacter::InitializeAbilitySystem called on the server"));
+	InitializePawnFeature();
+	UE_LOG(LogTemp, Log, TEXT("AGZPlayerCharacter::InitializePawnFeature called on the server"));
 }
 
 void AGZPlayerCharacter::OnRep_PlayerState()
 {
 	Super::OnRep_PlayerState();
 	//called on the client
-	InitializeAbilitySystem();
-	UE_LOG(LogTemp, Log, TEXT("AGZPlayerCharacter::InitializeAbilitySystem called on the client"));
+	InitializePawnFeature();
+	UE_LOG(LogTemp, Log, TEXT("AGZPlayerCharacter::InitializePawnFeature called on the client"));
 }
 
 void AGZPlayerCharacter::PitchCamera(float AxisValue)
@@ -87,14 +85,35 @@ bool AGZPlayerCharacter::IsStrafing()
 	return bIsStrafing;
 }
 
-void AGZPlayerCharacter::InitializeAbilitySystem()
+UGZAbilitySystemComponent* AGZPlayerCharacter::GetAbilitySystemComponent() const
+{
+	if (!UGZPawnFeature) return nullptr;
+	return UGZPawnFeature->GetAbilitySystem();
+}
+
+UGZAttributeSet* AGZPlayerCharacter::GetAttributeSet() const
+{
+	if (!UGZPawnFeature) return nullptr;
+	return UGZPawnFeature->GetAttributeSet();
+}
+
+void AGZPlayerCharacter::InitializePawnFeature()
 {
 	AGZPlayerState* GZPlayerState = GetPlayerState<AGZPlayerState>();
 	check(GZPlayerState);
-	AbilitySystemComponent = GZPlayerState->GetAbilitySystemComponent();
-	AttributeSet = GZPlayerState->GetAttributeSet();
+	UGZPawnFeature = GZPlayerState->GetPawnFeature();
+	UGZPawnFeature->InitAbilityActorInfo(GZPlayerState, this);
 
-	AbilitySystemComponent->InitAbilityActorInfo(GZPlayerState, this);
+	if (IsValid(AbilitySetClass) && AbilitySetClass.GetDefaultObject())
+	{
+		TArray<FGameplayAbilitySpecHandle> Handles;
+		UGZPawnFeature->GetAbilitySystem()->ApplyInputAbilitySet(AbilitySetClass.GetDefaultObject(), GZPlayerState, Handles);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("AbilitySetClass not set"));
+	}
+	UGZPawnFeature->OnInitializePawnFeature();
 
 	AGZPlayerController* GZPlayerController = Cast<AGZPlayerController>(GetController());
 	if (GZPlayerController)
@@ -102,7 +121,7 @@ void AGZPlayerCharacter::InitializeAbilitySystem()
 		//init HUD
 		if (AGZHUD* HUD = GZPlayerController->GetHUD<AGZHUD>())
 		{
-			HUD->InitializeOverlay(GZPlayerController, GZPlayerState, AbilitySystemComponent, AttributeSet);
+			HUD->InitializeOverlay(GZPlayerController, GZPlayerState, UGZPawnFeature->GetAbilitySystem(), UGZPawnFeature->GetAttributeSet());
 		}
 	}
 }

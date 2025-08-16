@@ -13,5 +13,5 @@ UCLASS()
 class PROJECTGZ_API AGZEnemyCharacterBase : public AGZCharacterBase
 {
 	GENERATED_BODY()
-	
+	virtual void BeginPlay() override;
 };
