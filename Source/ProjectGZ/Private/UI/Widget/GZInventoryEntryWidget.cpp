@@ -5,12 +5,13 @@
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
 #include "Engine/Texture2D.h"
-#include "UI/Widget/Inventory/GZInventoryListItemObject.h"
+#include "Game/GZAssetManager.h"
+#include "Game/GZGameplayTags.h"
 
 UGZInventoryEntryWidget::UGZInventoryEntryWidget()
 {
 	// 設定預設數量標籤
-	QuantityTag = FGameplayTag::RequestGameplayTag(TEXT("Item.Stack.Quantity"));
+	QuantityTag = GZGameplayTags::Item_Stack_Quantity;
 }
 
 void UGZInventoryEntryWidget::NativeOnListItemObjectSet(UObject* ListItemObject)
@@ -19,41 +20,35 @@ void UGZInventoryEntryWidget::NativeOnListItemObjectSet(UObject* ListItemObject)
 	IUserObjectListEntry::NativeOnListItemObjectSet(ListItemObject);
 
 	// 快取項目資料物件
-	CachedListItemObject = Cast<UGZInventoryListItemObject>(ListItemObject);
+	CachedItemInstance = Cast<UGZInventoryItemInstance>(ListItemObject);
 
-	if (!IsValid(CachedListItemObject))
+	if (!IsValid(CachedItemInstance))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("UGZInventoryEntryWidget::NativeOnListItemObjectSet - Invalid ListItemObject"));
 		return;
 	}
-
-	// 驗證物品實例
-	UGZInventoryItemInstance* ItemInstance = CachedListItemObject->GetItemInstance();
-	if (!IsValid(ItemInstance))
+	CachedItemDefinition = CachedItemInstance->GetItemDefinition();
+	if (!IsValid(CachedItemDefinition))
 	{
-		UE_LOG(LogTemp, Warning, TEXT("UGZInventoryEntryWidget::NativeOnListItemObjectSet - Invalid ItemInstance"));
+		UE_LOG(LogTemp, Warning, TEXT("UGZInventoryEntryWidget::NativeOnListItemObjectSet - Invalid ItemDefinition"));
 		return;
 	}
-
 	// 更新顯示
 	UpdateDisplay();
 
 	// 觸發 BP 事件
-	OnItemDataSet(CachedListItemObject);
+	OnItemDataSet(CachedItemInstance);
 
 	UE_LOG(LogTemp, VeryVerbose, TEXT("UGZInventoryEntryWidget::NativeOnListItemObjectSet - Set item: %s"),
-	       *CachedListItemObject->GetItemName().ToString());
+	       *CachedItemInstance->GetItemDefinition()->GetItemName().ToString());
 }
 
 void UGZInventoryEntryWidget::NativeOnItemSelectionChanged(bool bIsSelected)
 {
 	IUserObjectListEntry::NativeOnItemSelectionChanged(bIsSelected);
-
 	bIsCurrentlySelected = bIsSelected;
-
 	// 觸發 BP 事件
 	OnSelectionStateChanged(bIsSelected);
-
 	UE_LOG(LogTemp, VeryVerbose, TEXT("UGZInventoryEntryWidget::NativeOnItemSelectionChanged - Selection: %s"),
 	       bIsSelected ? TEXT("True") : TEXT("False"));
 }
@@ -61,12 +56,9 @@ void UGZInventoryEntryWidget::NativeOnItemSelectionChanged(bool bIsSelected)
 void UGZInventoryEntryWidget::NativeOnItemExpansionChanged(bool bIsExpanded)
 {
 	IUserObjectListEntry::NativeOnItemExpansionChanged(bIsExpanded);
-
 	bIsCurrentlyExpanded = bIsExpanded;
-
 	// 觸發 BP 事件
 	OnExpansionStateChanged(bIsExpanded);
-
 	UE_LOG(LogTemp, VeryVerbose, TEXT("UGZInventoryEntryWidget::NativeOnItemExpansionChanged - Expansion: %s"),
 	       bIsExpanded ? TEXT("True") : TEXT("False"));
 }
@@ -100,7 +92,7 @@ void UGZInventoryEntryWidget::NativeConstruct()
 	Super::NativeConstruct();
 
 	// 初始化時更新顯示
-	if (IsValid(CachedListItemObject))
+	if (IsValid(CachedItemInstance))
 	{
 		UpdateDisplay();
 	}
@@ -108,17 +100,17 @@ void UGZInventoryEntryWidget::NativeConstruct()
 
 UGZInventoryItemInstance* UGZInventoryEntryWidget::GetItemInstance() const
 {
-	return IsValid(CachedListItemObject) ? CachedListItemObject->GetItemInstance() : nullptr;
+	return IsValid(CachedItemInstance) ? CachedItemInstance : nullptr;
 }
 
 UGZInventoryItemDefinition* UGZInventoryEntryWidget::GetItemDefinition() const
 {
-	return IsValid(CachedListItemObject) ? CachedListItemObject->GetItemDefinition() : nullptr;
+	return IsValid(CachedItemInstance) ? CachedItemInstance->GetItemDefinition() : nullptr;
 }
 
 void UGZInventoryEntryWidget::UpdateDisplay()
 {
-	if (!IsValid(CachedListItemObject))
+	if (!IsValid(CachedItemInstance) || !IsValid(CachedItemDefinition))
 	{
 		return;
 	}
@@ -131,39 +123,36 @@ void UGZInventoryEntryWidget::UpdateDisplay()
 
 void UGZInventoryEntryWidget::UpdateItemIcon()
 {
-	if (!IsValid(ItemIcon) || !IsValid(CachedListItemObject))
+	if (!IsValid(ItemIcon) || !IsValid(CachedItemDefinition))
 	{
 		return;
 	}
 
-	UTexture2D* IconTexture = CachedListItemObject->GetItemIcon();
-	if (!IsValid(IconTexture))
-	{
-		// 使用預設圖標
-		IconTexture = DefaultItemIcon;
-	}
-
-	if (IsValid(IconTexture))
+	UTexture2D* IconTexture = CachedItemDefinition->GetItemIcon();
+	if (IconTexture)
 	{
 		ItemIcon->SetBrushFromTexture(IconTexture);
 	}
 	else
 	{
-		// 清空圖標
-		ItemIcon->SetBrushFromTexture(nullptr);
-		UE_LOG(LogTemp, Warning, TEXT("UGZInventoryEntryWidget::UpdateItemIcon - No icon available for item: %s"),
-		       *CachedListItemObject->GetItemName().ToString());
+		// 使用預設圖標
+		ItemIcon->SetBrushFromTexture(DefaultItemIcon);
+		UE_LOG(LogTemp, Warning,
+		       TEXT(
+			       "UGZInventoryEntryWidget::UpdateItemIcon - No icon available for item: %s"
+		       ),
+		       *CachedItemDefinition->GetItemName().ToString());
 	}
 }
 
 void UGZInventoryEntryWidget::UpdateItemName()
 {
-	if (!IsValid(ItemName) || !IsValid(CachedListItemObject))
+	if (!IsValid(ItemName) || !IsValid(CachedItemDefinition))
 	{
 		return;
 	}
 
-	const FName ItemNameValue = CachedListItemObject->GetItemName();
+	const FName ItemNameValue = CachedItemDefinition->GetItemName();
 	if (ItemNameValue.IsNone())
 	{
 		ItemName->SetText(FText::FromString(TEXT("Unknown Item")));
@@ -171,8 +160,6 @@ void UGZInventoryEntryWidget::UpdateItemName()
 	}
 	else
 	{
-		// 將 FName 轉換為本地化文本
-		// 您可能需要根據實際的本地化系統調整這個邏輯
 		FText DisplayName = FText::FromName(ItemNameValue);
 		ItemName->SetText(DisplayName);
 	}
@@ -180,12 +167,12 @@ void UGZInventoryEntryWidget::UpdateItemName()
 
 void UGZInventoryEntryWidget::UpdateItemQuantity()
 {
-	if (!IsValid(ItemQuantity) || !IsValid(CachedListItemObject))
+	if (!IsValid(ItemQuantity) || !IsValid(CachedItemInstance))
 	{
 		return;
 	}
 
-	const int32 Quantity = CachedListItemObject->GetItemQuantity(QuantityTag);
+	const int32 Quantity = CachedItemInstance->GetStackByTag(QuantityTag);
 
 	// 根據設定決定是否顯示數量
 	if (Quantity <= 1 && !bShowQuantityWhenOne)

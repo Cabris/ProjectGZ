@@ -36,7 +36,7 @@ public:
 
 	void SetItemStackCount(FGameplayTag Tag, int32 StackCount);
 	
-	uint8 GetItemStackCount(FGameplayTag Tag) const
+	int32 GetItemStackCount(FGameplayTag Tag) const
 	{
 		return ItemStack.FindRef(Tag);
 	}

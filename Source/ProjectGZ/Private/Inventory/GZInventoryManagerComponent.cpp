@@ -13,10 +13,10 @@ UGZInventoryItemInstance* FGZInventoryList::AddEntry(const TSubclassOf<UGZInvent
 	FGZInventoryEntry& NewEntry = Items.AddDefaulted_GetRef();
 	NewEntry.ItemInstance = NewObject<UGZInventoryItemInstance>(OwnerComponent->GetOwner());
 	NewEntry.ItemInstance->SetItemDefinitionClass(ItemDefClass);
-	auto& ItemTagStacks = ItemDef->GetItemTagStacks();
-	for (auto& ItemTagStack : ItemTagStacks)
+	const TArray<FGameplayTagStackEntry>& ItemTagStacks = ItemDef->GetItemTagStacksRef();
+	for (const FGameplayTagStackEntry& ItemTagStack : ItemTagStacks)
 	{
-		NewEntry.ItemInstance->SetStackByTag(ItemTagStack.Key, ItemTagStack.Value);
+		NewEntry.ItemInstance->SetStackByTag(ItemTagStack.Tag, ItemTagStack.Count);
 	}
 
 	return NewEntry.ItemInstance;
@@ -66,12 +66,47 @@ const FGZInventoryEntry* FGZInventoryList::GetEntryByEquipmentDefClass(const TSu
 	return nullptr;
 }
 
+const TArray<FGZInventoryEntry>& UGZInventoryManagerComponent::GetEntries() const
+{
+	return InventoryList.Items;
+}
+
 UGZInventoryManagerComponent::UGZInventoryManagerComponent(): InventoryList(this)
 {
 	PrimaryComponentTick.bCanEverTick = false;
-	InventoryList.OnInventoryListPreRemove.AddUObject(this, &ThisClass::OnInventoryListPreRemove);
-	InventoryList.OnInventoryListPostAdd.AddUObject(this, &ThisClass::OnInventoryListPostAdd);
-	InventoryList.OnInventoryListPostChange.AddUObject(this, &ThisClass::OnInventoryListPostChange);
+	InventoryList.OnReplicatedRemove.BindUObject(this, &ThisClass::OnReplicatedRemove);
+	InventoryList.OnPostReplicatedAdd.BindUObject(this, &ThisClass::OnPostReplicatedAdd);
+	InventoryList.OnPostReplicatedChange.BindUObject(this, &ThisClass::OnPostReplicatedChange);
+}
+
+void UGZInventoryManagerComponent::OnPostReplicatedAdd(const TArrayView<int32>& AddedIndices, int32 FinalSize)
+{
+	for (int32 Idx : AddedIndices)
+	{
+		auto& Entry = InventoryList.Items[Idx];
+		if (IsValid(Entry.ItemInstance))
+			OnItemAdded.Broadcast(Entry.ItemInstance);
+	}
+}
+
+void UGZInventoryManagerComponent::OnReplicatedRemove(const TArrayView<int32>& RemovingIndices, int32 FinalSize)
+{
+	for (int32 Idx : RemovingIndices)
+	{
+		auto& Entry = InventoryList.Items[Idx];
+		if (IsValid(Entry.ItemInstance))
+			OnItemWillRemove.Broadcast(Entry.ItemInstance);
+	}
+}
+
+void UGZInventoryManagerComponent::OnPostReplicatedChange(const TArrayView<int32>& ChangedIndices, int32 FinalSize)
+{
+	for (int32 Idx : ChangedIndices)
+	{
+		auto& Entry = InventoryList.Items[Idx];
+		if (IsValid(Entry.ItemInstance))
+			OnItemChanged.Broadcast(Entry.ItemInstance);
+	}
 }
 
 void UGZInventoryManagerComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -95,61 +130,20 @@ UGZInventoryItemInstance* UGZInventoryManagerComponent::AddItemDefToInventory(
 	{
 		AddReplicatedSubObject(Instance);
 	}
+	OnItemAdded.Broadcast(Instance);
 	return Instance;
 }
 
-void UGZInventoryManagerComponent::QueryInventoryDatas(FInventoryListModifyData& ModifyData)
+bool UGZInventoryManagerComponent::RemoveItemFromInventory(UGZInventoryItemInstance* ItemInstance)
 {
-	ModifyData.ModifyAction = EInventoryListModifyAction::ListChanged;
-	ModifyData.FinalSize = InventoryList.Items.Num();
-	ModifyData.ItemInstances.Reserve(InventoryList.Items.Num());
-	for (int32 ItemIndex = 0; ItemIndex < InventoryList.Items.Num(); ++ItemIndex)
+	if (!IsValid(ItemInstance)) return false;
+	InventoryList.RemoveEntry(ItemInstance);
+	OnItemWillRemove.Broadcast(ItemInstance);
+	if (IsReadyForReplication() && IsUsingRegisteredSubObjectList())
 	{
-		ModifyData.ItemInstances[ItemIndex] = InventoryList.Items[ItemIndex];
-	}
-}
-
-bool UGZInventoryManagerComponent::SetupListModifyData(const TArrayView<int32>& AddedIndices, int32 FinalSize, FInventoryListModifyData& ModifyData)
-{
-	ModifyData.FinalSize = FinalSize;
-	ModifyData.ItemInstances.Reserve(AddedIndices.Num());
-	for (int32 Indices : AddedIndices)
-	{
-		if (!(Indices >= 0 && Indices < InventoryList.Items.Num()))
-		{
-			UE_LOG(LogTemp, Error, TEXT("Indices: %d, invalid"), Indices);
-			return false;
-		}
-		ModifyData.ItemInstances[Indices] = InventoryList.Items[Indices];
+		RemoveReplicatedSubObject(ItemInstance);
 	}
 	return true;
-}
-
-void UGZInventoryManagerComponent::OnInventoryListPostAdd(const TArrayView<int32>& AddedIndices, int32 FinalSize)
-{
-	FInventoryListModifyData ModifyData;
-	ModifyData.ModifyAction = EInventoryListModifyAction::ItemAdded;
-	if (!SetupListModifyData(AddedIndices, FinalSize, ModifyData)) return;
-	UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(this);
-	MessageSystem.BroadcastMessage(GZGameplayTags::MessageTag_Inventory_Changed, ModifyData);
-}
-
-void UGZInventoryManagerComponent::OnInventoryListPreRemove(const TArrayView<int32>& RemovedIndices, int32 FinalSize)
-{
-	FInventoryListModifyData ModifyData;
-	ModifyData.ModifyAction = EInventoryListModifyAction::ItemRemoved;
-	if (!SetupListModifyData(RemovedIndices, FinalSize, ModifyData)) return;
-	UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(this);
-	MessageSystem.BroadcastMessage(GZGameplayTags::MessageTag_Inventory_Changed, ModifyData);
-}
-
-void UGZInventoryManagerComponent::OnInventoryListPostChange(const TArrayView<int32>& ChangedIndices, int32 FinalSize)
-{
-	FInventoryListModifyData ModifyData;
-	ModifyData.ModifyAction = EInventoryListModifyAction::ListChanged;
-	if (!SetupListModifyData(ChangedIndices, FinalSize, ModifyData)) return;
-	UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(this);
-	MessageSystem.BroadcastMessage(GZGameplayTags::MessageTag_Inventory_Changed, ModifyData);
 }
 
 void UGZInventoryManagerComponent::ReadyForReplication()

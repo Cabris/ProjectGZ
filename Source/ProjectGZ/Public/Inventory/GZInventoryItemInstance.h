@@ -6,21 +6,27 @@
 #include "UObject/Object.h"
 #include "GZInventoryItemInstance.generated.h"
 
-UCLASS()
+UCLASS(BlueprintType,Blueprintable)
 class PROJECTGZ_API UGZInventoryItemInstance : public UObject
 {
 	GENERATED_BODY()
 
 public:
-	uint32 GetStackByTag(const FGameplayTag& Tag) const;
+
+	UFUNCTION(BlueprintCallable)
 	void SetStackByTag(const FGameplayTag& Tag, int32 Stack);
-	const TSubclassOf<UGZInventoryItemDefinition>& GetItemDefinitionClass() const;
+	UFUNCTION(BlueprintPure)
+	int32 GetStackByTag(const FGameplayTag& Tag) const;
+	UFUNCTION(BlueprintPure)
+	TSubclassOf<UGZInventoryItemDefinition> GetItemDefinitionClass() const;
+	UFUNCTION(BlueprintPure)
+	UGZInventoryItemDefinition* GetItemDefinition() const;
+
 	void SetItemDefinitionClass(const TSubclassOf<UGZInventoryItemDefinition>& ItemDefClass);
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
 protected:
 	UPROPERTY(Replicated, VisibleAnywhere)
 	TSubclassOf<UGZInventoryItemDefinition> ItemDefinitionClass;
 	UPROPERTY(Replicated)
-	FGZTagStackList TagStackList;//used for item Stack number
+	FGZTagStackList TagStackList; //used for item Stack number
 };

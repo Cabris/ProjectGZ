@@ -5,8 +5,8 @@
 #include "Components/ActorComponent.h"
 #include "GZInventoryManagerComponent.generated.h"
 
-DECLARE_MULTICAST_DELEGATE_TwoParams(FOnInventoryListReplicatedSingnature, const TArrayView<int32>&/*RemovedIndices*/, int32/*FinalSize*/);
-
+DECLARE_DELEGATE_TwoParams(FOnListReplicatedSingnature, const TArrayView<int32>&/*RemovedIndices*/, int32/*FinalSize*/);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnInventoryListItemUpdatedSingnature,UGZInventoryItemInstance*, ItemInstance);
 class UGZInventoryManagerComponent;
 
 USTRUCT(BlueprintType)
@@ -28,6 +28,7 @@ private:
 USTRUCT(BlueprintType)
 struct FGZInventoryList : public FFastArraySerializer
 {
+	GENERATED_BODY()
 	FGZInventoryList() : OwnerComponent(nullptr)
 	{
 	}
@@ -37,7 +38,6 @@ struct FGZInventoryList : public FFastArraySerializer
 	{
 	}
 
-	GENERATED_BODY()
 	bool NetDeltaSerialize(FNetDeltaSerializeInfo& DeltaParms)
 	{
 		return FastArrayDeltaSerialize<FGZInventoryEntry, FGZInventoryList>(
@@ -51,23 +51,23 @@ struct FGZInventoryList : public FFastArraySerializer
 	//~FFastArraySerializer contract
 	void PreReplicatedRemove(const TArrayView<int32> RemovedIndices, int32 FinalSize)
 	{
-		OnInventoryListPreRemove.Broadcast(RemovedIndices, FinalSize);
+		OnReplicatedRemove.Execute(RemovedIndices, FinalSize);
 	}
 
 	void PostReplicatedAdd(const TArrayView<int32> AddedIndices, int32 FinalSize)
 	{
-		OnInventoryListPostAdd.Broadcast(AddedIndices, FinalSize);
+		OnPostReplicatedAdd.Execute(AddedIndices, FinalSize);
 	}
 
 	void PostReplicatedChange(const TArrayView<int32> ChangedIndices, int32 FinalSize)
 	{
-		OnInventoryListPostChange.Broadcast(ChangedIndices, FinalSize);
+		OnPostReplicatedChange.Execute(ChangedIndices, FinalSize);
 	}
 
 	//~End of FFastArraySerializer contract
-	FOnInventoryListReplicatedSingnature OnInventoryListPostAdd;
-	FOnInventoryListReplicatedSingnature OnInventoryListPreRemove;
-	FOnInventoryListReplicatedSingnature OnInventoryListPostChange;
+	FOnListReplicatedSingnature OnPostReplicatedAdd;
+	FOnListReplicatedSingnature OnReplicatedRemove;
+	FOnListReplicatedSingnature OnPostReplicatedChange;
 
 private:
 	friend UGZInventoryManagerComponent;
@@ -87,26 +87,6 @@ struct TStructOpsTypeTraits<FGZInventoryList> : public TStructOpsTypeTraitsBase2
 	};
 };
 
-UENUM(BlueprintType)
-enum class EInventoryListModifyAction:uint8
-{
-	ItemAdded UMETA(DisplayName="Some Items just Added"),
-	ItemRemoved UMETA(DisplayName="Some Items wiil be Removed"),
-	ListChanged UMETA(DisplayName="Part or whole list Changed"),
-};
-
-USTRUCT(BlueprintType)
-struct FInventoryListModifyData
-{
-	GENERATED_BODY()
-	UPROPERTY(BlueprintReadOnly)
-	TMap<int32, FGZInventoryEntry> ItemInstances;
-	UPROPERTY(BlueprintReadOnly)
-	int32 FinalSize;
-	UPROPERTY(BlueprintReadOnly)
-	EInventoryListModifyAction ModifyAction;
-};
-
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class PROJECTGZ_API UGZInventoryManagerComponent : public UActorComponent
 {
@@ -119,15 +99,19 @@ public:
 	virtual bool ReplicateSubobjects(class UActorChannel* Channel, class FOutBunch* Bunch, FReplicationFlags* RepFlags) override;
 
 	UGZInventoryItemInstance* AddItemDefToInventory(const TSubclassOf<UGZInventoryItemDefinition>& ItemDefinitionClass);
-	void QueryInventoryDatas(FInventoryListModifyData& ModifyData);
+	bool RemoveItemFromInventory(UGZInventoryItemInstance* ItemInstance);
 
+	const TArray<FGZInventoryEntry>& GetEntries() const;
+	
+	FOnInventoryListItemUpdatedSingnature OnItemAdded;
+	FOnInventoryListItemUpdatedSingnature OnItemWillRemove;
+	FOnInventoryListItemUpdatedSingnature OnItemChanged;
 protected:
 	UPROPERTY(Replicated)
 	FGZInventoryList InventoryList;
 
 private:
-	bool SetupListModifyData(const TArrayView<int32>& AddedIndices, int32 FinalSize, FInventoryListModifyData& ModifyData);
-	void OnInventoryListPostAdd(const TArrayView<int32>& RemovedIndices, int32 FinalSize);
-	void OnInventoryListPreRemove(const TArrayView<int32>& RemovedIndices, int32 FinalSize);
-	void OnInventoryListPostChange(const TArrayView<int32>& RemovedIndices, int32 FinalSize);
+	void OnPostReplicatedAdd(const TArrayView<int32>& RemovedIndices, int32 FinalSize);
+	void OnReplicatedRemove(const TArrayView<int32>& RemovingIndices, int32 FinalSize);
+	void OnPostReplicatedChange(const TArrayView<int32>& RemovedIndices, int32 FinalSize);
 };

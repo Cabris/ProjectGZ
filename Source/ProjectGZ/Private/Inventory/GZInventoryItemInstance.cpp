@@ -2,7 +2,7 @@
 #include "Inventory/GZInventoryItemDefinition.h"
 #include "Net/UnrealNetwork.h"
 
-uint32 UGZInventoryItemInstance::GetStackByTag(const FGameplayTag& Tag) const
+int32 UGZInventoryItemInstance::GetStackByTag(const FGameplayTag& Tag) const
 {
 	return TagStackList.GetItemStackCount(Tag);
 }
@@ -12,9 +12,15 @@ void UGZInventoryItemInstance::SetStackByTag(const FGameplayTag& Tag, int32 Stac
 	TagStackList.SetItemStackCount(Tag, Stack);
 }
 
-const TSubclassOf<UGZInventoryItemDefinition>& UGZInventoryItemInstance::GetItemDefinitionClass() const
+TSubclassOf<UGZInventoryItemDefinition> UGZInventoryItemInstance::GetItemDefinitionClass() const
 {
 	return ItemDefinitionClass;
+}
+
+UGZInventoryItemDefinition* UGZInventoryItemInstance::GetItemDefinition() const
+{
+	if (!IsValid(ItemDefinitionClass)) return nullptr;
+	return ItemDefinitionClass.GetDefaultObject();
 }
 
 void UGZInventoryItemInstance::SetItemDefinitionClass(const TSubclassOf<UGZInventoryItemDefinition>& ItemDefClass)
@@ -25,6 +31,6 @@ void UGZInventoryItemInstance::SetItemDefinitionClass(const TSubclassOf<UGZInven
 void UGZInventoryItemInstance::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	UObject::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(ThisClass,ItemDefinitionClass);
-	DOREPLIFETIME(ThisClass,TagStackList);
+	DOREPLIFETIME(ThisClass, ItemDefinitionClass);
+	DOREPLIFETIME(ThisClass, TagStackList);
 }

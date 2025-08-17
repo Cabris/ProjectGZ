@@ -12,7 +12,7 @@ struct FGZEquipmentActorToSpawn;
 //data stored in a weapon instance should only be its static attributes, ex: damage, range, CD time
 //a weapon instance should focus on its attacking useage
 //data such as ammo that will change in gameplay should be stored in inventory instance
-UCLASS()
+UCLASS(Blueprintable, BlueprintType)
 class PROJECTGZ_API UGZWeaponInstance : public UObject
 {
 	GENERATED_BODY()

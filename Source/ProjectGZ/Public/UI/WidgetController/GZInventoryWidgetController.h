@@ -1,11 +1,11 @@
 ﻿#pragma once
-
 #include "CoreMinimal.h"
 #include "GZWidgetController.h"
 #include "Inventory/GZInventoryManagerComponent.h"
 #include "GZInventoryWidgetController.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FInventoryListModifySingnature, const FInventoryListModifyData&, ModifyData);
+DECLARE_DELEGATE_OneParam(FOnItemInstanceUpdatedSingnature, UGZInventoryItemInstance* ItemInstance)
+DECLARE_DELEGATE_OneParam(FOnItemListInitializedSingnature, const TArray<UGZInventoryItemInstance*>& ItemList)
 
 UCLASS()
 class PROJECTGZ_API UGZInventoryWidgetController : public UGZWidgetController
@@ -15,9 +15,17 @@ class PROJECTGZ_API UGZInventoryWidgetController : public UGZWidgetController
 public:
 	virtual void BroadcastInitialValues() override;
 	virtual void BindCallbacksToDependencies() override;
-	UPROPERTY(BlueprintAssignable)//some or all item changed
-	FInventoryListModifySingnature OnInventoryListUpdated;
-
+	FOnItemInstanceUpdatedSingnature OnItemAdded;
+	FOnItemInstanceUpdatedSingnature OnItemWillRemove;
+	FOnItemInstanceUpdatedSingnature OnItemChanged;
+	FOnItemListInitializedSingnature OnItemListInitialized;
 protected:
-	void OnInventoryModified(FGameplayTag Channel, const FInventoryListModifyData& ModifyData);
+	UFUNCTION()
+	void HandleItemAdded(UGZInventoryItemInstance* ItemInstance);
+	UFUNCTION()
+	void HandleItemWillRemove(UGZInventoryItemInstance* ItemInstance);
+	UFUNCTION()
+	void HandleItemChanged(UGZInventoryItemInstance* ItemInstance);
+	UPROPERTY(Transient)
+	TArray<UGZInventoryItemInstance*> TrackItems;
 };

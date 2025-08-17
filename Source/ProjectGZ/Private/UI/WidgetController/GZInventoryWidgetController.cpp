@@ -1,27 +1,46 @@
 ﻿#include "UI/WidgetController/GZInventoryWidgetController.h"
-#include "Game/GZGameplayTags.h"
-#include "GameFramework/GameplayMessageSubsystem.h"
 #include "Inventory/GZInventoryManagerComponent.h"
 #include "Character/GZPawnFeatureComponent.h"
-#include "GameplayTagContainer.h"
 
 void UGZInventoryWidgetController::BroadcastInitialValues()
 {
-	TObjectPtr<UGZInventoryManagerComponent> InventoryManager = PawnFeatureComponent->GetInventoryManager();
-	if (!IsValid(InventoryManager))return;
-	FInventoryListModifyData ModifyData;
-	ModifyData.ModifyAction= EInventoryListModifyAction::ListChanged;
-	InventoryManager->QueryInventoryDatas(ModifyData);
-	OnInventoryListUpdated.Broadcast(ModifyData);
+	const TObjectPtr<UGZInventoryManagerComponent>& InventoryManager = PawnFeatureComponent->GetInventoryManager();
+	if (!IsValid(InventoryManager.Get()))return;
+	const TArray<FGZInventoryEntry>& Entries = InventoryManager->GetEntries();
+	TrackItems.Empty();
+	TrackItems.Reserve(Entries.Num());
+	for (int32 i = 0; i < Entries.Num(); i++)
+	{
+		TrackItems.Add(Entries[i].GetItemInstance());
+	}
+
+	OnItemListInitialized.Execute(TrackItems);
 }
 
 void UGZInventoryWidgetController::BindCallbacksToDependencies()
 {
-	UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(this);
-	MessageSystem.RegisterListener<FInventoryListModifyData>(GZGameplayTags::MessageTag_Inventory_Changed, this, &ThisClass::OnInventoryModified);
+	const TObjectPtr<UGZInventoryManagerComponent>& InventoryManager = PawnFeatureComponent->GetInventoryManager();
+	if (!IsValid(InventoryManager.Get()))return;
+	InventoryManager->OnItemAdded.AddDynamic(this, &ThisClass::HandleItemAdded);
+	InventoryManager->OnItemWillRemove.AddDynamic(this, &ThisClass::HandleItemWillRemove);
+	InventoryManager->OnItemChanged.AddDynamic(this, &ThisClass::HandleItemChanged);
 }
 
-void UGZInventoryWidgetController::OnInventoryModified(FGameplayTag Channel, const FInventoryListModifyData& ModifyData)
+void UGZInventoryWidgetController::HandleItemAdded(UGZInventoryItemInstance* ItemInstance)
 {
-	OnInventoryListUpdated.Broadcast(ModifyData);
+	if (TrackItems.Contains(ItemInstance))return;
+	TrackItems.Add(ItemInstance);
+	OnItemAdded.Execute(ItemInstance);
+}
+
+void UGZInventoryWidgetController::HandleItemWillRemove(UGZInventoryItemInstance* ItemInstance)
+{
+	if (!TrackItems.Contains(ItemInstance))return;
+	TrackItems.Remove(ItemInstance);
+	OnItemWillRemove.Execute(ItemInstance);
+}
+
+void UGZInventoryWidgetController::HandleItemChanged(UGZInventoryItemInstance* ItemInstance)
+{
+	OnItemChanged.Execute(ItemInstance);
 }
