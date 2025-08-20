@@ -20,6 +20,8 @@ void UGZOverlayWidgetController::BindCallbacksToDependencies()
 	auto& MaxHealthChangeDelegate = AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(UGZAttributeSet::GetMaxHealthAttribute());
 	MaxHealthChangeDelegate.AddUObject(this, &UGZOverlayWidgetController::MaxHealthChanged);
 
+	if (EffectAppliedMessageListenerHandle.IsValid())
+		EffectAppliedMessageListenerHandle.Unregister();
 	UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(this);
 	EffectAppliedMessageListenerHandle = MessageSystem.RegisterListener<FGZVerbMessage>(GZGameplayTags::MessageTag_Effect_Applied,
 		[this](FGameplayTag Channel, const FGZVerbMessage& Payload)
@@ -35,13 +37,6 @@ void UGZOverlayWidgetController::BindCallbacksToDependencies()
 			}
 		}
 	);
-}
-
-void UGZOverlayWidgetController::BeginDestroy()
-{
-	Super::BeginDestroy();
-	if (EffectAppliedMessageListenerHandle.IsValid())
-		EffectAppliedMessageListenerHandle.Unregister();
 }
 
 void UGZOverlayWidgetController::HealthChanged(const FOnAttributeChangeData& OnAttributeChangeData) const

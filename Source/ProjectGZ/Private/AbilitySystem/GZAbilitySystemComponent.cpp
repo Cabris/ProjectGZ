@@ -6,50 +6,136 @@
 #include "GameFramework/GameplayMessageSubsystem.h"
 #include "Game/GameplayEventMessage.h"
 #include "Game/GZGameplayTags.h"
+#include "ProjectGZ/ProjectGZ.h"
+
+
+UGZAbilitySystemComponent::UGZAbilitySystemComponent()
+{
+	constexpr int32 ReserveNum = 10;
+	PressedAbilitySpecHandles.Reserve(ReserveNum);
+	ReleasedAbilitySpecHandles.Reserve(ReserveNum);
+	HoldingAbilitySpecHandles.Reserve(ReserveNum);
+}
 
 void UGZAbilitySystemComponent::OnAbilityActorInfoSet()
 {
+	OnGameplayEffectAppliedDelegateToSelf.RemoveAll(this);
 	OnGameplayEffectAppliedDelegateToSelf.AddUObject(this, &ThisClass::OnEffectAppliedToSelf);
 }
 
-void UGZAbilitySystemComponent::AbilityInputPressed(FGameplayTag InputTag)
+void UGZAbilitySystemComponent::HandleAbilityInputPressed(FGameplayTag InputTag)
 {
-	for (FGameplayAbilitySpec Spec : ActivatableAbilities.Items)
+	for (FGameplayAbilitySpec& Spec : ActivatableAbilities.Items)
 	{
 		if (Spec.GetDynamicSpecSourceTags().HasTagExact(InputTag))
 		{
 			UGZGameplayAbility* Ability = Cast<UGZGameplayAbility>(Spec.Ability);
-			if (Ability->GetActivationPolicy() == EAbilityActivationPolicy::OnInputTriggered)
+			if (!Ability)
 			{
-				AbilitySpecInputPressed(Spec);
-				//
+				Debug::Print(FString::Printf(TEXT("Cast to UGZGameplayAbility failed: %s, Tag: %s"),
+				                             *Spec.Ability->GetName(), *InputTag.ToString()));
+				continue;
 			}
-			else if (Ability->GetActivationPolicy() == EAbilityActivationPolicy::WhileInputActive)
-			{
-				//
-			}
+			PressedAbilitySpecHandles.AddUnique(Spec.Handle);
+			HoldingAbilitySpecHandles.AddUnique(Spec.Handle);
 		}
 	}
 }
 
-void UGZAbilitySystemComponent::AbilityInputReleased(FGameplayTag InputTag)
+void UGZAbilitySystemComponent::HandleAbilityInputReleased(FGameplayTag InputTag)
 {
-	for (FGameplayAbilitySpec Spec : ActivatableAbilities.Items)
+	HoldingAbilitySpecHandles.RemoveAll([InputTag,this](FGameplayAbilitySpecHandle SpecHandle)
+	{
+		auto Spec = FindAbilitySpecFromHandle(SpecHandle);
+		if (!Spec)
+			return false;
+		return Spec->GetDynamicSpecSourceTags().HasTagExact(InputTag);
+	});
+
+	for (FGameplayAbilitySpec& Spec : ActivatableAbilities.Items)
 	{
 		if (Spec.GetDynamicSpecSourceTags().HasTagExact(InputTag))
 		{
-			AbilitySpecInputPressed(Spec);
 			UGZGameplayAbility* Ability = Cast<UGZGameplayAbility>(Spec.Ability);
-			if (Ability->GetActivationPolicy() == EAbilityActivationPolicy::WhileInputActive)
+			if (!Ability)
 			{
-				//
+				Debug::Print(FString::Printf(TEXT("Cast to UGZGameplayAbility failed: %s, Tag: %s"),
+				                             *Spec.Ability->GetName(), *InputTag.ToString()));
+				continue;
 			}
+			ReleasedAbilitySpecHandles.AddUnique(Spec.Handle);
 		}
 	}
 }
 
-void UGZAbilitySystemComponent::PostProcessInput(float DeltaTime, bool bGamePaused)
+void UGZAbilitySystemComponent::HandlePostProcessInput(float DeltaTime, bool bGamePaused)
 {
+	//Initialized Cache
+	//Cached Abilities to be actived
+
+	HoldingAbilitySpecHandles.RemoveAll([this](const FGameplayAbilitySpecHandle& H)
+	{
+		return FindAbilitySpecFromHandle(H) == nullptr;
+	});
+
+	TArray<FGameplayAbilitySpecHandle> WillActiveAbilityHandles;
+	WillActiveAbilityHandles.Reserve(10);
+	for (FGameplayAbilitySpecHandle SpecHandle : PressedAbilitySpecHandles)
+	{
+		FGameplayAbilitySpec* Spec = FindAbilitySpecFromHandle(SpecHandle);
+		if (!Spec)
+			continue;
+		UGZGameplayAbility* Ability = Cast<UGZGameplayAbility>(Spec->Ability);
+		if (Ability->GetActivationPolicy() == EAbilityActivationPolicy::OnInputTriggered)
+		{
+			WillActiveAbilityHandles.Add(Spec->Handle);
+		}
+	}
+
+	for (FGameplayAbilitySpecHandle SpecHandle : HoldingAbilitySpecHandles)
+	{
+		FGameplayAbilitySpec* Spec = FindAbilitySpecFromHandle(SpecHandle);
+		if (!Spec)
+			continue;
+		UGZGameplayAbility* Ability = Cast<UGZGameplayAbility>(Spec->Ability);
+		if (Ability->GetActivationPolicy() == EAbilityActivationPolicy::WhileInputActive)
+		{
+			WillActiveAbilityHandles.Add(Spec->Handle);
+		}
+	}
+
+	for (FGameplayAbilitySpecHandle SpecHandle : WillActiveAbilityHandles)
+	{
+		FGameplayAbilitySpec* Spec = FindAbilitySpecFromHandle(SpecHandle);
+		if (!Spec)
+			continue;
+		if (!Spec->IsActive())
+		{
+			constexpr bool bAllowRemoteActivation = true;
+			bool bIsSuccesses = TryActivateAbility(SpecHandle, bAllowRemoteActivation);
+			Debug::Print(FString::Printf(TEXT("TryActivateAbility: bIsSuccesses: %d, Ability: %s"), bIsSuccesses, *Spec->Ability->GetName()));
+		}
+	}
+
+	for (FGameplayAbilitySpecHandle SpecHandle : PressedAbilitySpecHandles)
+	{
+		FGameplayAbilitySpec* Spec = FindAbilitySpecFromHandle(SpecHandle);
+		if (!Spec)
+			continue;
+		AbilitySpecInputPressed(*Spec);
+	}
+
+	for (FGameplayAbilitySpecHandle SpecHandle : ReleasedAbilitySpecHandles)
+	{
+		FGameplayAbilitySpec* Spec = FindAbilitySpecFromHandle(SpecHandle);
+		if (!Spec)
+			continue;
+		AbilitySpecInputReleased(*Spec);
+	}
+
+	//Clean up
+	PressedAbilitySpecHandles.Reset();
+	ReleasedAbilitySpecHandles.Reset();
 }
 
 void UGZAbilitySystemComponent::AbilitySpecInputPressed(FGameplayAbilitySpec& Spec)
@@ -67,6 +153,10 @@ void UGZAbilitySystemComponent::AbilitySpecInputPressed(FGameplayAbilitySpec& Sp
 		// Invoke the InputPressed event. This is not replicated here. If someone is listening, they may replicate the InputPressed event to the server.
 		InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputPressed, Spec.Handle, PredictionKey);
 	}
+	else
+	{
+		Debug::Print(FString::Printf(TEXT("AbilitySpecInputPressed: Ability: %s is not Active"), *Spec.Ability->GetName()));
+	}
 }
 
 void UGZAbilitySystemComponent::AbilitySpecInputReleased(FGameplayAbilitySpec& Spec)
@@ -82,6 +172,10 @@ void UGZAbilitySystemComponent::AbilitySpecInputReleased(FGameplayAbilitySpec& S
 			                                     : Ability->GetCurrentActivationInfo().GetActivationPredictionKey();
 		// Invoke the InputReleased event. This is not replicated here. If someone is listening, they may replicate the InputReleased event to the server.
 		InvokeReplicatedEvent(EAbilityGenericReplicatedEvent::InputReleased, Spec.Handle, PredictionKey);
+	}
+	else
+	{
+		Debug::Print(FString::Printf(TEXT("AbilitySpecInputReleased: Ability: %s is not Active"), *Spec.Ability->GetName()));
 	}
 }
 

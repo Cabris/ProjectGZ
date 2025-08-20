@@ -148,7 +148,7 @@ void AGZPlayerController::PostProcessInput(const float DeltaTime, const bool bGa
 	UGZAbilitySystemComponent* ASC = GZCharacter->GetAbilitySystemComponent();
 	if (ASC)
 	{
-		ASC->PostProcessInput(DeltaTime,bGamePaused);
+		ASC->HandlePostProcessInput(DeltaTime,bGamePaused);
 	}
 }
 
@@ -158,7 +158,7 @@ void AGZPlayerController::AbilityInputPressed(FGameplayTag InputTag)
 	UGZAbilitySystemComponent* ASC = GZCharacter->GetAbilitySystemComponent();
 	if (ASC)
 	{
-		ASC->AbilityInputPressed(InputTag);
+		ASC->HandleAbilityInputPressed(InputTag);
 	}
 }
 
@@ -168,7 +168,7 @@ void AGZPlayerController::AbilityInputReleased(FGameplayTag InputTag)
 	UGZAbilitySystemComponent* ASC = GZCharacter->GetAbilitySystemComponent();
 	if (ASC)
 	{
-		ASC->AbilityInputReleased(InputTag);
+		ASC->HandleAbilityInputReleased(InputTag);
 	}
 }
 

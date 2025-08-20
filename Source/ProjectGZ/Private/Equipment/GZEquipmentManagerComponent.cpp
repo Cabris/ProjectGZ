@@ -24,29 +24,24 @@ UGZWeaponInstance* FGZCarriedEquipmentList::AddEntry(const TSubclassOf<UGZEquipm
 
 void FGZCarriedEquipmentList::RemoveEntry(UGZWeaponInstance* EntryInstance)
 {
-	for (auto It = Items.CreateIterator(); It; ++It)
+	const int32 Idx = Items.IndexOfByPredicate([EntryInstance](const FGZCarriedEquipmentEntry& Entry)
 	{
-		if (EntryInstance == It->EquipmentInstance)
-		{
-			EntryInstance->DestroyEquipmentActors();
-			It.RemoveCurrent();
-			MarkArrayDirty();
-		}
+		return Entry.EquipmentInstance == EntryInstance;
+	});
+	if (Idx != INDEX_NONE)
+	{
+		Items.RemoveAtSwap(Idx);//order is not important
+		MarkArrayDirty();
 	}
 }
 
 void FGZCarriedEquipmentList::RemoveAllEntries()
 {
-	bool HasChanged = false;
-	for (auto It = Items.CreateIterator(); It; ++It)
+	if (Items.Num() > 0)
 	{
-		if (It->EquipmentInstance)
-			It->EquipmentInstance->DestroyEquipmentActors();
-		It.RemoveCurrent();
-		HasChanged = true;
-	}
-	if (HasChanged)
+		Items.Reset();
 		MarkArrayDirty();
+	}
 }
 
 const FGZCarriedEquipmentEntry* FGZCarriedEquipmentList::GetEntryByInstance(const TObjectPtr<UGZWeaponInstance>& Instance)

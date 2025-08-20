@@ -34,7 +34,7 @@ public:
 	/** 手動更新顯示 */
 	UFUNCTION(BlueprintCallable, Category = "Inventory Entry")
 	void UpdateDisplay();
-
+ 
 protected:
 	// IUserObjectListEntry 介面實作
 	virtual void NativeOnListItemObjectSet(UObject* ListItemObject) override;
@@ -57,6 +57,7 @@ protected:
 	void OnExpansionStateChanged(bool bIsExpanded);
 
 	/** 物品圖標 Image (可選，由設計師在 BP 中綁定) */
+	//有相同類型和確切名稱
 	UPROPERTY(BlueprintReadOnly, Category = "Inventory Entry|Components", meta = (BindWidget))
 	TObjectPtr<UImage> ItemIcon = nullptr;
 

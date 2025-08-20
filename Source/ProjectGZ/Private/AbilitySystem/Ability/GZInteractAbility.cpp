@@ -3,11 +3,32 @@
 
 UGZInteractAbility::UGZInteractAbility()
 {
-	FAbilityTriggerData Trigger;
-	Trigger.TriggerTag = InteractionTag; // 事件 Tag
-	Trigger.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
-	AbilityTriggers.Add(Trigger);
+	if (InteractionTag.IsValid())
+	{
+		FAbilityTriggerData Trigger;
+		Trigger.TriggerTag = InteractionTag; // 事件 Tag
+		Trigger.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
+		AbilityTriggers.Add(Trigger);
+	}
 }
+
+void UGZInteractAbility::PostLoad()
+{
+	Super::PostLoad();
+	if (HasAnyFlags(RF_ClassDefaultObject))
+		OnInteractionTagChanged();
+}
+
+#if WITH_EDITOR
+void UGZInteractAbility::PostEditChangeProperty(struct FPropertyChangedEvent& E)
+{
+	Super::PostEditChangeProperty(E);
+	if (E.Property && E.Property->GetFName() == GET_MEMBER_NAME_CHECKED(UGZInteractAbility, InteractionTag))
+	{
+		OnInteractionTagChanged();
+	}
+}
+#endif
 
 void UGZInteractAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
                                          const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
@@ -44,11 +65,24 @@ void UGZInteractAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle
 	}
 	if (!isValid)
 	{
-		EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
+		CancelAbility(Handle, ActorInfo, ActivationInfo, true);
+		//EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 	}
 }
 
 bool UGZInteractAbility::IsInteractableActor(AActor* Target) const
 {
 	return Target && Target->Implements<UGZInteractable>();
+}
+
+void UGZInteractAbility::OnInteractionTagChanged()
+{
+	if (InteractionTag.IsValid())
+	{
+		AbilityTriggers.Reset();
+		FAbilityTriggerData Trigger;
+		Trigger.TriggerTag = InteractionTag;
+		Trigger.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
+		AbilityTriggers.Add(Trigger);
+	}
 }

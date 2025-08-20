@@ -14,7 +14,7 @@ void UGZInventoryWidgetController::BroadcastInitialValues()
 		TrackItems.Add(Entries[i].GetItemInstance());
 	}
 
-	OnItemListInitialized.Execute(TrackItems);
+	OnItemListInitialized.ExecuteIfBound(TrackItems);
 }
 
 void UGZInventoryWidgetController::BindCallbacksToDependencies()
@@ -26,21 +26,29 @@ void UGZInventoryWidgetController::BindCallbacksToDependencies()
 	InventoryManager->OnItemChanged.AddDynamic(this, &ThisClass::HandleItemChanged);
 }
 
+void UGZInventoryWidgetController::RefreshInventory()
+{
+}
+
+void UGZInventoryWidgetController::ClearAllItems()
+{
+}
+
 void UGZInventoryWidgetController::HandleItemAdded(UGZInventoryItemInstance* ItemInstance)
 {
 	if (TrackItems.Contains(ItemInstance))return;
 	TrackItems.Add(ItemInstance);
-	OnItemAdded.Execute(ItemInstance);
+	OnItemAdded.ExecuteIfBound(ItemInstance);
 }
 
 void UGZInventoryWidgetController::HandleItemWillRemove(UGZInventoryItemInstance* ItemInstance)
 {
 	if (!TrackItems.Contains(ItemInstance))return;
 	TrackItems.Remove(ItemInstance);
-	OnItemWillRemove.Execute(ItemInstance);
+	OnItemWillRemove.ExecuteIfBound(ItemInstance);
 }
 
 void UGZInventoryWidgetController::HandleItemChanged(UGZInventoryItemInstance* ItemInstance)
 {
-	OnItemChanged.Execute(ItemInstance);
+	OnItemChanged.ExecuteIfBound(ItemInstance);
 }

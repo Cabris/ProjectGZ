@@ -2,8 +2,12 @@
 
 #include "CoreMinimal.h"
 #include "Abilities/GameplayAbility.h"
+#include "AbilitySystem/Effect/GZGameplayEffect.h"
 #include "GZGameplayAbility.generated.h"
 
+class UGZPawnFeatureComponent;
+class UGZAbilityCostDataAsset;
+class UGZGameplayEffect;
 class AGZCharacterBase;
 class UGZAbilitySystemComponent;
 
@@ -19,7 +23,7 @@ enum class EAbilityActivationPolicy:uint8
 };
 
 //base class for GameplayAbility
-UCLASS(Blueprintable,BlueprintType)
+UCLASS(Blueprintable, BlueprintType)
 class PROJECTGZ_API UGZGameplayAbility : public UGameplayAbility
 {
 	GENERATED_BODY()
@@ -27,11 +31,16 @@ class PROJECTGZ_API UGZGameplayAbility : public UGameplayAbility
 public:
 	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
 	virtual void OnRemoveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
-	EAbilityActivationPolicy GetActivationPolicy() const;
+
+	EAbilityActivationPolicy GetActivationPolicy() const
+	{
+		return ActivationPolicy;
+	}
 
 protected:
 	UGZAbilitySystemComponent* GetAbilitySystemComponent() const;
 	AGZCharacterBase* GetCharacter() const;
+	UGZPawnFeatureComponent* GetPawnFeature() const;
 
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	                             const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
@@ -41,4 +50,5 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category="Ability")
 	EAbilityActivationPolicy ActivationPolicy = EAbilityActivationPolicy::OnInputTriggered;
+
 };

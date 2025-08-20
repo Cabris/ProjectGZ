@@ -15,6 +15,8 @@ class PROJECTGZ_API UGZInventoryWidgetController : public UGZWidgetController
 public:
 	virtual void BroadcastInitialValues() override;
 	virtual void BindCallbacksToDependencies() override;
+	void RefreshInventory();
+	void ClearAllItems();
 	FOnItemInstanceUpdatedSingnature OnItemAdded;
 	FOnItemInstanceUpdatedSingnature OnItemWillRemove;
 	FOnItemInstanceUpdatedSingnature OnItemChanged;

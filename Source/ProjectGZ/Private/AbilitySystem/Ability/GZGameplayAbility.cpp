@@ -1,9 +1,9 @@
 ﻿#include "AbilitySystem/Ability/GZGameplayAbility.h"
 #include "AbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
-#include "Abilities/Tasks/AbilityTask_WaitInputRelease.h"
 #include "AbilitySystem/GZAbilitySystemComponent.h"
 #include "Character/GZCharacterBase.h"
+#include "Interfactions/GZPawnFeatureInterface.h"
 
 
 void UGZGameplayAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
@@ -17,11 +17,15 @@ void UGZGameplayAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInf
 			ActorInfo->AbilitySystemComponent->TryActivateAbility(Spec.Handle);
 		}
 	}
+	UE_LOG(LogTemp, Log, TEXT("[UGZGameplayAbility::OnGiveAbility] Ability given to: %s"), 
+	ActorInfo->AvatarActor.IsValid() ? *ActorInfo->AvatarActor->GetName() : TEXT("None"));
 }
 
 void UGZGameplayAbility::OnRemoveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
 {
 	Super::OnRemoveAbility(ActorInfo, Spec);
+	UE_LOG(LogTemp, Log, TEXT("[UGZGameplayAbility::OnRemoveAbility] Ability removed from: %s"), 
+		ActorInfo->AvatarActor.IsValid() ? *ActorInfo->AvatarActor->GetName() : TEXT("None"));
 }
 
 void UGZGameplayAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
@@ -38,10 +42,6 @@ void UGZGameplayAbility::EndAbility(const FGameplayAbilitySpecHandle Handle, con
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
 }
 
-EAbilityActivationPolicy UGZGameplayAbility::GetActivationPolicy() const
-{
-	return ActivationPolicy;
-}
 
 UGZAbilitySystemComponent* UGZGameplayAbility::GetAbilitySystemComponent() const
 {
@@ -56,4 +56,13 @@ AGZCharacterBase* UGZGameplayAbility::GetCharacter() const
 	auto AvatarActor = CurrentActorInfo->AvatarActor.Get();
 	if (!AvatarActor) return nullptr;
 	return Cast<AGZCharacterBase>(AvatarActor);
+}
+
+UGZPawnFeatureComponent* UGZGameplayAbility::GetPawnFeature() const
+{
+	auto Char = GetCharacter();
+	if (!Char) return nullptr;
+	IGZPawnFeatureInterface* IPawnFeature = Cast<IGZPawnFeatureInterface>(Char);
+	if (!IPawnFeature) return nullptr;
+	return IPawnFeature->GetPawnFeature();
 }

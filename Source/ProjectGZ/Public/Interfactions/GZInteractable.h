@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "UObject/Interface.h"
 #include "GZInteractable.generated.h"
 
@@ -19,9 +20,9 @@ class PROJECTGZ_API IGZInteractable
 public:
 	//implemented in concrete actor c++ who implements this interface
 	virtual FVector GetWorldPosition() const = 0;
-	virtual FText GetInteravtionText() const = 0;
+	virtual FText GetInteractionText() const = 0;
 	virtual bool IsInteractable() const = 0;
-	virtual const TSubclassOf<UGZInteractAbility>& GetInteractAbilityClass() =0;
+	virtual const FGameplayTag& GetInteractAbilityTriggerTag() =0;
 
 	//implemented in concrete actor BP who implements this interface
 	UFUNCTION(BlueprintNativeEvent, Category="Interactable")

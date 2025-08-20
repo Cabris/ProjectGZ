@@ -16,13 +16,8 @@ AGZPlayerState::AGZPlayerState()
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
 	InventoryManager = CreateDefaultSubobject<UGZInventoryManagerComponent>("InventoryManagerComponent");
-	InventoryManager->SetIsReplicated(true);
-
 	EquipmentManager = CreateDefaultSubobject<UGZEquipmentManagerComponent>("EquipmentManagerComponent");
-	EquipmentManager->SetIsReplicated(true);
-
 	WeaponMenu = CreateDefaultSubobject<UGZWeaponMenuComponent>("WeaponMenuComponent");
-	WeaponMenu->SetIsReplicated(true);
 
 	FPawnFeatureStruct PawnFeatureStruct;
 	PawnFeatureStruct.AbilitySystemComponent = AbilitySystemComponent;
@@ -32,6 +27,5 @@ AGZPlayerState::AGZPlayerState()
 	PawnFeatureStruct.WeaponMenu = WeaponMenu;
 
 	PawnFeature = CreateDefaultSubobject<UGZPawnFeatureComponent>("PawnFeatureComponent");
-	PawnFeature->SetIsReplicated(true);
 	PawnFeature->SetupPawnFeature(PawnFeatureStruct);
 }

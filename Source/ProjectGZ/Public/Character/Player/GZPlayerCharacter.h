@@ -49,7 +49,7 @@ protected:
 	TObjectPtr<UGZAimMotionComponent> AimMotionComponent;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Character|AbilitySet")
-	TSubclassOf<UGZInputGameplayAbilitySet> AbilitySetClass;
+	TObjectPtr<UGZInputGameplayAbilitySet> AbilitySet;
 
 	UPROPERTY(VisibleAnywhere, Category = "Character|PawnFeature")
 	TObjectPtr<UGZPawnFeatureComponent> UGZPawnFeature;

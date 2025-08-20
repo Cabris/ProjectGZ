@@ -13,13 +13,17 @@ class PROJECTGZ_API UGZInteractAbility : public UGZGameplayAbility
 
 public:
 	UGZInteractAbility();
-
-
+	virtual void PostLoad() override;
+#if WITH_EDITOR
+	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& E) override;
+#endif
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	                             const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
-	FGameplayTag InteractionTag;
+	FGameplayTag GetInteractionTag() const
+	{
+		return InteractionTag;
+	}
 
 protected:
 	virtual bool ActivateAbilityInternal(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
@@ -30,6 +34,9 @@ protected:
 	}
 
 	bool IsInteractableActor(AActor* Target) const;
+	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
+	FGameplayTag InteractionTag;
 
 private:
+	void OnInteractionTagChanged();
 };

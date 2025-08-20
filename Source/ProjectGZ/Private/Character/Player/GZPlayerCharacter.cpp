@@ -104,10 +104,10 @@ void AGZPlayerCharacter::InitializePawnFeature()
 	UGZPawnFeature = GZPlayerState->GetPawnFeature();
 	UGZPawnFeature->InitAbilityActorInfo(GZPlayerState, this);
 
-	if (IsValid(AbilitySetClass) && AbilitySetClass.GetDefaultObject())
+	if (IsValid(AbilitySet))
 	{
 		TArray<FGameplayAbilitySpecHandle> Handles;
-		UGZPawnFeature->GetAbilitySystem()->ApplyInputAbilitySet(AbilitySetClass.GetDefaultObject(), GZPlayerState, Handles);
+		UGZPawnFeature->GetAbilitySystem()->ApplyInputAbilitySet(AbilitySet, GZPlayerState, Handles);
 	}
 	else
 	{

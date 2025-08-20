@@ -16,5 +16,8 @@ class PROJECTGZ_API IGZCollectable
 	GENERATED_BODY()
 
 public:
+	virtual void ConsumeItemQuantity(int32) =0;
 	virtual const TSubclassOf<UGZInventoryItemDefinition>& GetItemDefinitionClass() const =0;
+	UFUNCTION(BlueprintNativeEvent, Category="Collectable")
+	void OnCollected();
 };

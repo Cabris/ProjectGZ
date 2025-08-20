@@ -15,17 +15,33 @@ class PROJECTGZ_API UGZAbilitySystemComponent : public UAbilitySystemComponent
 	GENERATED_BODY()
 
 public:
+	UGZAbilitySystemComponent();
+
+	//Init Abilities that trigger by InputTag
 	void ApplyInputAbilitySet(const UGZInputGameplayAbilitySet* InputAbilitySet, UObject* SourceObject, TArray<FGameplayAbilitySpecHandle>& OutHandles);
+	//Grant Ability when given a Weapon or Equipment
 	void GiveEquipmentGrantedAbility(const FInputAbilityEntry& GrantedAbility, UObject* SourceObject,
 	                                 TArray<FGameplayAbilitySpecHandle>& OutHandles);
 	void OnEffectAppliedToSelf(UAbilitySystemComponent* ASC, const FGameplayEffectSpec& Spec, FActiveGameplayEffectHandle Handle);
+	
+	//Method called after AbilityActorInfo is Set
 	virtual void OnAbilityActorInfoSet();
-	void AbilityInputPressed(FGameplayTag InputTag);
-	void AbilityInputReleased(FGameplayTag InputTag);
-	void PostProcessInput(float DeltaTime, bool bGamePaused);
+
+	//Call by AGZPlayerController::AbilityInputPressed Event
+	void HandleAbilityInputPressed(FGameplayTag InputTag);
+	//Call by AGZPlayerController::AbilityInputReleased Event
+	void HandleAbilityInputReleased(FGameplayTag InputTag);
+	//Call by AGZPlayerController::PostProcessInput ,Method called after processing input
+	void HandlePostProcessInput(float DeltaTime, bool bGamePaused);
+	
 	virtual void AbilitySpecInputPressed(FGameplayAbilitySpec& Spec) override;
 	virtual void AbilitySpecInputReleased(FGameplayAbilitySpec& Spec) override;
 
 protected:
-	
+	//Cache Spec for AbilitySpecInputPressed, will be consumed in HandlePostProcessInput
+	TArray<FGameplayAbilitySpecHandle> PressedAbilitySpecHandles;
+	//Cache Spec for HandleAbilityInputReleased, will be consumed in HandlePostProcessInput
+	TArray<FGameplayAbilitySpecHandle> ReleasedAbilitySpecHandles;
+	//Ele will be removed when HandleAbilityInputReleased
+	TArray<FGameplayAbilitySpecHandle> HoldingAbilitySpecHandles;
 };

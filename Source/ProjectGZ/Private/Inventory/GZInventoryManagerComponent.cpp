@@ -19,41 +19,34 @@ UGZInventoryItemInstance* FGZInventoryList::AddEntry(const TSubclassOf<UGZInvent
 		NewEntry.ItemInstance->SetStackByTag(ItemTagStack.Tag, ItemTagStack.Count);
 	}
 
-	return NewEntry.ItemInstance;
+	return NewEntry.ItemInstance.Get();
 }
 
 void FGZInventoryList::RemoveEntry(UGZInventoryItemInstance* ItemInstance)
 {
 	if (!IsValid(ItemInstance))return;
-	for (auto It = Items.CreateIterator(); It; ++It)
+
+	const int32 Idx = Items.IndexOfByPredicate([ItemInstance](const FGZInventoryEntry& Entry)
 	{
-		FGZInventoryEntry& Entry = *It;
-		if (Entry.ItemInstance == ItemInstance)
-		{
-			It.RemoveCurrent();
-			MarkArrayDirty();
-			return;
-		}
+		return Entry.ItemInstance == ItemInstance;
+	});
+	if (Idx != INDEX_NONE)
+	{
+		Items.RemoveAtSwap(Idx);//order is not important
+		MarkArrayDirty();
 	}
 }
 
 void FGZInventoryList::RemoveAllEntries()
 {
-	bool HasRemove = false;
-	for (auto It = Items.CreateIterator(); It; ++It)
+	if (Items.Num() > 0)
 	{
-		FGZInventoryEntry& Entry = *It;
-		if (Entry.ItemInstance != nullptr)
-		{
-			HasRemove = true;
-			It.RemoveCurrent();
-		}
-	}
-	if (HasRemove)
+		Items.Reset();
 		MarkArrayDirty();
+	}
 }
 
-const FGZInventoryEntry* FGZInventoryList::GetEntryByEquipmentDefClass(const TSubclassOf<UGZInventoryItemDefinition>& ItemDefClass)
+const FGZInventoryEntry* FGZInventoryList::GetFirstEntryByEquipmentDefClass(const TSubclassOf<UGZInventoryItemDefinition>& ItemDefClass)
 {
 	for (auto It = Items.CreateIterator(); It; ++It)
 	{
@@ -74,6 +67,7 @@ const TArray<FGZInventoryEntry>& UGZInventoryManagerComponent::GetEntries() cons
 UGZInventoryManagerComponent::UGZInventoryManagerComponent(): InventoryList(this)
 {
 	PrimaryComponentTick.bCanEverTick = false;
+	SetIsReplicatedByDefault(true);
 	InventoryList.OnReplicatedRemove.BindUObject(this, &ThisClass::OnReplicatedRemove);
 	InventoryList.OnPostReplicatedAdd.BindUObject(this, &ThisClass::OnPostReplicatedAdd);
 	InventoryList.OnPostReplicatedChange.BindUObject(this, &ThisClass::OnPostReplicatedChange);
@@ -119,11 +113,14 @@ UGZInventoryItemInstance* UGZInventoryManagerComponent::AddItemDefToInventory(
 	const TSubclassOf<UGZInventoryItemDefinition>& ItemDefinitionClass)
 {
 	if (!IsValid(ItemDefinitionClass)) return nullptr;
-	const FGZInventoryEntry* existEntry = InventoryList.GetEntryByEquipmentDefClass(ItemDefinitionClass);
-	if (existEntry && existEntry->ItemInstance != nullptr)
+	const FGZInventoryEntry* existEntry = InventoryList.GetFirstEntryByEquipmentDefClass(ItemDefinitionClass);
+
+	//only one instance per type
+	/*if (existEntry && existEntry->ItemInstance != nullptr)
 	{
 		return existEntry->ItemInstance;
-	}
+	}*/
+
 	UGZInventoryItemInstance* Instance = InventoryList.AddEntry(ItemDefinitionClass);
 	if (!Instance)return nullptr;
 	if (IsReadyForReplication() && IsUsingRegisteredSubObjectList())

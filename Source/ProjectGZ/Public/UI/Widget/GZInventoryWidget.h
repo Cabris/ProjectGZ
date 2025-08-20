@@ -4,6 +4,7 @@
 #include "GameplayTagContainer.h"
 #include "GZInventoryEntryWidget.h"
 #include "GZUserWidget.h"
+#include "Components/TileView.h"
 #include "Game/GZObjectPool.h"
 #include "GZInventoryWidget.generated.h"
 
@@ -16,9 +17,6 @@ class PROJECTGZ_API UGZInventoryWidget : public UGZUserWidget
 
 public:
 	UGZInventoryWidget();
-	/** 於BP的PreConstruct Event中呼叫 */
-	UFUNCTION(BlueprintCallable)
-	void SetListView(UListView* ListView);
 
 	/** 手動重新整理背包顯示 */
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
@@ -27,7 +25,7 @@ public:
 	/** 清空所有顯示項目 */
 	UFUNCTION(BlueprintCallable, Category = "Inventory")
 	void RequestClearAllItems();
-
+ 
 protected:
 	virtual void NativeConstruct() override;
 	virtual void NativeDestruct() override;
@@ -48,18 +46,18 @@ protected:
 	void OnInventoryListCompletelyChanged();
 
 	/** 預設數量標籤 (用於顯示物品數量) */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory|Settings")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Inventory|Settings")
 	FGameplayTag DefaultQuantityTag;
 
 	/** 是否啟用自動排序 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Inventory|Settings")
 	bool bEnableAutoSort = false;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditDefaultsOnly, Category = "Inventory", meta = (BindWidget))
 	TObjectPtr<UListView> ListView;
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, Category = "Inventory")
 	TSubclassOf<UGZInventoryEntryWidget> EntryWidgetClass;
-
+ 
 private:
 
 	/** 綁定控制器事件 */

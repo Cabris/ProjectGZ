@@ -47,21 +47,21 @@ struct FGZInventoryList : public FFastArraySerializer
 	UGZInventoryItemInstance* AddEntry(const TSubclassOf<UGZInventoryItemDefinition>& ItemDefClass);
 	void RemoveEntry(UGZInventoryItemInstance* ItemInstance);
 	void RemoveAllEntries();
-	const FGZInventoryEntry* GetEntryByEquipmentDefClass(const TSubclassOf<UGZInventoryItemDefinition>& ItemDefClass);
+	const FGZInventoryEntry* GetFirstEntryByEquipmentDefClass(const TSubclassOf<UGZInventoryItemDefinition>& ItemDefClass);
 	//~FFastArraySerializer contract
 	void PreReplicatedRemove(const TArrayView<int32> RemovedIndices, int32 FinalSize)
 	{
-		OnReplicatedRemove.Execute(RemovedIndices, FinalSize);
+		OnReplicatedRemove.ExecuteIfBound(RemovedIndices, FinalSize);
 	}
 
 	void PostReplicatedAdd(const TArrayView<int32> AddedIndices, int32 FinalSize)
 	{
-		OnPostReplicatedAdd.Execute(AddedIndices, FinalSize);
+		OnPostReplicatedAdd.ExecuteIfBound(AddedIndices, FinalSize);
 	}
 
 	void PostReplicatedChange(const TArrayView<int32> ChangedIndices, int32 FinalSize)
 	{
-		OnPostReplicatedChange.Execute(ChangedIndices, FinalSize);
+		OnPostReplicatedChange.ExecuteIfBound(ChangedIndices, FinalSize);
 	}
 
 	//~End of FFastArraySerializer contract

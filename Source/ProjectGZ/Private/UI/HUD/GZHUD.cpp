@@ -30,6 +30,8 @@ void AGZHUD::InitializeOverlay(AGZPlayerController* PC, AGZPlayerState* PS, UGZA
 	OverlayWidgetController->BroadcastInitialValues();
 	OverlayWidget->AddToViewport();
 
+	checkf(InventoryWidgetClass, TEXT("InventoryWidgetClass is not set!"));
+	checkf(InventoryWidgetControllerClass, TEXT("InventoryWidgetControllerClass is not set!"));
 	InventoryWidget = GetOrCreateWidget(InventoryWidget, InventoryWidgetClass);
 	InventoryWidgetController = GetWidgetController(InventoryWidgetController, InventoryWidgetControllerClass);
 	InventoryWidgetController->SetWidgetControllerParams(WidgetParams);

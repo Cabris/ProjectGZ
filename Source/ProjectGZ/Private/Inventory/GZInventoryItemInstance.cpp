@@ -1,8 +1,10 @@
 ﻿#include "Inventory/GZInventoryItemInstance.h"
+
+#include "Game/GZGameplayTags.h"
 #include "Inventory/GZInventoryItemDefinition.h"
 #include "Net/UnrealNetwork.h"
 
-int32 UGZInventoryItemInstance::GetStackByTag(const FGameplayTag& Tag) const
+int32 UGZInventoryItemInstance::GetStackByTag(FGameplayTag Tag) const
 {
 	return TagStackList.GetItemStackCount(Tag);
 }
@@ -21,6 +23,11 @@ UGZInventoryItemDefinition* UGZInventoryItemInstance::GetItemDefinition() const
 {
 	if (!IsValid(ItemDefinitionClass)) return nullptr;
 	return ItemDefinitionClass.GetDefaultObject();
+}
+
+int32 UGZInventoryItemInstance::GetDefaultStack() const
+{
+	return TagStackList.GetItemStackCount(GZGameplayTags::Item_Stack_Quantity);
 }
 
 void UGZInventoryItemInstance::SetItemDefinitionClass(const TSubclassOf<UGZInventoryItemDefinition>& ItemDefClass)

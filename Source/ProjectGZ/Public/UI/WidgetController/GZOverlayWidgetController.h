@@ -18,8 +18,6 @@ class PROJECTGZ_API UGZOverlayWidgetController : public UGZWidgetController
 	GENERATED_BODY()
 
 public:
-	virtual void BeginDestroy() override;
-
 	virtual void BroadcastInitialValues() override;
 	virtual void BindCallbacksToDependencies() override;
 

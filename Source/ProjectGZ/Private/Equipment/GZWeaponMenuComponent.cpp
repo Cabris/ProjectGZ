@@ -6,6 +6,7 @@
 UGZWeaponMenuComponent::UGZWeaponMenuComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
+	SetIsReplicatedByDefault(true);
 }
 
 void UGZWeaponMenuComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

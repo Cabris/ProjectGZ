@@ -12,16 +12,17 @@ class PROJECTGZ_API UGZInventoryItemInstance : public UObject
 	GENERATED_BODY()
 
 public:
-
-	UFUNCTION(BlueprintCallable)
-	void SetStackByTag(const FGameplayTag& Tag, int32 Stack);
 	UFUNCTION(BlueprintPure)
-	int32 GetStackByTag(const FGameplayTag& Tag) const;
+	int32 GetStackByTag(FGameplayTag Tag) const;
 	UFUNCTION(BlueprintPure)
 	TSubclassOf<UGZInventoryItemDefinition> GetItemDefinitionClass() const;
 	UFUNCTION(BlueprintPure)
 	UGZInventoryItemDefinition* GetItemDefinition() const;
+	UFUNCTION(BlueprintPure)//use Item_Stack_Quantity
+	int32 GetDefaultStack() const;
 
+	
+	void SetStackByTag(const FGameplayTag& Tag, int32 Stack);
 	void SetItemDefinitionClass(const TSubclassOf<UGZInventoryItemDefinition>& ItemDefClass);
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 protected:

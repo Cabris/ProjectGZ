@@ -1,106 +1,87 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-#include "AbilitySystem/Ability/GZStartInteractionAbility.h"
-
+﻿#include "AbilitySystem/Ability/GZStartInteractionAbility.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystem/GZAbilitySystemComponent.h"
 #include "Interfactions/GZInteractable.h"
 #include "AbilitySystem/Ability/GZInteractAbility.h"
 #include "Character/GZCharacterBase.h"
+#include "ProjectGZ/ProjectGZ.h"
 
 UGZStartInteractionAbility::UGZStartInteractionAbility()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	// 這個能力通常是「常駐被動」，可搭配授與時機（如角色初始化）給予
 	NetExecutionPolicy = EGameplayAbilityNetExecutionPolicy::LocalPredicted;
-	Hits.Reserve(20);
+
+	// 設置預設檢測器類別
+	DetectorClass = UGZInteractionDetector::StaticClass();
+
+	// 設置預設配置
+	DetectorConfig.TraceRadius = 250.f;
+	DetectorConfig.TraceDistance = 600.f;
+	DetectorConfig.TraceInterval = 0.08f;
+	DetectorConfig.TraceChannel = ECC_Visibility;
+	DetectorConfig.AimWeight = 0.7f;
+	DetectorConfig.DistanceWeight = 0.3f;
+	DetectorConfig.bEnableDebugDraw = false;
 }
 
 void UGZStartInteractionAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
 {
 	Super::OnGiveAbility(ActorInfo, Spec);
-
-	if (UWorld* World = GetWorld())
-	{
-		World->GetTimerManager().SetTimer(
-			TraceTimerHandle,
-			FTimerDelegate::CreateUObject(this, &ThisClass::TickTrace),
-			TraceInterval,
-			true);
-	}
 }
 
 void UGZStartInteractionAbility::OnRemoveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
 {
-	if (UWorld* World = GetWorld())
-	{
-		World->GetTimerManager().ClearTimer(TraceTimerHandle);
-	}
-
-	// 收尾焦點
-	if (LastActiveActor.IsValid())
-	{
-		EndFocus(LastActiveActor.Get());
-	}
-	ActiveActor = nullptr;
-	LastActiveActor = nullptr;
-
 	Super::OnRemoveAbility(ActorInfo, Spec);
+	// 清理檢測器
+	if (InteractionDetector)
+	{
+		InteractionDetector->StopDetection();
+		InteractionDetector = nullptr;
+	}
 }
 
-void UGZStartInteractionAbility::TickTrace()
+void UGZStartInteractionAbility::OnAvatarSet(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
 {
-	FVector ViewLoc, ViewDir;
-	if (!GetViewPoint(ViewLoc, ViewDir)) return;
-
-	const FVector Start = ViewLoc;
-	const FVector End = Start + ViewDir * TraceDistance;
-
-	FCollisionQueryParams Params(SCENE_QUERY_STAT(GZInteractTrace), /*bTraceComplex*/ false, GetAvatarActorFromActorInfo());
-	const FCollisionShape Sphere = FCollisionShape::MakeSphere(TraceRadius);
-
-	Hits.Reset();
-	const bool bHit = GetWorld()->SweepMultiByChannel(Hits, Start, End, FQuat::Identity, TraceChannel, Sphere, Params);
-
-	AActor* Best = nullptr;
-
-	if (bHit)
+	if (!ActorInfo || !ActorInfo->AvatarActor.IsValid())
 	{
-		float BestScore = -FLT_MAX;
-		for (const FHitResult& Hit : Hits)
-		{
-			AActor* HitActor = Hit.GetActor();
-			if (!HitActor) continue;
-
-			IGZInteractable* Interactable = Cast<IGZInteractable>(HitActor);
-			if (!Interactable || !Interactable->IsInteractable())
-				continue;
-
-			const float Score = ScoreCandidate(ViewLoc, ViewDir, Interactable->GetWorldPosition());
-			if (Score > BestScore)
-			{
-				BestScore = Score;
-				Best = HitActor;
-			}
-		}
+		Debug::Print(TEXT("[UGZStartInteractionAbility::OnAvatarSet] Invalid ActorInfo or Avatar"));
+		return;
 	}
 
-	// 焦點切換
-	AActor* NewActive = Best;
-	if (LastActiveActor.IsValid() && LastActiveActor.Get() != NewActive)
+	// 清理舊的檢測器
+	if (InteractionDetector)
 	{
-		EndFocus(LastActiveActor.Get());
-	}
-	if (NewActive && (!LastActiveActor.IsValid() || LastActiveActor.Get() != NewActive))
-	{
-		BeginFocus(NewActive);
+		InteractionDetector->StopDetection();
+		InteractionDetector = nullptr;
 	}
 
-	ActiveActor = NewActive;
-	LastActiveActor = NewActive;
+	// 創建新的檢測器
 
-#if !(UE_BUILD_SHIPPING || UE_BUILD_TEST)
-	DrawDebugSphere(GetWorld(), End, TraceRadius, 16, FColor::Green, false, TraceInterval);
-#endif
+	if (!IsValid(DetectorClass))
+	{
+		Debug::Print(TEXT("[UGZStartInteractionAbility::OnAvatarSet] DetectorClass is null"));
+		return;
+	}
+	InteractionDetector = NewObject<UGZInteractionDetector>(this, DetectorClass);
+
+	if (!InteractionDetector)
+	{
+		Debug::Print(TEXT("[UGZStartInteractionAbility::OnAvatarSet] Failed to create InteractionDetector"));
+		return;
+	}
+
+	// 初始化檢測器
+	InteractionDetector->Initialize(GetWorld(), ActorInfo->AvatarActor.Get(), DetectorConfig);
+
+	// 綁定焦點變更回調
+	InteractionDetector->OnFocusChanged.AddDynamic(this, &UGZStartInteractionAbility::OnFocusChanged);
+
+	// 開始檢測
+	InteractionDetector->StartDetection();
+
+	UE_LOG(LogTemp, Log, TEXT("[UGZStartInteractionAbility::OnAvatarSet] InteractionDetector created and started for: %s"),
+	       *ActorInfo->AvatarActor->GetName());
 }
 
 void UGZStartInteractionAbility::ActivateAbility(
@@ -111,78 +92,62 @@ void UGZStartInteractionAbility::ActivateAbility(
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	AttemptInteraction_Internal();
+	UE_LOG(LogTemp, Warning, TEXT("[UGZStartInteractionAbility::ActivateAbility]"
+		       " Policy=%d IsCDO=%d This=%p Outer=%s"),
+	       (int32)GetInstancingPolicy(),
+	       HasAnyFlags(RF_ClassDefaultObject),
+	       this,
+	       *GetOuter()->GetName());
 
-	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, /*bReplicateEndAbility*/ true, /*bWasCancelled*/ false);
+	if (AttemptInteraction_Internal())
+	{
+		CommitAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo);
+		EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
+	}
+	else
+	{
+		CancelAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true);
+	}
 }
 
-void UGZStartInteractionAbility::AttemptInteraction_Internal()
+bool UGZStartInteractionAbility::AttemptInteraction_Internal()
 {
-	AActor* Target = ActiveActor.Get();
-	if (!Target) return;
+	if (!InteractionDetector)
+	{
+		Debug::Print(TEXT("[UGZStartInteractionAbility::AttemptInteraction_Internal] InteractionDetector is null"));
+		return false;
+	}
+
+	AActor* Target = InteractionDetector->GetCurrentFocusActor();
+	if (!Target) return false;
 	IGZInteractable* Interactable = Cast<IGZInteractable>(Target);
 	if (!Interactable || !Interactable->IsInteractable())
-		return;
+		return false;
 
 	UGZAbilitySystemComponent* ASC = GetAbilitySystemComponent();
 	AActor* ASCOwnerActor = ASC->GetOwnerActor();
-	AActor* ASCAvatarActor =ASC->GetAvatarActor();
-	TSubclassOf<UGZInteractAbility> InteractAbilityClass = Interactable->GetInteractAbilityClass();
-	FGameplayTag InteractionTag = InteractAbilityClass.GetDefaultObject()->InteractionTag;
+	AActor* ASCAvatarActor = ASC->GetAvatarActor();
+
+	FGameplayTag InteractionTag = Interactable->GetInteractAbilityTriggerTag();
 	FGameplayEventData Evt;
 	Evt.EventTag = InteractionTag;
 	Evt.Instigator = ASCAvatarActor; // 誰發起
 	Evt.Target = Target; // 互動對象
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(ASCOwnerActor, InteractionTag, Evt);
- 
+	return true;
 }
 
-bool UGZStartInteractionAbility::GetViewPoint(FVector& OutLoc, FVector& OutDir) const
+void UGZStartInteractionAbility::OnFocusChanged(AActor* NewFocus, AActor* OldFocus)
 {
-	if (const AActor* Avatar = GetAvatarActorFromActorInfo())
+	if (NewFocus)
 	{
-		if (const APawn* Pawn = Cast<APawn>(Avatar))
-		{
-			if (APlayerController* PC = Cast<APlayerController>(Pawn->GetController()))
-			{
-				FRotator ViewRot;
-				PC->GetPlayerViewPoint(OutLoc, ViewRot);
-				OutDir = ViewRot.Vector();
-				return true;
-			}
-		}
-		// 後備：用 Avatar 面向
-		OutLoc = Avatar->GetActorLocation();
-		OutDir = Avatar->GetActorForwardVector();
-		return true;
+		UE_LOG(LogTemp, Log, TEXT("[UGZStartInteractionAbility::OnFocusChanged] New focus: %s"),
+		       *NewFocus->GetActorNameOrLabel());
 	}
-	return false;
-}
 
-float UGZStartInteractionAbility::ScoreCandidate(const FVector& ViewLoc, const FVector& ViewDir, const FVector& TargetLoc) const
-{
-	const FVector ToTarget = (TargetLoc - ViewLoc);
-	const float Dist = ToTarget.Size();
-	const FVector ToTargetDir = ToTarget.GetSafeNormal();
-
-	const float Aim = (FVector::DotProduct(ViewDir, ToTargetDir) * 0.5f) + 0.5f;
-	const float DistScore = 1.f / FMath::Max(1.f, Dist);
-
-	return AimWeight * Aim + DistanceWeight * DistScore;
-}
-
-void UGZStartInteractionAbility::BeginFocus(AActor* NewActor)
-{
-	if (NewActor)
+	if (OldFocus)
 	{
-		IGZInteractable::Execute_OnBeginFocus(NewActor);
-	}
-}
-
-void UGZStartInteractionAbility::EndFocus(AActor* OldActor)
-{
-	if (OldActor)
-	{
-		IGZInteractable::Execute_OnEndFocus(OldActor);
+		UE_LOG(LogTemp, Log, TEXT("[UGZStartInteractionAbility::OnFocusChanged] Old focus: %s"),
+		       *OldFocus->GetActorNameOrLabel());
 	}
 }

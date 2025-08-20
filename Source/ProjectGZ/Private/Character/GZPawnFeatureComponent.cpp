@@ -14,6 +14,8 @@
 
 UGZPawnFeatureComponent::UGZPawnFeatureComponent()
 {
+	PrimaryComponentTick.bCanEverTick = false;
+	SetIsReplicatedByDefault(true);
 }
 
 void UGZPawnFeatureComponent::InitAbilityActorInfo(AActor* InOwnerActor, AActor* InAvatarActor)
