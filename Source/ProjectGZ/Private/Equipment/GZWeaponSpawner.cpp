@@ -1,18 +1,12 @@
 ﻿#include "Equipment/GZWeaponSpawner.h"
-
 #include "Character/GZPawnFeatureComponent.h"
 #include "Data/GZPickupDefinitionDataAsset.h"
-#include "Equipment/GZEquipmentDefinition.h"
-#include "Equipment/GZEquipmentManagerComponent.h"
-#include "Equipment/GZWeaponInstance.h"
 #include "Net/UnrealNetwork.h"
 #include "Engine/TimerHandle.h"
-#include "Equipment/GZWeaponMenuComponent.h"
 #include "GameFramework/Pawn.h"
 #include "Interfactions/GZPawnFeatureInterface.h"
 #include "Inventory/GZInventoryItemDefinition.h"
-#include "Inventory/GZInventoryItemInstance.h"
-#include "Inventory/GZInventoryManagerComponent.h"
+
 
 // Sets default values
 AGZWeaponSpawner::AGZWeaponSpawner()

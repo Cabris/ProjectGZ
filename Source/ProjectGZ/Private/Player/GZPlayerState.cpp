@@ -25,7 +25,7 @@ AGZPlayerState::AGZPlayerState()
 	PawnFeatureStruct.InventoryManager = InventoryManager;
 	PawnFeatureStruct.EquipmentManager = EquipmentManager;
 	PawnFeatureStruct.WeaponMenu = WeaponMenu;
-
+	PawnFeatureStruct.Pawn = GetPawn();
 	PawnFeature = CreateDefaultSubobject<UGZPawnFeatureComponent>("PawnFeatureComponent");
 	PawnFeature->SetupPawnFeature(PawnFeatureStruct);
 }

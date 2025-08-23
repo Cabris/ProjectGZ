@@ -32,5 +32,26 @@ AActor* UGZFunctionLibrary::GZHelper_GetActorFromSotfPath(const FSoftObjectPath&
 		return actor;
 	}
 
-	return  nullptr;
+	return nullptr;
+}
+
+bool UGZFunctionLibrary::GZHelper_GetViewPointFromActor(const AActor* Actor, FVector& OutLocation, FVector& OutDirection)
+{
+	if (!IsValid(Actor))return false;
+	// 嘗試從 PlayerController 獲取視點
+	if (const APawn* Pawn = Cast<APawn>(Actor))
+	{
+		if (APlayerController* PC = Cast<APlayerController>(Pawn->GetController()))
+		{
+			FRotator ViewRotation;
+			PC->GetPlayerViewPoint(OutLocation, ViewRotation);
+			OutDirection = ViewRotation.Vector();
+			return true;
+		}
+	}
+
+	// 後備方案：使用 Actor 的位置和前向量
+	OutLocation = Actor->GetActorLocation();
+	OutDirection = Actor->GetActorForwardVector();
+	return true;
 }

@@ -17,22 +17,27 @@ class PROJECTGZ_API AGZWorldPickupActor : public AActor, public IGZInteractable,
 public:
 	AGZWorldPickupActor();
 	virtual void BeginPlay() override;
-	virtual FVector GetWorldPosition() const override;
-	virtual FText GetInteractionText() const override;
-	virtual bool IsInteractable() const override;
-	virtual const FGameplayTag& GetInteractAbilityTriggerTag() override;
+
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
 	virtual void PostLoad() override;
+
 	//IGZInteractable
+	virtual FVector GetWorldPosition() const override;
+	virtual FText GetInteractionText() const override;
+	virtual bool IsInteractable() const override;
+	virtual const FGameplayTag& GetInteractAbilityTriggerTag() override;
 	virtual void DoInteract_Implementation() override;
 	virtual void OnBeginFocus_Implementation() override;
 	virtual void OnEndFocus_Implementation() override;
+	//IGZCollectable
 
 	//IGZCollectable
 	virtual const TSubclassOf<UGZInventoryItemDefinition>& GetItemDefinitionClass() const override;
-	virtual void ConsumeItemQuantity(int32) override;
+	virtual void ConsumeItemQuantity(int32 Quantity) override;
+	virtual void OnCollected_Implementation() override;
+	//IGZCollectable
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Default|Pickup")
@@ -52,4 +57,5 @@ protected:
 
 private:
 	void SetupComponents();
+	bool bIsComponentsSetup = false;
 };

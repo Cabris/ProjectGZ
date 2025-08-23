@@ -19,5 +19,16 @@ public:
 protected:
 	UGZInventoryManagerComponent* GetInventoryManager() const;
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
-	bool bConsumeItemQuantity=true;
+	bool bConsumeItemQuantity = true;
+	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
+	TObjectPtr<UAnimMontage> CollectMontage;
+
+private:
+	bool CollectItem();
+	UFUNCTION()
+	void OnMontageCompleted();
+	UFUNCTION()
+	void OnMontageInterrupted();
+	UPROPERTY()
+	TObjectPtr<AActor> TargetActor;
 };

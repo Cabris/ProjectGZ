@@ -5,6 +5,7 @@
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
 #include "DrawDebugHelpers.h"
+#include "GZFunctionLibrary.h"
 
 UGZInteractionDetector::UGZInteractionDetector()
 {
@@ -170,6 +171,8 @@ void UGZInteractionDetector::PerformDetection()
 
 bool UGZInteractionDetector::GetViewPoint(FVector& OutLocation, FVector& OutDirection) const
 {
+	return  UGZFunctionLibrary::GZHelper_GetViewPointFromActor(OwnerActor.Get(),OutLocation,OutDirection);
+	/*
 	if (!OwnerActor.IsValid())
 	{
 		return false;
@@ -191,6 +194,7 @@ bool UGZInteractionDetector::GetViewPoint(FVector& OutLocation, FVector& OutDire
 	OutLocation = OwnerActor->GetActorLocation();
 	OutDirection = OwnerActor->GetActorForwardVector();
 	return true;
+	*/
 }
 
 float UGZInteractionDetector::ScoreCandidate(const FVector& ViewLocation, const FVector& ViewDirection, const FVector& TargetLocation) const

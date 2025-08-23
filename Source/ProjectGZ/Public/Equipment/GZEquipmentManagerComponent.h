@@ -3,17 +3,58 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GZEquipmentDefinition.h"
+#include "Character/GZPawnComponent.h"
 #include "Components/ActorComponent.h"
+#include "Inventory/GZInventoryItemInstance.h"
 #include "Net/Serialization/FastArraySerializer.h"
 #include "GZEquipmentManagerComponent.generated.h"
 
+class UGZInventoryItemInstance;
 class UGZEquipmentManagerComponent;
-class UGZWeaponInstance;
+class UGZEquipmentInstance;
 class UGZEquipmentDefinition;
 class UActorChannel;
 class FOutBunch;
 class FLifetimeProperty;
 struct FReplicationFlags;
+
+USTRUCT()
+struct FEquipmentListAddEntryParams
+{
+	GENERATED_BODY()
+	FEquipmentListAddEntryParams(){}
+	FEquipmentListAddEntryParams(UGZInventoryItemInstance* InItemInstance, UObject* InEquipmentOwner)
+	{
+		if (!IsValid(InItemInstance))
+			return;
+		ItemInstance = InItemInstance;
+		EquipmentOwner = InEquipmentOwner;
+
+		if (UGZInventoryItemDefinition* ItemDefinition = InItemInstance->GetItemDefinition())
+			EquipmentDefClass = ItemDefinition->GetEquipmentDef();
+		if (!IsValid(EquipmentDefClass))
+			return;
+
+		EquipmentDefCDO = EquipmentDefClass.GetDefaultObject();
+		if (EquipmentDefCDO)
+		{
+			EquipmentInstanceClass = EquipmentDefCDO->InstanceClass;
+		}
+	}
+
+	UPROPERTY()
+	TSubclassOf<UGZEquipmentDefinition> EquipmentDefClass;
+	UPROPERTY()
+	TSubclassOf<UGZEquipmentInstance> EquipmentInstanceClass;
+
+	UPROPERTY()
+	TObjectPtr<UObject> EquipmentOwner = nullptr;
+	UPROPERTY()
+	TObjectPtr<UGZInventoryItemInstance> ItemInstance = nullptr;
+	UPROPERTY()
+	TObjectPtr<UGZEquipmentDefinition> EquipmentDefCDO = nullptr;
+};
 
 USTRUCT(BlueprintType)
 struct FGZCarriedEquipmentEntry : public FFastArraySerializerItem
@@ -24,7 +65,7 @@ public:
 	UPROPERTY()
 	TSubclassOf<UGZEquipmentDefinition> EquipmentDefinitionClass;
 	UPROPERTY()
-	TObjectPtr<UGZWeaponInstance> EquipmentInstance;
+	TObjectPtr<UGZEquipmentInstance> EquipmentInstance;
 };
 
 USTRUCT(BlueprintType)
@@ -34,12 +75,6 @@ struct FGZCarriedEquipmentList : public FFastArraySerializer
 
 public:
 	FGZCarriedEquipmentList()
-		: Owner(nullptr)
-	{
-	}
-
-	FGZCarriedEquipmentList(UObject* Owner)
-		: Owner(Owner)
 	{
 	}
 
@@ -49,19 +84,16 @@ public:
 			Items, DeltaParms, *this);
 	}
 
-	UGZWeaponInstance* AddEntry(const TSubclassOf<UGZEquipmentDefinition>& DefinitionClass);
-	void RemoveEntry(UGZWeaponInstance* EntryInstance);
+	UGZEquipmentInstance* AddEntry(const FEquipmentListAddEntryParams& Params);
+	void RemoveEntry(UGZEquipmentInstance* EntryInstance);
 	void RemoveAllEntries();
-	const FGZCarriedEquipmentEntry* GetEntryByInstance(const TObjectPtr<UGZWeaponInstance>& Instance);
+	const FGZCarriedEquipmentEntry* GetEntryByInstance(const TObjectPtr<UGZEquipmentInstance>& Instance);
 	const FGZCarriedEquipmentEntry* GetEntryByEquipmentDefClass(const TSubclassOf<UGZEquipmentDefinition>& DefinitionClass);
 
 private:
 	friend UGZEquipmentManagerComponent;
 	UPROPERTY()
 	TArray<FGZCarriedEquipmentEntry> Items;
-
-	UPROPERTY()
-	TObjectPtr<UObject> Owner = nullptr;
 };
 
 //this is required for NetDeltaSerialize can be call
@@ -76,16 +108,16 @@ struct TStructOpsTypeTraits<FGZCarriedEquipmentList> : public TStructOpsTypeTrai
 
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
-class PROJECTGZ_API UGZEquipmentManagerComponent : public UActorComponent
+class PROJECTGZ_API UGZEquipmentManagerComponent : public UGZPawnComponent
 {
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this component's properties
 	UGZEquipmentManagerComponent();
-	UGZWeaponInstance* GetEquipmentInstanceByClass(const TSubclassOf<UGZWeaponInstance>& InstanceClass);
-	UGZWeaponInstance* EquipItem(const TSubclassOf<UGZEquipmentDefinition>& DefinitionClass);
-	void UnEquipItem(UGZWeaponInstance* EquipmentInstance);
+	UGZEquipmentInstance* GetEquipmentInstanceByClass(const TSubclassOf<UGZEquipmentInstance>& InstanceClass);
+	UGZEquipmentInstance* EquipItem(UGZInventoryItemInstance* ItemInstance);
+	void UnEquipItem(UGZEquipmentInstance* EquipmentInstance);
 	virtual void ReadyForReplication() override;
 	virtual bool ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags) override;
 	virtual void UninitializeComponent() override;

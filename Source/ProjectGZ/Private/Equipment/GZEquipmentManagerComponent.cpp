@@ -1,36 +1,47 @@
 ﻿#include "Equipment/GZEquipmentManagerComponent.h"
 #include "Abilities/GameplayAbility.h"
+#include "Character/GZPawnFeatureComponent.h"
 #include "Engine/ActorChannel.h"
 #include "Equipment/GZEquipmentDefinition.h"
-#include "Equipment/GZWeaponInstance.h"
+#include "Equipment/GZEquipmentInstance.h"
 #include "Interfactions/GZAbilitySystemInterface.h"
+#include "Interfactions/GZPawnFeatureInterface.h"
+#include "Inventory/GZInventoryItemInstance.h"
 #include "Net/UnrealNetwork.h"
 
 
-UGZWeaponInstance* FGZCarriedEquipmentList::AddEntry(const TSubclassOf<UGZEquipmentDefinition>& DefinitionClass)
+UGZEquipmentInstance* FGZCarriedEquipmentList::AddEntry(const FEquipmentListAddEntryParams& Params)
 {
-	if (!IsValid(DefinitionClass))return nullptr;
-	UGZEquipmentDefinition* CDO = DefinitionClass.GetDefaultObject();
-	if (!CDO) return nullptr;
-	auto InstanceType = CDO->InstanceClass;
-	check(InstanceType);
-	auto& ActorsToSpawn = CDO->ActorsToSpawn;
-	auto Item = Items.AddDefaulted_GetRef();
-	Item.EquipmentDefinitionClass = DefinitionClass;
-	Item.EquipmentInstance = NewObject<UGZWeaponInstance>(Owner, InstanceType);
-	Item.EquipmentInstance->SpawnEquipmentActors(ActorsToSpawn);
+	UObject* EquipmentOwner = Params.EquipmentOwner;
+
+	FGZCarriedEquipmentEntry Item = Items.AddDefaulted_GetRef();
+	Item.EquipmentInstance = NewObject<UGZEquipmentInstance>(EquipmentOwner, Params.EquipmentInstanceClass);
+	Item.EquipmentInstance->SetItemInstance(Params.ItemInstance);
+	Item.EquipmentInstance->SetEquipmentDefClass(Params.EquipmentDefClass);
+	if (IsValid(Params.EquipmentDefCDO))
+	{
+		auto& ActorsToSpawn = Params.EquipmentDefCDO->ActorsToSpawn;
+		Item.EquipmentInstance->SpawnEquipmentActors(ActorsToSpawn);
+	}
+	APawn* Instigator = Cast<APawn>(EquipmentOwner);
+	if (IsValid(Instigator))
+		Item.EquipmentInstance->SetInstigator(Instigator);
+
 	return Item.EquipmentInstance;
 }
 
-void FGZCarriedEquipmentList::RemoveEntry(UGZWeaponInstance* EntryInstance)
+void FGZCarriedEquipmentList::RemoveEntry(UGZEquipmentInstance* EntryInstance)
 {
+	if (!IsValid(EntryInstance))return;
 	const int32 Idx = Items.IndexOfByPredicate([EntryInstance](const FGZCarriedEquipmentEntry& Entry)
 	{
 		return Entry.EquipmentInstance == EntryInstance;
 	});
+	EntryInstance->SetInstigator(nullptr);
+	EntryInstance->SetItemInstance(nullptr);
 	if (Idx != INDEX_NONE)
 	{
-		Items.RemoveAtSwap(Idx);//order is not important
+		Items.RemoveAtSwap(Idx); //order is not important
 		MarkArrayDirty();
 	}
 }
@@ -44,7 +55,7 @@ void FGZCarriedEquipmentList::RemoveAllEntries()
 	}
 }
 
-const FGZCarriedEquipmentEntry* FGZCarriedEquipmentList::GetEntryByInstance(const TObjectPtr<UGZWeaponInstance>& Instance)
+const FGZCarriedEquipmentEntry* FGZCarriedEquipmentList::GetEntryByInstance(const TObjectPtr<UGZEquipmentInstance>& Instance)
 {
 	for (FGZCarriedEquipmentEntry& Entry : Items)
 	{
@@ -65,38 +76,41 @@ const FGZCarriedEquipmentEntry* FGZCarriedEquipmentList::GetEntryByEquipmentDefC
 	return nullptr;
 }
 
-UGZEquipmentManagerComponent::UGZEquipmentManagerComponent(): EquipmentList(GetOwner())
+UGZEquipmentManagerComponent::UGZEquipmentManagerComponent()
 {
 	PrimaryComponentTick.bCanEverTick = false;
 	SetIsReplicatedByDefault(true);
 }
 
-UGZWeaponInstance* UGZEquipmentManagerComponent::EquipItem(const TSubclassOf<UGZEquipmentDefinition>& DefinitionClass)
+UGZEquipmentInstance* UGZEquipmentManagerComponent::EquipItem(UGZInventoryItemInstance* ItemInstance)
 {
-	if (!IsValid(DefinitionClass)) return nullptr;
-	UGZWeaponInstance* Instance = EquipmentList.AddEntry(DefinitionClass);
-	if (!Instance)return nullptr;
+	if (!IsValid(ItemInstance) || !IsValid(ItemInstance->GetItemDefinition()))
+		return nullptr;
 
-	if (IGZAbilitySystemInterface* ASI = Cast<IGZAbilitySystemInterface>(GetOwner()))
+	UGZPawnFeatureComponent* PawnFeature = GetPawnFeature();
+	if (!IsValid(PawnFeature))return nullptr;
+
+	const FEquipmentListAddEntryParams Param(ItemInstance, PawnFeature->GetPawn().Get());
+	UGZEquipmentInstance* EquipmentInstance = EquipmentList.AddEntry(Param);
+	if (!EquipmentInstance)return nullptr;
+
+	TObjectPtr<UGZAbilitySystemComponent> ASC = PawnFeature->GetAbilitySystem();
+	auto DefinitionClass = ItemInstance->GetItemDefinition()->GetEquipmentDef();
+	if (!IsValid(DefinitionClass)) return nullptr;
+	for (FInputAbilityEntry& GrantedAbility : DefinitionClass.GetDefaultObject()->GrantedAbilities)
 	{
-		if (UGZAbilitySystemComponent* ASC = ASI->GetAbilitySystemComponent())
-		{
-			for (FInputAbilityEntry& GrantedAbility : DefinitionClass.GetDefaultObject()->GrantedAbilities)
-			{
-				ASC->GiveEquipmentGrantedAbility(GrantedAbility, Instance, Instance->GetGrantedAbilitySpecHandle());
-			}
-		}
+		ASC->GiveEquipmentGrantedAbility(GrantedAbility, EquipmentInstance, EquipmentInstance->GetGrantedAbilitySpecHandle());
 	}
 
-	Instance->OnEquipped();
+	EquipmentInstance->OnEquipped();
 	if (IsUsingRegisteredSubObjectList() && IsReadyForReplication())
 	{
-		AddReplicatedSubObject(Instance);
+		AddReplicatedSubObject(EquipmentInstance);
 	}
-	return Instance;
+	return EquipmentInstance;
 }
 
-void UGZEquipmentManagerComponent::UnEquipItem(UGZWeaponInstance* EquipmentInstance)
+void UGZEquipmentManagerComponent::UnEquipItem(UGZEquipmentInstance* EquipmentInstance)
 {
 	if (!EquipmentInstance)return;
 	if (IsUsingRegisteredSubObjectList())
@@ -136,7 +150,7 @@ bool UGZEquipmentManagerComponent::ReplicateSubobjects(class UActorChannel* Chan
 	bool Ret = Super::ReplicateSubobjects(Channel, Bunch, RepFlags);
 	for (FGZCarriedEquipmentEntry& Entry : EquipmentList.Items)
 	{
-		UGZWeaponInstance* Instance = Entry.EquipmentInstance;
+		UGZEquipmentInstance* Instance = Entry.EquipmentInstance;
 		if (IsValid(Instance))
 		{
 			Ret |= Channel->ReplicateSubobject(Instance, *Bunch, *RepFlags);
@@ -161,7 +175,7 @@ void UGZEquipmentManagerComponent::GetLifetimeReplicatedProps(TArray<class FLife
 	DOREPLIFETIME(ThisClass, EquipmentList);
 }
 
-UGZWeaponInstance* UGZEquipmentManagerComponent::GetEquipmentInstanceByClass(const TSubclassOf<UGZWeaponInstance>& InstanceClass)
+UGZEquipmentInstance* UGZEquipmentManagerComponent::GetEquipmentInstanceByClass(const TSubclassOf<UGZEquipmentInstance>& InstanceClass)
 {
 	for (FGZCarriedEquipmentEntry& Entry : EquipmentList.Items)
 	{

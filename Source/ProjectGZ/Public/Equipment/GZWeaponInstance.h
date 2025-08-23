@@ -1,42 +1,65 @@
 ﻿#pragma once
 #include "CoreMinimal.h"
-#include "GZTagStackList.h"
-#include "UObject/Object.h"
+#include "GZEquipmentInstance.h"
+#include "WeaponConfig.h"
 #include "GZWeaponInstance.generated.h"
 
-struct FGameplayAbilitySpecHandle;
-class FLifetimeProperty;
-struct FGZEquipmentActorToSpawn;
+USTRUCT()
+struct FAttackFilter 
+{
+	GENERATED_BODY()
+	// 用哪個通道做 LineTrace/Sweep（預設拿 Visibility）
+	UPROPERTY(EditAnywhere)
+	TEnumAsByte<ECollisionChannel> TraceChannel = ECC_Visibility;
 
-//base class for weapon instance that used by player
-//data stored in a weapon instance should only be its static attributes, ex: damage, range, CD time
-//a weapon instance should focus on its attacking useage
-//data such as ammo that will change in gameplay should be stored in inventory instance
-UCLASS(Blueprintable, BlueprintType)
-class PROJECTGZ_API UGZWeaponInstance : public UObject
+	// 是否用複雜碰撞
+	UPROPERTY(EditAnywhere)
+	bool bTraceComplex = false;
+
+	// 這次射擊的「發射者」；用來忽略自己
+	UPROPERTY()
+	TWeakObjectPtr<const AActor> Instigator = nullptr;
+
+	// 還要額外忽略的演員（例如：武器 Actor、臨時特效 Actor）
+	UPROPERTY()
+	TArray<TWeakObjectPtr<const AActor>> ExtraIgnoredActors;
+
+	// 忽略 Instigator 以及它的「所有附掛的子 Actor」
+	// （包含 ChildActorComponent 產生的 Child Actors）
+	UPROPERTY(EditAnywhere)
+	bool bIgnoreInstigatorAndAttachments = true;
+
+	// 若你想用「物件類型」而不是 Channel，也可以加這個（選用）
+	// FCollisionObjectQueryParams ObjectTypes = FCollisionObjectQueryParams::AllDynamicObjects;
+};
+
+struct FFireParams
+{
+	FVector Origin = FVector::Zero();
+	FVector Direction = FVector::Zero();
+	float Speed = 0;
+	int32 FireIndex = 0;
+	FAttackFilter Filter;
+};
+
+struct FFireResult
+{
+	bool bIsValid = false;
+	FHitResult Hit;
+	FVector EndLocation = FVector::ZeroVector;
+};
+
+//base c++ class for ranged/melee weapon
+UCLASS()
+class PROJECTGZ_API UGZWeaponInstance : public UGZEquipmentInstance
 {
 	GENERATED_BODY()
 
 public:
-	virtual void OnEquipped();
-	virtual void OnUnequipped();
-	virtual void SpawnEquipmentActors(TArray<FGZEquipmentActorToSpawn>& ActorsToSpawn);
-	virtual void DestroyEquipmentActors();
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-	void SetInstigator(const TObjectPtr<APawn>& Instigator);
-	TArray<FGameplayAbilitySpecHandle>& GetGrantedAbilitySpecHandle();
+	const FWeaponConfig& GetConfig() const { return WeaponConfig; }
+	FFireResult CalculateFireResult(const FFireParams& FireParams) const;
+
 protected:
-	UPROPERTY(VisibleAnywhere, Replicated)
-	TArray<TObjectPtr<AActor>> SpawnedActors;
-	UPROPERTY(VisibleAnywhere, Replicated)
-	TObjectPtr<APawn> Instigator; //who has this weapon
-	UPROPERTY(Replicated)
-	TArray<FGameplayAbilitySpecHandle> GrantedAbilitySpecHandle;
-
-	UFUNCTION(BlueprintImplementableEvent)
-	void OnEquippedFX();
-	UFUNCTION(BlueprintImplementableEvent)
-	void OnUnequippedFX();
-
-private:
+	UPROPERTY(EditDefaultsOnly, Category="Equipment|Weapon")
+	FWeaponConfig WeaponConfig;
 };

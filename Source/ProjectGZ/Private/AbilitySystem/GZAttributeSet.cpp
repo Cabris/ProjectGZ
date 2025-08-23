@@ -2,12 +2,16 @@
 #include "Net/UnrealNetwork.h"
 #include "UObject/CoreNet.h"
 #include "GameplayEffectExtension.h"
+#include "Game/GZGameplayTags.h"
 
 UGZAttributeSet::UGZAttributeSet()
 {
 	InitMaxHealth(100.f);
 	InitHealth(GetMaxHealth());
+	TagAttributeMap.Add(GZGameplayTags::Attribute_Primary_Health, &ThisClass::GetHealthAttribute);
+	TagAttributeMap.Add(GZGameplayTags::Attribute_Primary_MaxHealth, &ThisClass::GetMaxHealthAttribute);
 }
+
 
 void UGZAttributeSet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
@@ -34,4 +38,14 @@ void UGZAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, fl
 void UGZAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
 {
 	Super::PostGameplayEffectExecute(Data);
+}
+
+FGameplayAttribute UGZAttributeSet::GetAttributeByTag(FGameplayTag Tag) const
+{
+	if (auto* FuncPtr  = TagAttributeMap.Find(Tag))
+	{
+		if (FuncPtr)
+			return (*FuncPtr )();
+	}
+	return FGameplayAttribute();
 }

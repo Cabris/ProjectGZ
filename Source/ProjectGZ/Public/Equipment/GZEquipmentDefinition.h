@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "GZWeaponInstance.h"
+#include "GZEquipmentInstance.h"
 #include "AbilitySystem/GZInputGameplayAbilitySet.h"
 #include "GameFramework/Actor.h"
 #include "GZEquipmentDefinition.generated.h"
@@ -19,6 +19,7 @@ struct FGZEquipmentActorToSpawn
 };
 
 // Definition of equipment that can be applied to player
+// Basic Definition for visual attribute such as model actors
 UCLASS(Blueprintable, BlueprintType)
 class PROJECTGZ_API UGZEquipmentDefinition : public UObject
 {
@@ -26,7 +27,7 @@ class PROJECTGZ_API UGZEquipmentDefinition : public UObject
 
 public:
 	UPROPERTY(EditDefaultsOnly, Category="Equipment")
-	TSubclassOf<UGZWeaponInstance> InstanceClass;
+	TSubclassOf<UGZEquipmentInstance> InstanceClass;
 	UPROPERTY(EditDefaultsOnly, Category="Equipment")
 	TArray<FGZEquipmentActorToSpawn> ActorsToSpawn;
 	UPROPERTY(EditDefaultsOnly, Category="Equipment")

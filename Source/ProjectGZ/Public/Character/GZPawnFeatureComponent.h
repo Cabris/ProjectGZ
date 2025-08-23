@@ -4,6 +4,7 @@
 #include "Interfactions/GZPawnFeatureInterface.h"
 #include "GZPawnFeatureComponent.generated.h"
 
+class UGZInventoryItemInstance;
 class UGZAttributeSet;
 class UGZAbilitySystemComponent;
 class UGZInventoryManagerComponent;
@@ -17,15 +18,17 @@ struct FPawnFeatureStruct
 {
 	GENERATED_BODY()
 	UPROPERTY()
-	TObjectPtr<UGZAbilitySystemComponent> AbilitySystemComponent=nullptr;
+	TObjectPtr<UGZAbilitySystemComponent> AbilitySystemComponent = nullptr;
 	UPROPERTY()
-	TObjectPtr<UGZAttributeSet> AttributeSet=nullptr;
+	TObjectPtr<UGZAttributeSet> AttributeSet = nullptr;
 	UPROPERTY()
-	TObjectPtr<UGZInventoryManagerComponent> InventoryManager=nullptr;
+	TObjectPtr<UGZInventoryManagerComponent> InventoryManager = nullptr;
 	UPROPERTY()
-	TObjectPtr<UGZEquipmentManagerComponent> EquipmentManager=nullptr;
+	TObjectPtr<UGZEquipmentManagerComponent> EquipmentManager = nullptr;
 	UPROPERTY()
-	TObjectPtr<UGZWeaponMenuComponent> WeaponMenu=nullptr;
+	TObjectPtr<UGZWeaponMenuComponent> WeaponMenu = nullptr;
+	UPROPERTY()
+	TObjectPtr<APawn> Pawn = nullptr;
 };
 
 //Owned by PlayerState
@@ -62,6 +65,11 @@ public:
 		return PawnFeatureStruct.WeaponMenu;
 	}
 
+	const TObjectPtr<APawn>& GetPawn()
+	{
+		return PawnFeatureStruct.Pawn;
+	}
+
 	void SetupPawnFeature(const FPawnFeatureStruct& FeatureStruct)
 	{
 		PawnFeatureStruct = FeatureStruct;
@@ -73,6 +81,8 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
 
 protected:
+	void TryGrantEquipmentToPawn(UGZInventoryItemInstance* ItemInstance);
+
 	UPROPERTY(Replicated)
 	FPawnFeatureStruct PawnFeatureStruct;
 };

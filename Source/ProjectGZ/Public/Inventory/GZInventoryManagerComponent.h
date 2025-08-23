@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "GZInventoryItemInstance.h"
+#include "Character/GZPawnComponent.h"
 #include "Components/ActorComponent.h"
 #include "GZInventoryManagerComponent.generated.h"
 
@@ -88,7 +89,7 @@ struct TStructOpsTypeTraits<FGZInventoryList> : public TStructOpsTypeTraitsBase2
 };
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
-class PROJECTGZ_API UGZInventoryManagerComponent : public UActorComponent
+class PROJECTGZ_API UGZInventoryManagerComponent : public UGZPawnComponent
 {
 	GENERATED_BODY()
 

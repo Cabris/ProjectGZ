@@ -20,7 +20,21 @@ UGZAbilitySystemComponent::UGZAbilitySystemComponent()
 void UGZAbilitySystemComponent::OnAbilityActorInfoSet()
 {
 	OnGameplayEffectAppliedDelegateToSelf.RemoveAll(this);
-	OnGameplayEffectAppliedDelegateToSelf.AddUObject(this, &ThisClass::OnEffectAppliedToSelf);
+	//OnGameplayEffectAppliedDelegateToSelf is Called on server whenever a GE is applied to self. This includes instant and duration based GEs.
+	//So we need to a client RPC to call on server and executed on the client
+	//for a listening server, the client-implement will be called immediately
+	OnGameplayEffectAppliedDelegateToSelf.AddUObject(this, &ThisClass::ClientEffectApplied);
+}
+
+void UGZAbilitySystemComponent::ClientEffectApplied_Implementation(UAbilitySystemComponent* ASC, const FGameplayEffectSpec& Spec,
+	FActiveGameplayEffectHandle Handle)
+{
+	FGameplayTagContainer Tags;
+	Spec.GetAllAssetTags(Tags);
+	UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(this);
+	FGZVerbMessage OutgoingMessage;
+	OutgoingMessage.ContextTags = Tags;
+	MessageSystem.BroadcastMessage(GZGameplayTags::MessageTag_Effect_Applied, OutgoingMessage);
 }
 
 void UGZAbilitySystemComponent::HandleAbilityInputPressed(FGameplayTag InputTag)
@@ -204,11 +218,24 @@ void UGZAbilitySystemComponent::GiveEquipmentGrantedAbility(const FInputAbilityE
 	int32 InLevel = GrantedAbility.AbilityLevel;
 	FGameplayTag InputTag = GrantedAbility.InputTag;
 
+	if (!IsValid(AbilityClass))
+	{
+		Debug::Print(TEXT("GiveEquipmentGrantedAbility: AbilityClass is not Valid"));
+		return;
+	}
+	
 	FGameplayAbilitySpec AbilitySpec(AbilityClass, InLevel);
 	AbilitySpec.SourceObject = SourceObject;
 	AbilitySpec.GetDynamicSpecSourceTags().AddTag(InputTag);
 	FGameplayAbilitySpecHandle AbilitySpecHandle = GiveAbility(AbilitySpec);
 	OutHandles.AddUnique(AbilitySpecHandle);
+
+	auto CDO = AbilityClass.GetDefaultObject();
+	if (CDO->GetActivationPolicy()== EAbilityActivationPolicy::OnGiven)
+	{
+		TryActivateAbility(AbilitySpecHandle);
+	}
+	
 	/*TryActivateAbility(AbilitySpecHandle);
 	AbilitySpecInputReleased(AbilitySpec);
 	AbilitySpecInputPressed(AbilitySpec);
@@ -216,13 +243,3 @@ void UGZAbilitySystemComponent::GiveEquipmentGrantedAbility(const FInputAbilityE
 	ClearAbility(AbilitySpecHandle);*/
 }
 
-void UGZAbilitySystemComponent::OnEffectAppliedToSelf(UAbilitySystemComponent* ASC, const FGameplayEffectSpec& Spec,
-                                                      FActiveGameplayEffectHandle Handle)
-{
-	FGameplayTagContainer Tags;
-	Spec.GetAllAssetTags(Tags);
-	UGameplayMessageSubsystem& MessageSystem = UGameplayMessageSubsystem::Get(this);
-	FGZVerbMessage OutgoingMessage;
-	OutgoingMessage.ContextTags = Tags;
-	MessageSystem.BroadcastMessage(GZGameplayTags::MessageTag_Effect_Applied, OutgoingMessage);
-}

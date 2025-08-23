@@ -1,5 +1,6 @@
 ﻿#include "Inventory/GZInventoryItemInstance.h"
 
+#include "Equipment/GZEquipmentDefinition.h"
 #include "Game/GZGameplayTags.h"
 #include "Inventory/GZInventoryItemDefinition.h"
 #include "Net/UnrealNetwork.h"
@@ -28,6 +29,13 @@ UGZInventoryItemDefinition* UGZInventoryItemInstance::GetItemDefinition() const
 int32 UGZInventoryItemInstance::GetDefaultStack() const
 {
 	return TagStackList.GetItemStackCount(GZGameplayTags::Item_Stack_Quantity);
+}
+
+bool UGZInventoryItemInstance::IsEquipmentItem()
+{
+	if (!IsValid(GetItemDefinition()))
+		return false;
+	return IsValid(GetItemDefinition()->GetEquipmentDef());
 }
 
 void UGZInventoryItemInstance::SetItemDefinitionClass(const TSubclassOf<UGZInventoryItemDefinition>& ItemDefClass)

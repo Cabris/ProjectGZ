@@ -1,39 +1,15 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "Game/GZGameplayTags.h"
+#include "Game/GZGameplayTagList.h" // 清單巨集
 
 namespace GZGameplayTags
 {
-	UE_DEFINE_GAMEPLAY_TAG(InputTag_Move, "InputTag.Move")
-	UE_DEFINE_GAMEPLAY_TAG(InputTag_Look, "InputTag.Look")
-	UE_DEFINE_GAMEPLAY_TAG(InputTag_Jump, "InputTag.Jump")
-	UE_DEFINE_GAMEPLAY_TAG(InputTag_Sprint, "InputTag.Sprint")
-	UE_DEFINE_GAMEPLAY_TAG(InputTag_Crouch, "InputTag.Crouch")
-	UE_DEFINE_GAMEPLAY_TAG(InputTag_Aim, "InputTag.Aim")
-	UE_DEFINE_GAMEPLAY_TAG(InputTag_Strafe, "InputTag.Strafe")
-	UE_DEFINE_GAMEPLAY_TAG(InputTag_Interaction, "InputTag.Interaction")
-
-	UE_DEFINE_GAMEPLAY_TAG(MessageTag_Effect_Applied, "MessageTag.Effect.Applied")
-	UE_DEFINE_GAMEPLAY_TAG(MessageTag_Inventory_Initialized, "MessageTag.Inventory.Initialized")
-	UE_DEFINE_GAMEPLAY_TAG(Item_Stack_Quantity, "Item.Stack.Quantity")
-	UE_DEFINE_GAMEPLAY_TAG(Item_Stack_Ammo, "Item.Stack.Ammo")
-	UE_DEFINE_GAMEPLAY_TAG(Item_Stack_Ammo_Spare, "Item.Stack.Ammo.Spare")
-
-	UE_DEFINE_GAMEPLAY_TAG(Action_Interaction_Collect, "Action.Interaction.Collect")
-	UE_DEFINE_GAMEPLAY_TAG(Action_Interaction_OpenDoor, "Action.Interaction.OpenDoor")
-	UE_DEFINE_GAMEPLAY_TAG(Action_Attack_Ranged_Pistol, "Action.Attack.Ranged.Pistol")
-	UE_DEFINE_GAMEPLAY_TAG(Action_Attack_Ranged_Rifle, "Action.Attack.Ranged.Rifle")
-
-	UE_DEFINE_GAMEPLAY_TAG(State_Aiming, "State.Aiming")
-	UE_DEFINE_GAMEPLAY_TAG(State_Reloading, "State.Reloading")
-	UE_DEFINE_GAMEPLAY_TAG(State_Sprinting, "State.Sprinting")
-
-	UE_DEFINE_GAMEPLAY_TAG(Cooldown_Generic, "Cooldown.Generic");
-
-
-	//UE_DEFINE_GAMEPLAY_TAG(MessageTag_Inventory_Changed, "MessageTag.Inventory.Changed")
+	// 關鍵：在 .cpp 原始檔文本中展開成 DEFINE，
+	// UE_DEFINE_GAMEPLAY_TAG_COMMENT 現在「真的」在 .cpp 內展開，因此不會觸發 static_assert。
+#define DEFINE_TAG(Name, StringPath, CommentText) UE_DEFINE_GAMEPLAY_TAG_COMMENT(Name, StringPath, CommentText);
+	GZ_FOR_EACH_GAMEPLAY_TAG(DEFINE_TAG)
+#undef DEFINE_TAG
 }
+
 
 FGZGameplayTags FGZGameplayTags::Instance;
 

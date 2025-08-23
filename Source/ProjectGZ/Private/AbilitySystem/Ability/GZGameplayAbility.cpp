@@ -17,15 +17,18 @@ void UGZGameplayAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInf
 			ActorInfo->AbilitySystemComponent->TryActivateAbility(Spec.Handle);
 		}
 	}
-	UE_LOG(LogTemp, Log, TEXT("[UGZGameplayAbility::OnGiveAbility] Ability given to: %s"), 
-	ActorInfo->AvatarActor.IsValid() ? *ActorInfo->AvatarActor->GetName() : TEXT("None"));
+	const TCHAR* AvatarActorName = ActorInfo->AvatarActor.IsValid() ? *ActorInfo->AvatarActor->GetName() : TEXT("None");
+	
+	UE_LOG(LogTemp, Log, TEXT("[UGZGameplayAbility::OnGiveAbility] Ability:[%s], given to: %s, NetExecutionPolicy: %d"),
+		*GetName(), AvatarActorName, NetExecutionPolicy.GetIntValue());
 }
 
 void UGZGameplayAbility::OnRemoveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
 {
 	Super::OnRemoveAbility(ActorInfo, Spec);
-	UE_LOG(LogTemp, Log, TEXT("[UGZGameplayAbility::OnRemoveAbility] Ability removed from: %s"), 
-		ActorInfo->AvatarActor.IsValid() ? *ActorInfo->AvatarActor->GetName() : TEXT("None"));
+	const TCHAR* AvatarActorName = ActorInfo->AvatarActor.IsValid() ? *ActorInfo->AvatarActor->GetName() : TEXT("None");
+
+	UE_LOG(LogTemp, Log, TEXT("[UGZGameplayAbility::OnRemoveAbility] Ability removed from: %s"), AvatarActorName);
 }
 
 void UGZGameplayAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,

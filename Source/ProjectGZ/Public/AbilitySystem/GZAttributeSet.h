@@ -39,6 +39,11 @@ public:
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
 
+	FGameplayAttribute GetAttributeByTag(FGameplayTag Tag) const;
+
 protected:
+	using StaticFunctionPtr = FGameplayAttribute(*)();
+	TMap<FGameplayTag, StaticFunctionPtr> TagAttributeMap;
+
 private:
 };

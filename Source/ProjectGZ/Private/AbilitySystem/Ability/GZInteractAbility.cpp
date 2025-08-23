@@ -34,39 +34,29 @@ void UGZInteractAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle
                                          const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-	bool isValid = true;
 	if (!InteractionTag.IsValid())
 	{
-		isValid = false;
+		UE_LOG(LogTemp, Error, TEXT("InteractionTag is IsNotValid!"));
 	}
 	if (!TriggerEventData)
 	{
 		UE_LOG(LogTemp, Error, TEXT("TriggerEventData is NULL!"));
-		isValid = false;
 	}
 	else if (!TriggerEventData->Target)
 	{
 		UE_LOG(LogTemp, Error, TEXT("TriggerEventData->Target is NULL!"));
-		isValid = false;
 	}
 	else if (!TriggerEventData->Target->Implements<UGZInteractable>())
 	{
 		UE_LOG(LogTemp, Error, TEXT("TriggerEventData->Target do not implements UGZInteractable!"));
-		isValid = false;
 	}
 	AActor* TargetActor = const_cast<AActor*>(TriggerEventData->Target.Get());
 	IGZInteractable* Interactable = Cast<IGZInteractable>(TargetActor);
-	//auto WorldPosition = Interactable->GetWorldPosition();
 	bool IsSuccessfulActive = ActivateAbilityInternal(Handle, ActorInfo, ActivationInfo, TriggerEventData, TargetActor, Interactable);
 	if (!IsSuccessfulActive)
 	{
 		UE_LOG(LogTemp, Error, TEXT("ActivateAbilityInternal return false!"));
-		isValid = false;
-	}
-	if (!isValid)
-	{
 		CancelAbility(Handle, ActorInfo, ActivationInfo, true);
-		//EndAbility(Handle, ActorInfo, ActivationInfo, true, true);
 	}
 }
 

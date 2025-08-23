@@ -1,11 +1,10 @@
 ﻿#pragma once
-
 #include "CoreMinimal.h"
-#include "GZGameplayAbility.h"
-#include "GZAttackAbility.generated.h"
+#include "GZCombatAbility.h"
+#include "GZBowAttackTestAbility.generated.h"
 
 UCLASS()
-class PROJECTGZ_API UGZAttackAbility : public UGZGameplayAbility
+class PROJECTGZ_API UGZBowAttackTestAbility : public UGZCombatAbility
 {
 	GENERATED_BODY()
 

@@ -28,6 +28,8 @@ AGZWorldPickupActor::AGZWorldPickupActor()
 
 void AGZWorldPickupActor::SetupComponents()
 {
+	if (bIsComponentsSetup)
+		return;
 	if (IsValid(DefaultMesh))
 		StaticMeshComponent->SetStaticMesh(DefaultMesh);
 
@@ -59,6 +61,7 @@ void AGZWorldPickupActor::SetupComponents()
 
 	StaticMeshComponent->SetRelativeTransform(ItemDefinition->GetPickupMeshOffsetTransform());
 	InteractCollision->SetRelativeTransform(ItemDefinition->GetPickupMeshOffsetTransform());
+	bIsComponentsSetup = true;
 }
 
 void AGZWorldPickupActor::BeginPlay()
@@ -94,6 +97,7 @@ void AGZWorldPickupActor::PostEditChangeProperty(struct FPropertyChangedEvent& E
 	if (E.Property && E.Property->GetFName() == GET_MEMBER_NAME_CHECKED(AGZWorldPickupActor, DefaultMesh)||
 		 E.Property->GetFName() == GET_MEMBER_NAME_CHECKED(AGZWorldPickupActor, ItemDefinitionClass))
 	{
+		bIsComponentsSetup = false;
 		SetupComponents();
 	}
 }
@@ -113,8 +117,14 @@ const TSubclassOf<UGZInventoryItemDefinition>& AGZWorldPickupActor::GetItemDefin
 	return ItemDefinitionClass;
 }
 
-void AGZWorldPickupActor::ConsumeItemQuantity(int32)
+void AGZWorldPickupActor::ConsumeItemQuantity(int32 Quantity)
 {
+	//Debug::Printf(TEXT("AGZWorldPickupActor::ConsumeItemQuantity: %d"), Quantity);
+}
+
+void AGZWorldPickupActor::OnCollected_Implementation()
+{
+	Debug::Print(TEXT("AGZWorldPickupActor::OnCollected_Implementation"));
 }
 
 void AGZWorldPickupActor::DoInteract_Implementation()
