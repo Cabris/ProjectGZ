@@ -1,37 +1,26 @@
 ﻿#pragma once
 
 #include "CoreMinimal.h"
+#include "GZInteractableActor.h"
 #include "GameFramework/Actor.h"
 #include "Interfactions/GZCollectable.h"
 #include "Interfactions/GZInteractable.h"
 #include "GZWorldPickupActor.generated.h"
 
-class USphereComponent;
+
 class UGZInventoryItemDefinition;
 
 UCLASS()
-class PROJECTGZ_API AGZWorldPickupActor : public AActor, public IGZInteractable, public IGZCollectable
+class PROJECTGZ_API AGZWorldPickupActor : public AGZInteractableActor, public IGZCollectable
 {
 	GENERATED_BODY()
 
 public:
 	AGZWorldPickupActor();
-	virtual void BeginPlay() override;
 
 #if WITH_EDITOR
 	virtual void PostEditChangeProperty(struct FPropertyChangedEvent& PropertyChangedEvent) override;
 #endif
-	virtual void PostLoad() override;
-
-	//IGZInteractable
-	virtual FVector GetWorldPosition() const override;
-	virtual FText GetInteractionText() const override;
-	virtual bool IsInteractable() const override;
-	virtual const FGameplayTag& GetInteractAbilityTriggerTag() override;
-	virtual void DoInteract_Implementation() override;
-	virtual void OnBeginFocus_Implementation() override;
-	virtual void OnEndFocus_Implementation() override;
-	//IGZCollectable
 
 	//IGZCollectable
 	virtual const TSubclassOf<UGZInventoryItemDefinition>& GetItemDefinitionClass() const override;
@@ -40,22 +29,12 @@ public:
 	//IGZCollectable
 
 protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Default|Pickup")
-	TObjectPtr<USphereComponent> InteractCollision;
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Default|Pickup")
-	TObjectPtr<UStaticMeshComponent> StaticMeshComponent;
-	UPROPERTY(EditDefaultsOnly, Category="Default|Pickup")
-	bool bIsInteractable = true;
-	UPROPERTY(EditDefaultsOnly, Category="Default|Pickup")
-	FText InteractionText;
-	UPROPERTY(EditDefaultsOnly, Category="Default|Pickup")
-	TSubclassOf<UGZInventoryItemDefinition> ItemDefinitionClass;
-	UPROPERTY(EditDefaultsOnly, Category="Default|Pickup")
-	FGameplayTag InteractAbilityTriggerTag;
-	UPROPERTY(EditDefaultsOnly, Category="Default|Pickup")
-	TObjectPtr<UStaticMesh> DefaultMesh;
+	virtual void SetupComponents() override;
 
-private:
-	void SetupComponents();
-	bool bIsComponentsSetup = false;
+	UPROPERTY(EditDefaultsOnly, Category="Default|Item")
+	TSubclassOf<UGZInventoryItemDefinition> ItemDefinitionClass;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Default|Item")
+	TObjectPtr<UStaticMeshComponent> StaticMeshComponent;
+	UPROPERTY(EditDefaultsOnly, Category="Default|Item")
+	TObjectPtr<UStaticMesh> DefaultMesh;
 };

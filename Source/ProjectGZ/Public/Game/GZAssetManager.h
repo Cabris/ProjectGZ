@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "Data/GZAttributeTagMap.h"
 #include "Engine/AssetManager.h"
 #include "GZAssetManager.generated.h"
 
@@ -12,11 +13,22 @@ class PROJECTGZ_API UGZAssetManager : public UAssetManager
 public:
 	static UGZAssetManager& Get();
 	virtual void StartInitialLoading() override;
+
+	const UGZAttributeTagMap* GetAttributeTagMap() const
+	{
+		return AttributeTagMap;
+	}
+
+
 	static const FPrimaryAssetType DynamicMeshDataAsset;
 	static const FPrimaryAssetType RoadMeshDataAsset;
 	static const FPrimaryAssetType BuildingDataAsset;
 
+protected:
+	UPROPERTY(EditDefaultsOnly)
+	TObjectPtr<UGZAttributeTagMap> AttributeTagMap;
 
+public:
 	// ------------ Primary Asset：非同步載入（樣板） ------------
 
 	/**
@@ -93,11 +105,11 @@ public:
 		TSharedPtr<FStreamableHandle> Handle = SM.RequestAsyncLoad(
 			Ref.ToSoftObjectPath(),
 			FStreamableDelegate::CreateWeakLambda(WeakOwner,
-              [Ref, OnLoaded]()
-              {
-                  AssetType* Asset = Ref.Get();
-                  if (OnLoaded) { OnLoaded(Asset); }
-              }),
+			                                      [Ref, OnLoaded]()
+			                                      {
+				                                      AssetType* Asset = Ref.Get();
+				                                      if (OnLoaded) { OnLoaded(Asset); }
+			                                      }),
 			Priority);
 
 		return Handle;

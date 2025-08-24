@@ -8,6 +8,7 @@ UGZAttributeSet::UGZAttributeSet()
 {
 	InitMaxHealth(100.f);
 	InitHealth(GetMaxHealth());
+	
 	TagAttributeMap.Add(GZGameplayTags::Attribute_Primary_Health, &ThisClass::GetHealthAttribute);
 	TagAttributeMap.Add(GZGameplayTags::Attribute_Primary_MaxHealth, &ThisClass::GetMaxHealthAttribute);
 }

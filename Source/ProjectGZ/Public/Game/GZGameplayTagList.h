@@ -24,4 +24,5 @@ OP(Action_Attack_Ranged_Rifle,   "Action.Attack.Ranged.Rifle",   "步槍射擊")
 OP(State_Aiming,                 "State.Aiming",                 "正在瞄準") \
 OP(State_Reloading,              "State.Reloading",              "裝填中") \
 OP(State_Sprinting,              "State.Sprinting",              "衝刺中") \
-OP(Cooldown_Generic,             "Cooldown.Generic",             "通用冷卻")
+OP(Cooldown_Generic,             "Cooldown.Generic",             "通用冷卻")\
+OP(Effect_DamageMagnitude,       "Effect.DamageMagnitude",       "傷害效果Magnitude")

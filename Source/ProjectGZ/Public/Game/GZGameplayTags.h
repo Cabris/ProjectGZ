@@ -9,14 +9,15 @@ namespace GZGameplayTags
 	GZ_FOR_EACH_GAMEPLAY_TAG(DECLARE_TAG)
 #undef DECLARE_TAG
 }
-
+/*
 struct FGZGameplayTags
 {
 public:
 	static FGZGameplayTags& Get() { return Instance; }
 	static void Init();
-	FGameplayTag Attributes_Vigor_Health;
+	//FGameplayTag Attributes_Vigor_Health;
 
 private:
 	static FGZGameplayTags Instance;
 };
+*/

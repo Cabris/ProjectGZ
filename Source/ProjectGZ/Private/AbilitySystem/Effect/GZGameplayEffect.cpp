@@ -1,5 +1,8 @@
 ﻿#include "AbilitySystem/Effect/GZGameplayEffect.h"
 
+#include "AbilitySystem/GZAttributeSet.h"
+#include "Data/GZAttributeTagMap.h"
+
 void UGZGameplayEffect::PostLoad()
 {
 	Super::PostLoad();
@@ -15,4 +18,14 @@ void UGZGameplayEffect::PostEditChangeProperty(struct FPropertyChangedEvent& Pro
 
 void UGZGameplayEffect::OnPropertiesUpdated()
 {
+}
+
+FGameplayAttribute UGZGameplayEffect::GetEffectAttributeByTag() const
+{
+	FGameplayAttribute EffectAttribute = UGZAttributeSet::GetHealthAttribute();
+	if (AttributeTagMap && AttributeTagMap->HasTag(EffectedAttributePropertyTag))
+	{
+		EffectAttribute = AttributeTagMap->GetAttributeByTag(EffectedAttributePropertyTag);
+	}
+	return EffectAttribute;
 }

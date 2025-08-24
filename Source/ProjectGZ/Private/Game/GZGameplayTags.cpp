@@ -10,10 +10,11 @@ namespace GZGameplayTags
 #undef DEFINE_TAG
 }
 
-
+/*
 FGZGameplayTags FGZGameplayTags::Instance;
 
 void FGZGameplayTags::Init()
 {
-	Instance.Attributes_Vigor_Health = UGameplayTagsManager::Get().AddNativeGameplayTag("Attributes.Vigor.Health", "");
+	//Instance.Attributes_Vigor_Health = UGameplayTagsManager::Get().AddNativeGameplayTag("Attributes.Vigor.Health", "");
 }
+*/

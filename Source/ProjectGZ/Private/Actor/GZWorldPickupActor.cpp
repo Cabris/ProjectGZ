@@ -8,28 +8,17 @@
 AGZWorldPickupActor::AGZWorldPickupActor()
 {
 	PrimaryActorTick.bCanEverTick = false;
-	USceneComponent* Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
-	SetRootComponent(Root);
+
 	StaticMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent"));
 	StaticMeshComponent->SetupAttachment(GetRootComponent());
 	StaticMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	StaticMeshComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
 
-	InteractCollision = CreateDefaultSubobject<USphereComponent>(TEXT("InteractCollision"));
-	InteractCollision->SetupAttachment(GetRootComponent());
-	InteractCollision->InitSphereRadius(30.f);
-
-	InteractCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-	InteractCollision->SetCollisionObjectType(ECC_WorldDynamic);
-
-	InteractCollision->SetCollisionResponseToAllChannels(ECR_Ignore);
-	InteractCollision->SetCollisionResponseToChannel(InteractionChannel, ECR_Overlap);
+	UE_LOG(LogTemp, Log, TEXT("AGZWorldPickupActor::Constructor(): %s"), *GetName());
 }
 
 void AGZWorldPickupActor::SetupComponents()
 {
-	if (bIsComponentsSetup)
-		return;
 	if (IsValid(DefaultMesh))
 		StaticMeshComponent->SetStaticMesh(DefaultMesh);
 
@@ -53,64 +42,27 @@ void AGZWorldPickupActor::SetupComponents()
 	else if (!MeshSoftPtr.IsNull())
 	{
 		UGZAssetManager::Get().LoadSoftAsync<UStaticMesh>(MeshSoftPtr, this,
-		[this](UStaticMesh* Mesh)
-		{
-		StaticMeshComponent->SetStaticMesh(Mesh);
-		});
+		                                                  [this](UStaticMesh* Mesh)
+		                                                  {
+			                                                  StaticMeshComponent->SetStaticMesh(Mesh);
+		                                                  });
 	}
 
 	StaticMeshComponent->SetRelativeTransform(ItemDefinition->GetPickupMeshOffsetTransform());
 	InteractCollision->SetRelativeTransform(ItemDefinition->GetPickupMeshOffsetTransform());
-	bIsComponentsSetup = true;
-}
-
-void AGZWorldPickupActor::BeginPlay()
-{
-	Super::BeginPlay();
-	SetupComponents();
-}
-
-FVector AGZWorldPickupActor::GetWorldPosition() const
-{
-	return GetActorLocation();
-}
-
-FText AGZWorldPickupActor::GetInteractionText() const
-{
-	return InteractionText;
-}
-
-bool AGZWorldPickupActor::IsInteractable() const
-{
-	return bIsInteractable;
-}
-
-const FGameplayTag& AGZWorldPickupActor::GetInteractAbilityTriggerTag()
-{
-	return InteractAbilityTriggerTag;
 }
 
 #if WITH_EDITOR
 void AGZWorldPickupActor::PostEditChangeProperty(struct FPropertyChangedEvent& E)
 {
 	Super::PostEditChangeProperty(E);
-	if (E.Property && E.Property->GetFName() == GET_MEMBER_NAME_CHECKED(AGZWorldPickupActor, DefaultMesh)||
-		 E.Property->GetFName() == GET_MEMBER_NAME_CHECKED(AGZWorldPickupActor, ItemDefinitionClass))
+	if (E.Property && E.Property->GetFName() == GET_MEMBER_NAME_CHECKED(ThisClass, DefaultMesh) ||
+		E.Property->GetFName() == GET_MEMBER_NAME_CHECKED(ThisClass, ItemDefinitionClass))
 	{
-		bIsComponentsSetup = false;
 		SetupComponents();
 	}
 }
 #endif
-
-void AGZWorldPickupActor::PostLoad()
-{
-	Super::PostLoad();
-	if (HasAnyFlags(RF_ClassDefaultObject))
-	{
-		SetupComponents();
-	}
-}
 
 const TSubclassOf<UGZInventoryItemDefinition>& AGZWorldPickupActor::GetItemDefinitionClass() const
 {
@@ -119,43 +71,10 @@ const TSubclassOf<UGZInventoryItemDefinition>& AGZWorldPickupActor::GetItemDefin
 
 void AGZWorldPickupActor::ConsumeItemQuantity(int32 Quantity)
 {
-	//Debug::Printf(TEXT("AGZWorldPickupActor::ConsumeItemQuantity: %d"), Quantity);
+	UE_LOG(LogTemp, Log, TEXT("AGZWorldPickupActor::ConsumeItemQuantity: %d"), Quantity);
 }
 
 void AGZWorldPickupActor::OnCollected_Implementation()
 {
 	Debug::Print(TEXT("AGZWorldPickupActor::OnCollected_Implementation"));
-}
-
-void AGZWorldPickupActor::DoInteract_Implementation()
-{
-	IGZInteractable::DoInteract_Implementation();
-	GEngine->AddOnScreenDebugMessage(
-		0, // Key
-		3.0f, // Display time（0 表示直到下一次呼叫取代）
-		FColor::Green, // 顏色
-		FString("DoInteract_Implementation")
-	);
-}
-
-void AGZWorldPickupActor::OnBeginFocus_Implementation()
-{
-	IGZInteractable::OnBeginFocus_Implementation();
-	GEngine->AddOnScreenDebugMessage(
-		0, // Key
-		3.0f, // Display time（0 表示直到下一次呼叫取代）
-		FColor::Green, // 顏色
-		FString("OnBeginFocus_Implementation")
-	);
-}
-
-void AGZWorldPickupActor::OnEndFocus_Implementation()
-{
-	IGZInteractable::OnEndFocus_Implementation();
-	GEngine->AddOnScreenDebugMessage(
-		0, // Key
-		3.0f, // Display time（0 表示直到下一次呼叫取代）
-		FColor::Green, // 顏色
-		FString("OnEndFocus_Implementation")
-	);
 }

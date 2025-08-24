@@ -32,7 +32,6 @@ struct FGZInteractionDetectorConfig
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Scoring")
 	float DistanceWeight = 0.3f;
-
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Debug")
 	bool bEnableDebugDraw = false;
 };

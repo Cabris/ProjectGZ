@@ -172,29 +172,6 @@ void UGZInteractionDetector::PerformDetection()
 bool UGZInteractionDetector::GetViewPoint(FVector& OutLocation, FVector& OutDirection) const
 {
 	return  UGZFunctionLibrary::GZHelper_GetViewPointFromActor(OwnerActor.Get(),OutLocation,OutDirection);
-	/*
-	if (!OwnerActor.IsValid())
-	{
-		return false;
-	}
-
-	// 嘗試從 PlayerController 獲取視點
-	if (const APawn* Pawn = Cast<APawn>(OwnerActor.Get()))
-	{
-		if (APlayerController* PC = Cast<APlayerController>(Pawn->GetController()))
-		{
-			FRotator ViewRotation;
-			PC->GetPlayerViewPoint(OutLocation, ViewRotation);
-			OutDirection = ViewRotation.Vector();
-			return true;
-		}
-	}
-
-	// 後備方案：使用 Actor 的位置和前向量
-	OutLocation = OwnerActor->GetActorLocation();
-	OutDirection = OwnerActor->GetActorForwardVector();
-	return true;
-	*/
 }
 
 float UGZInteractionDetector::ScoreCandidate(const FVector& ViewLocation, const FVector& ViewDirection, const FVector& TargetLocation) const

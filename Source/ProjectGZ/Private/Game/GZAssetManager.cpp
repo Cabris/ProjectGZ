@@ -4,17 +4,19 @@
 const FPrimaryAssetType UGZAssetManager::DynamicMeshDataAsset = TEXT("DynamicMeshDataAsset");
 const FPrimaryAssetType UGZAssetManager::RoadMeshDataAsset = TEXT("RoadMeshDataAsset");
 const FPrimaryAssetType UGZAssetManager::BuildingDataAsset = TEXT("BuildingDataAsset");
-
+PRAGMA_DISABLE_OPTIMIZATION
 UGZAssetManager& UGZAssetManager::Get()
 {
 	check(GEngine);
-	UGZAssetManager* AM = Cast<UGZAssetManager>(GEngine->AssetManager);
+	auto Temp = GEngine->AssetManager;
+	check(Temp);
+	UGZAssetManager* AM = Cast<UGZAssetManager>(Temp);
 	check(AM);
-	return  *AM;
+	return *AM;
 }
-
+PRAGMA_ENABLE_OPTIMIZATION
 void UGZAssetManager::StartInitialLoading()
 {
 	Super::StartInitialLoading();
-	FGZGameplayTags::Init();
+	//FGZGameplayTags::Init();
 }

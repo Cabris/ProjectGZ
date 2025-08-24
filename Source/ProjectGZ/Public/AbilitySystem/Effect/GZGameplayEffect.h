@@ -4,6 +4,7 @@
 #include "GameplayEffect.h"
 #include "GZGameplayEffect.generated.h"
 
+class UGZAttributeTagMap;
 class UGZAbilitySystemComponent;
 
 UCLASS()
@@ -19,4 +20,10 @@ public:
 
 protected:
 	virtual void OnPropertiesUpdated();
+	FGameplayAttribute GetEffectAttributeByTag() const;
+
+	UPROPERTY(EditDefaultsOnly, Category="Effect")
+	FGameplayTag EffectedAttributePropertyTag;
+	UPROPERTY(EditDefaultsOnly, Category = "Effect")
+	TObjectPtr<UGZAttributeTagMap> AttributeTagMap;
 };

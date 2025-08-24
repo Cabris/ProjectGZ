@@ -3,8 +3,8 @@
 
 UGZCombatAbility::UGZCombatAbility()
 {
-	ActivationPolicy= EAbilityActivationPolicy::OnInputTriggered;
-	InstancingPolicy= EGameplayAbilityInstancingPolicy::InstancedPerActor;
+	ActivationPolicy = EAbilityActivationPolicy::OnInputTriggered;
+	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 }
 
 UGZInventoryItemInstance* UGZCombatAbility::GetItemInstance() const

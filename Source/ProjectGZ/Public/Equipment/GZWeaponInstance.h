@@ -4,8 +4,8 @@
 #include "WeaponConfig.h"
 #include "GZWeaponInstance.generated.h"
 
-USTRUCT()
-struct FAttackFilter 
+USTRUCT(BlueprintType)
+struct FAttackFilter
 {
 	GENERATED_BODY()
 	// 用哪個通道做 LineTrace/Sweep（預設拿 Visibility）
@@ -37,14 +37,19 @@ struct FFireParams
 {
 	FVector Origin = FVector::Zero();
 	FVector Direction = FVector::Zero();
-	float Speed = 0;
+	float InitialSpeed = 0;
+	float MaxRange = 0;
 	int32 FireIndex = 0;
 	FAttackFilter Filter;
+#ifdef  WITH_EDITOR
+	bool bDrawDebug = false;
+#endif
 };
 
 struct FFireResult
 {
 	bool bIsValid = false;
+	bool bIsHit = false;
 	FHitResult Hit;
 	FVector EndLocation = FVector::ZeroVector;
 };
@@ -62,4 +67,5 @@ public:
 protected:
 	UPROPERTY(EditDefaultsOnly, Category="Equipment|Weapon")
 	FWeaponConfig WeaponConfig;
+	static void BuildCollisionParams(const FAttackFilter& Filter, FCollisionQueryParams& OutQuery);
 };

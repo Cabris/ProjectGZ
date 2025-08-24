@@ -23,4 +23,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "GZHelper")
 	static bool GZHelper_GetViewPointFromActor(const AActor* Actor, FVector& OutLocation, FVector& OutDirection);
+
+	
 };
