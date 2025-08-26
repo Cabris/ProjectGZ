@@ -4,6 +4,9 @@
 #include "Interfactions/GZInteractable.h"
 #include "AbilitySystem/Ability/GZInteractAbility.h"
 #include "Character/GZCharacterBase.h"
+#include "Character/GZPawnFeatureComponent.h"
+#include "Game/GZGameplayTags.h"
+#include "GameFramework/GameplayMessageSubsystem.h"
 #include "ProjectGZ/ProjectGZ.h"
 
 UGZStartInteractionAbility::UGZStartInteractionAbility()
@@ -25,12 +28,14 @@ UGZStartInteractionAbility::UGZStartInteractionAbility()
 	DetectorConfig.bEnableDebugDraw = false;
 }
 
-void UGZStartInteractionAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
+void UGZStartInteractionAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo,
+                                               const FGameplayAbilitySpec& Spec)
 {
 	Super::OnGiveAbility(ActorInfo, Spec);
 }
 
-void UGZStartInteractionAbility::OnRemoveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
+void UGZStartInteractionAbility::OnRemoveAbility(const FGameplayAbilityActorInfo* ActorInfo,
+                                                 const FGameplayAbilitySpec& Spec)
 {
 	Super::OnRemoveAbility(ActorInfo, Spec);
 	// 清理檢測器
@@ -41,7 +46,8 @@ void UGZStartInteractionAbility::OnRemoveAbility(const FGameplayAbilityActorInfo
 	}
 }
 
-void UGZStartInteractionAbility::OnAvatarSet(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
+void UGZStartInteractionAbility::OnAvatarSet(const FGameplayAbilityActorInfo* ActorInfo,
+                                             const FGameplayAbilitySpec& Spec)
 {
 	if (!ActorInfo || !ActorInfo->AvatarActor.IsValid())
 	{
@@ -80,7 +86,8 @@ void UGZStartInteractionAbility::OnAvatarSet(const FGameplayAbilityActorInfo* Ac
 	// 開始檢測
 	InteractionDetector->StartDetection();
 
-	UE_LOG(LogTemp, Log, TEXT("[UGZStartInteractionAbility::OnAvatarSet] InteractionDetector created and started for: %s"),
+	UE_LOG(LogTemp, Log,
+	       TEXT("[UGZStartInteractionAbility::OnAvatarSet] InteractionDetector created and started for: %s"),
 	       *ActorInfo->AvatarActor->GetName());
 }
 
@@ -112,6 +119,10 @@ void UGZStartInteractionAbility::ActivateAbility(
 
 bool UGZStartInteractionAbility::AttemptInteraction_Internal()
 {
+	//TODO:
+	//add holding certain time to do the concrete Interaction task
+
+	
 	if (!InteractionDetector)
 	{
 		Debug::Print(TEXT("[UGZStartInteractionAbility::AttemptInteraction_Internal] InteractionDetector is null"));
@@ -128,6 +139,7 @@ bool UGZStartInteractionAbility::AttemptInteraction_Internal()
 	AActor* ASCOwnerActor = ASC->GetOwnerActor();
 	AActor* ASCAvatarActor = ASC->GetAvatarActor();
 
+	//activating concrete Interaction GA
 	FGameplayTag InteractionTag = Interactable->GetInteractAbilityTriggerTag();
 	FGameplayEventData Evt;
 	Evt.EventTag = InteractionTag;
@@ -139,15 +151,20 @@ bool UGZStartInteractionAbility::AttemptInteraction_Internal()
 
 void UGZStartInteractionAbility::OnFocusChanged(AActor* NewFocus, AActor* OldFocus)
 {
-	if (NewFocus)
+	if (auto PawnFeature = UGZPawnFeatureComponent::Get(CurrentActorInfo->OwnerActor.Get()))
 	{
-		UE_LOG(LogTemp, Log, TEXT("[UGZStartInteractionAbility::OnFocusChanged] New focus: %s"),
-		       *NewFocus->GetActorNameOrLabel());
-	}
+		if (NewFocus)
+		{
+			PawnFeature->OnFocusActor.Broadcast(NewFocus);
+			UE_LOG(LogTemp, Log, TEXT("[UGZStartInteractionAbility::OnFocusChanged] New focus: %s"),
+			       *NewFocus->GetActorNameOrLabel());
+		}
 
-	if (OldFocus)
-	{
-		UE_LOG(LogTemp, Log, TEXT("[UGZStartInteractionAbility::OnFocusChanged] Old focus: %s"),
-		       *OldFocus->GetActorNameOrLabel());
+		if (OldFocus)
+		{
+			PawnFeature->OnUnfocusActor.Broadcast(OldFocus);
+			UE_LOG(LogTemp, Log, TEXT("[UGZStartInteractionAbility::OnFocusChanged] Old focus: %s"),
+			       *OldFocus->GetActorNameOrLabel());
+		}
 	}
 }

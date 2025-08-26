@@ -15,7 +15,7 @@ class PROJECTGZ_API UGZObjectPoolManager : public UObject
 public:
 	/** 獲取全域物件池管理器實例 */
 	UFUNCTION(BlueprintPure, Category = "Object Pool", CallInEditor)
-	static UGZObjectPoolManager* GetGlobalPoolManager();
+	static UGZObjectPoolManager* Get();
 
 	/** 創建或獲取指定類型的物件池 */
 	UFUNCTION(BlueprintCallable, Category = "Object Pool")

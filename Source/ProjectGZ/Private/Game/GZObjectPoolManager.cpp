@@ -3,7 +3,7 @@
 
 TObjectPtr<UGZObjectPoolManager> UGZObjectPoolManager::GlobalInstance = nullptr;
 
-UGZObjectPoolManager* UGZObjectPoolManager::GetGlobalPoolManager()
+UGZObjectPoolManager* UGZObjectPoolManager::Get()
 {
 	if (!IsValid(GlobalInstance))
 	{

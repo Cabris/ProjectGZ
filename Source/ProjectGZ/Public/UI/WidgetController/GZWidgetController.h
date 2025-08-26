@@ -64,5 +64,7 @@ protected:
 
 	UPROPERTY(BlueprintReadOnly, Category="Widget Controller")
 	TObjectPtr<UGZPawnFeatureComponent> PawnFeatureComponent;
+
+	virtual void OnWidgetControllerParamsSet();
 private:
 };

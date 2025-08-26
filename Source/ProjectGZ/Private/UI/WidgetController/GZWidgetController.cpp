@@ -7,6 +7,7 @@ void UGZWidgetController::SetWidgetControllerParams(const FWidgetControllerParam
 	AbilitySystemComponent = WidgetControllerParams.AbilitySystemComponent;
 	AttributeSet = WidgetControllerParams.AttributeSet;
 	PawnFeatureComponent = WidgetControllerParams.PawnFeature;
+	OnWidgetControllerParamsSet();
 }
 
 void UGZWidgetController::BroadcastInitialValues()
@@ -15,4 +16,9 @@ void UGZWidgetController::BroadcastInitialValues()
 
 void UGZWidgetController::BindCallbacksToDependencies()
 {
+}
+
+void UGZWidgetController::OnWidgetControllerParamsSet()
+{
+	
 }

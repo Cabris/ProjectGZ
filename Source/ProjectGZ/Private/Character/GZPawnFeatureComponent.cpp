@@ -24,7 +24,8 @@ void UGZPawnFeatureComponent::InitAbilityActorInfo(AActor* InOwnerActor, AActor*
 	GetAbilitySystem()->InitAbilityActorInfo(InOwnerActor, InAvatarActor);
 }
 
-bool UGZPawnFeatureComponent::TryGrantItemToPawn(const TSubclassOf<UGZInventoryItemDefinition>& ItemDefinitionClass, APawn* ReceivingPawn)
+bool UGZPawnFeatureComponent::TryGrantItemToPawn(const TSubclassOf<UGZInventoryItemDefinition>& ItemDefinitionClass,
+                                                 APawn* ReceivingPawn)
 {
 	if (!GetInventoryManager()) return false;
 	UGZInventoryItemInstance* ItemInstance = GetInventoryManager()->AddItemDefToInventory(ItemDefinitionClass);
@@ -50,7 +51,8 @@ void UGZPawnFeatureComponent::TryGrantEquipmentToPawn(UGZInventoryItemInstance* 
 			return;
 		}
 
-		UGZEquipmentInstance* OwningWeaponInstance = GetEquipmentManager()->GetEquipmentInstanceByClass(EquipmentDef->InstanceClass);
+		UGZEquipmentInstance* OwningWeaponInstance = GetEquipmentManager()->GetEquipmentInstanceByClass(
+			EquipmentDef->InstanceClass);
 		if (!OwningWeaponInstance)
 		{
 			//add weapon to Equipment
@@ -70,10 +72,10 @@ void UGZPawnFeatureComponent::TryGrantEquipmentToPawn(UGZInventoryItemInstance* 
 			//TODO: add ammo to Weapon Instance
 			//ItemInstance->SetStackByTag("Ammo",100);
 		}
-
 	}
 }
 
+ 
 void UGZPawnFeatureComponent::OnInitializePawnFeature()
 {
 	GetAbilitySystem()->OnAbilityActorInfoSet();
@@ -85,4 +87,10 @@ void UGZPawnFeatureComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeP
 	DOREPLIFETIME(ThisClass, PawnFeatureStruct);
 }
 
-
+UGZPawnFeatureComponent* UGZPawnFeatureComponent::Get(AActor* Target)
+{
+	if (!IsValid(Target)) return nullptr;
+	IGZPawnFeatureInterface* PawnInterface = Cast<IGZPawnFeatureInterface>(Target);
+	if (!PawnInterface) return nullptr;
+	return PawnInterface->GetPawnFeature();
+}

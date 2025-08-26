@@ -56,7 +56,8 @@ public:
 
 	/** 初始化物件池 */
 	UFUNCTION(BlueprintCallable, Category = "Object Pool")
-	void InitializePool(TSubclassOf<UObject> InObjectClass, const FGZObjectPoolConfig& Config, UObject* InOuter = nullptr);
+	void InitializePool(TSubclassOf<UObject> InObjectClass, const FGZObjectPoolConfig& Config,
+	                    UObject* InOuter = nullptr);
 
 	/** 初始化物件池 (C++ 版本，支援自定義工廠函數) */
 	void InitializePoolWithFactory(TSubclassOf<UObject> InObjectClass, const FGZObjectPoolConfig& Config,
@@ -91,6 +92,14 @@ public:
 
 	UPROPERTY(BlueprintAssignable, Category = "Object Pool")
 	FOnObjectReturned OnObjectReturned;
+
+	template <typename T>
+	T* GetFromPool()
+	{
+		UObject* Obj = GetFromPool();
+		if (!Obj) return nullptr;
+		return Cast<T>(Obj);
+	}
 
 protected:
 	/** 創建新物件 */

@@ -3,6 +3,7 @@
 #include "Components/SceneComponent.h"
 #include "Interfactions/GZPawnFeatureInterface.h"
 #include "GZPawnFeatureComponent.generated.h"
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnActorChangeEventSingnature,AActor*);
 
 class UGZInventoryItemInstance;
 class UGZAttributeSet;
@@ -76,13 +77,22 @@ public:
 	}
 
 	void InitAbilityActorInfo(AActor* InOwnerActor, AActor* InAvatarActor);
-	virtual bool TryGrantItemToPawn(const TSubclassOf<UGZInventoryItemDefinition>& ItemDefinitionClass, APawn* ReceivingPawn);
+	virtual bool TryGrantItemToPawn(const TSubclassOf<UGZInventoryItemDefinition>& ItemDefinitionClass,
+	                                APawn* ReceivingPawn);
 	void OnInitializePawnFeature();
 	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+	
+	static UGZPawnFeatureComponent* Get(AActor* Target);
+
+	FOnActorChangeEventSingnature OnFocusActor;
+	FOnActorChangeEventSingnature OnUnfocusActor;
 
 protected:
 	void TryGrantEquipmentToPawn(UGZInventoryItemInstance* ItemInstance);
 
 	UPROPERTY(Replicated)
 	FPawnFeatureStruct PawnFeatureStruct;
+
+private:
+	
 };

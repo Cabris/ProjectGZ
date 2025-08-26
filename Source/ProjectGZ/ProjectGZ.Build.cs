@@ -7,18 +7,22 @@ public class ProjectGZ : ModuleRules
 	public ProjectGZ(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", 
+
+		PublicDependencyModuleNames.AddRange(new string[]
+		{
+			"Core", "CoreUObject", "Engine", "InputCore",
 			"EnhancedInput", "GameplayAbilities", "PCG", "GameplayMessageRuntime"
 		});
 
-		PrivateDependencyModuleNames.AddRange(new string[] { "AnimGraphRuntime" ,"GameplayTags","GameplayTasks", 
-			"PCG", "NetCore", "OnlineSubsystemUtils", "GameplayMessageRuntime", "GZ_Helper"
+		PrivateDependencyModuleNames.AddRange(new string[]
+		{
+			"AnimGraphRuntime", "GameplayTags", "GameplayTasks",
+			"PCG", "NetCore", "OnlineSubsystemUtils", "GameplayMessageRuntime", "GZ_Helper" 
 		});
 
 		// Uncomment if you are using Slate UI
 		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
-		
+
 		// Uncomment if you are using online features
 		// PrivateDependencyModuleNames.Add("OnlineSubsystem");
 
