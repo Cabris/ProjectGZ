@@ -16,6 +16,11 @@ struct FAttackFilter
 	UPROPERTY(EditAnywhere)
 	bool bTraceComplex = false;
 
+	// 忽略 Instigator 以及它的「所有附掛的子 Actor」
+	// （包含 ChildActorComponent 產生的 Child Actors）
+	UPROPERTY(EditAnywhere)
+	bool bIgnoreInstigatorAndAttachments = true;
+
 	// 這次射擊的「發射者」；用來忽略自己
 	UPROPERTY()
 	TWeakObjectPtr<const AActor> Instigator = nullptr;
@@ -24,10 +29,6 @@ struct FAttackFilter
 	UPROPERTY()
 	TArray<TWeakObjectPtr<const AActor>> ExtraIgnoredActors;
 
-	// 忽略 Instigator 以及它的「所有附掛的子 Actor」
-	// （包含 ChildActorComponent 產生的 Child Actors）
-	UPROPERTY(EditAnywhere)
-	bool bIgnoreInstigatorAndAttachments = true;
 
 	// 若你想用「物件類型」而不是 Channel，也可以加這個（選用）
 	// FCollisionObjectQueryParams ObjectTypes = FCollisionObjectQueryParams::AllDynamicObjects;
@@ -62,10 +63,9 @@ class PROJECTGZ_API UGZWeaponInstance : public UGZEquipmentInstance
 
 public:
 	const FWeaponConfig& GetConfig() const { return WeaponConfig; }
-	FFireResult CalculateFireResult(const FFireParams& FireParams) const;
+	static void BuildCollisionParams(const FAttackFilter& Filter, FCollisionQueryParams& OutQuery);
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category="Equipment|Weapon")
 	FWeaponConfig WeaponConfig;
-	static void BuildCollisionParams(const FAttackFilter& Filter, FCollisionQueryParams& OutQuery);
 };

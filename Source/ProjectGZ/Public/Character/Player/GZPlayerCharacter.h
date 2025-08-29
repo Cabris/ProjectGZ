@@ -6,17 +6,20 @@
 #include "Character/GZCharacterBase.h"
 #include "Interfactions/AimControllable.h"
 #include "Interfactions/CameraControllable.h"
+#include "Interfactions/GZCombatInterface.h"
 #include "Interfactions/GZPawnFeatureInterface.h"
 #include "Interfactions/Strafingable.h"
 #include "GZPlayerCharacter.generated.h"
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAnimLayerChangedEventSingnature, TSubclassOf<UAnimInstance>, AnimLayer);
 
+class UGZAnimationLayerSet;
 class UCameraComponent;
 class USpringArmComponent;
 class UGZAimMotionComponent;
 
 UCLASS()
 class PROJECTGZ_API AGZPlayerCharacter : public AGZCharacterBase, public ICameraControllable, public IAimControllable,
-                                         public IStrafingable, public IGZPawnFeatureInterface
+                                         public IStrafingable, public IGZPawnFeatureInterface, public IGZCombatInterface
 {
 	GENERATED_BODY()
 
@@ -32,27 +35,29 @@ public:
 	virtual bool IsStrafing() override;
 
 	virtual UGZAbilitySystemComponent* GetAbilitySystemComponent() const override;
-
 	virtual UGZAttributeSet* GetAttributeSet() const override;
+	virtual void OnEquipmentTagChanged_Implementation(FGameplayTag EquipmentTag) override;
 
 	FORCEINLINE virtual UGZPawnFeatureComponent* GetPawnFeature() override
 	{
 		return UGZPawnFeature;
 	}
 
+	UPROPERTY(BlueprintAssignable)
+	FOnAnimLayerChangedEventSingnature OnAnimLayerChanged;
+
 protected:
-	UPROPERTY(VisibleAnywhere, Category = "Character|Camera")
+	UPROPERTY(VisibleAnywhere, Category = "Components")
 	TObjectPtr<UCameraComponent> Camera;
-	UPROPERTY(VisibleAnywhere, Category = "Character|Camera")
+	UPROPERTY(VisibleAnywhere, Category = "Components")
 	TObjectPtr<USpringArmComponent> SpringArm;
-	UPROPERTY(VisibleAnywhere, Category = "Character|Aim")
+	UPROPERTY(VisibleAnywhere, Category = "Components")
 	TObjectPtr<UGZAimMotionComponent> AimMotionComponent;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Character|AbilitySet")
-	TObjectPtr<UGZInputGameplayAbilitySet> AbilitySet;
-
-	UPROPERTY(VisibleAnywhere, Category = "Character|PawnFeature")
+	UPROPERTY(VisibleAnywhere, Category = "Components")
 	TObjectPtr<UGZPawnFeatureComponent> UGZPawnFeature;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Animation")
+	TObjectPtr<UGZAnimationLayerSet> AnimLayerSet;
 
 private:
 	bool bIsStrafing;

@@ -1,0 +1,7 @@
+#include "ProjectGZ/Public/Data/PCG/GZBuildingPrimaryDataAsset.h"
+#include "Game/GZAssetManager.h"
+
+UGZBuildingPrimaryDataAsset::UGZBuildingPrimaryDataAsset()
+{
+	Type = UGZAssetManager::BuildingDataAsset;
+}

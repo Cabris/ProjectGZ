@@ -27,6 +27,8 @@ class PROJECTGZ_API UGZEquipmentDefinition : public UObject
 
 public:
 	UPROPERTY(EditDefaultsOnly, Category="Equipment")
+	FGameplayTag EquipmentAnimLayerTag;
+	UPROPERTY(EditDefaultsOnly, Category="Equipment")
 	TSubclassOf<UGZEquipmentInstance> InstanceClass;
 	UPROPERTY(EditDefaultsOnly, Category="Equipment")
 	TArray<FGZEquipmentActorToSpawn> ActorsToSpawn;

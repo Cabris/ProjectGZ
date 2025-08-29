@@ -31,10 +31,15 @@ class PROJECTGZ_API UGZGameplayAbility : public UGameplayAbility
 public:
 	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
 	virtual void OnRemoveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
-	
+
 	EAbilityActivationPolicy GetActivationPolicy() const
 	{
 		return ActivationPolicy;
+	}
+
+	bool IsLocalControlled() const
+	{
+		return CurrentActorInfo->IsLocallyControlled(); // && !CurrentActorInfo->IsNetAuthority(); //for candidate server;
 	}
 
 protected:
@@ -42,6 +47,7 @@ protected:
 	//get avatar actor 
 	AGZCharacterBase* GetCharacter() const;
 	//UGZPawnFeatureComponent knows AbilitySystemComponent, EquipmentManagerComponent, InventoryManagerComponent
+	UFUNCTION(BlueprintCallable)
 	UGZPawnFeatureComponent* GetPawnFeature() const;
 
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
@@ -52,5 +58,4 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category="Ability")
 	EAbilityActivationPolicy ActivationPolicy = EAbilityActivationPolicy::OnInputTriggered;
-
 };

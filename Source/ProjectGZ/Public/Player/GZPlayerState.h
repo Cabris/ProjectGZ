@@ -19,6 +19,8 @@ class PROJECTGZ_API AGZPlayerState : public APlayerState, public IGZAbilitySyste
 	GENERATED_BODY()
 
 public:
+	UFUNCTION()
+	void OnControlledPawnSet(APlayerState* Player, APawn* NewPawn, APawn* OldPawn);
 	AGZPlayerState();
 
 	FORCEINLINE virtual UGZAbilitySystemComponent* GetAbilitySystemComponent() const override

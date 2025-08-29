@@ -81,7 +81,9 @@ struct FWeaponConfig
 	// ── 動畫同步（最小集合） ──────────────────
 	UPROPERTY(EditDefaultsOnly, Category="Anim")
 	TSoftObjectPtr<UAnimMontage> FireMontage;
-
+	UPROPERTY(EditDefaultsOnly, Category="Anim")
+	TSoftObjectPtr<UAnimMontage> DryFireMontage;
+	
 	// 擊發 Notify 的正規化時間（0~1），用來計算 PlayRate 對齊射速
 	UPROPERTY(EditDefaultsOnly, Category="Anim", meta=(ClampMin="0.0", ClampMax="1.0"))
 	float ShotNotifyNormalizedTime = 0.2f;

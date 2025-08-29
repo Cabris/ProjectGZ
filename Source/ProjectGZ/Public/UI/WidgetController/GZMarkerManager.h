@@ -30,11 +30,17 @@ public:
 	UGZMarkerWidget* AddMarkerTarget(AActor* Target);
 	UGZMarkerWidget*  RemoveMarkerTarget(AActor* Target);
 
+virtual void BeginDestroy() override;
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "MarkerManager")
 	FGZObjectPoolConfig PoolConfig;
-
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "MarkerManager")
+	float MarkingRate;
 private:
+	void UpdateActiveMarkers();
+	void StartMarking();
+	void StopMarking();
+	
 	bool bIsInitialized;
 	UPROPERTY(Transient)
 	FGZMarkerConfig MarkerConfig;
@@ -44,4 +50,6 @@ private:
 	TMap<TWeakObjectPtr<AActor>, UGZMarkerWidget*> ActiveMarkers;
 	UPROPERTY(Transient)
 	TObjectPtr<APlayerController> PlayerController;
+	FTimerHandle TimerHandle;
+
 };

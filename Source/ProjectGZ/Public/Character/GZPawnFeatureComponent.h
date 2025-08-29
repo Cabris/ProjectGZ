@@ -1,9 +1,11 @@
 ﻿#pragma once
 #include "CoreMinimal.h"
+#include "AbilitySystem/GZInputGameplayAbilitySet.h"
 #include "Components/SceneComponent.h"
+#include "Data/GZAnimationLayerSet.h"
 #include "Interfactions/GZPawnFeatureInterface.h"
 #include "GZPawnFeatureComponent.generated.h"
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnActorChangeEventSingnature,AActor*);
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnActorChangeEventSingnature, AActor*);
 
 class UGZInventoryItemInstance;
 class UGZAttributeSet;
@@ -40,6 +42,8 @@ class PROJECTGZ_API UGZPawnFeatureComponent : public UActorComponent
 
 public:
 	UGZPawnFeatureComponent(); //initialize InventoryManager/EquipmentManager here
+	static UGZPawnFeatureComponent* Get(AActor* Target);
+	void SetupPawnFeature(const FPawnFeatureStruct& FeatureStruct);
 
 	const TObjectPtr<UGZAbilitySystemComponent>& GetAbilitySystem()
 	{
@@ -71,28 +75,28 @@ public:
 		return PawnFeatureStruct.Pawn;
 	}
 
-	void SetupPawnFeature(const FPawnFeatureStruct& FeatureStruct)
+	void SetControlledPawn(APawn* NewPawn)
 	{
-		PawnFeatureStruct = FeatureStruct;
+		PawnFeatureStruct.Pawn = NewPawn;
 	}
 
 	void InitAbilityActorInfo(AActor* InOwnerActor, AActor* InAvatarActor);
-	virtual bool TryGrantItemToPawn(const TSubclassOf<UGZInventoryItemDefinition>& ItemDefinitionClass,
-	                                APawn* ReceivingPawn);
 	void OnInitializePawnFeature();
-	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
-	
-	static UGZPawnFeatureComponent* Get(AActor* Target);
+	virtual bool TryGrantItemToPawn(const TSubclassOf<UGZInventoryItemDefinition>& ItemDefinitionClass, APawn* ReceivingPawn);
+	virtual bool TryGrantEquipmentToPawn(UGZInventoryItemInstance* ItemInstance);
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	FOnActorChangeEventSingnature OnFocusActor;
 	FOnActorChangeEventSingnature OnUnfocusActor;
 
 protected:
-	void TryGrantEquipmentToPawn(UGZInventoryItemInstance* ItemInstance);
-
 	UPROPERTY(Replicated)
 	FPawnFeatureStruct PawnFeatureStruct;
 
+	UPROPERTY(EditDefaultsOnly, Category = "PawnFeature")
+	TObjectPtr<UGZInputGameplayAbilitySet> AbilitySet;
+
 private:
-	
+	UFUNCTION()
+	void OnWeaponSlotSelected(UGZInventoryItemInstance* Instance, int SlotIdx);
 };

@@ -1,8 +1,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "Engine/DataAsset.h"
-#include "ProjectGZ/Public/Data/DataAssetStructs.h"
 #include "GZDataAssetInputConfig.generated.h"
 class UInputAction;
 
@@ -10,10 +10,10 @@ USTRUCT(BlueprintType)
 struct FInputActionConfig
 {
 	GENERATED_BODY()
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="InputTag")
-	FGameplayTag InputTag;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="InputTag")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="ActionConfig")
 	UInputAction* InputAction = nullptr;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="ActionConfig")
+	FGameplayTag InputTag;
 };
 
 class UInputMappingContext;

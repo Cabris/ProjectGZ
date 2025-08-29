@@ -1,4 +1,6 @@
 #include "Game/GZAssetManager.h"
+
+#include "AbilitySystemGlobals.h"
 #include "Game/GZGameplayTags.h"
 
 const FPrimaryAssetType UGZAssetManager::DynamicMeshDataAsset = TEXT("DynamicMeshDataAsset");
@@ -18,5 +20,7 @@ UE_ENABLE_OPTIMIZATION
 void UGZAssetManager::StartInitialLoading()
 {
 	Super::StartInitialLoading();
+	//如果使用TargetData，必須開啟此項
+	//UAbilitySystemGlobals::Get().InitGlobalData();
 	//FGZGameplayTags::Init();
 }

@@ -10,6 +10,7 @@ UGZMarkerManager::UGZMarkerManager()
 	bIsInitialized = false;
 	ObjectPool = nullptr;
 	MarkerConfig = FGZMarkerConfig();
+	MarkingRate = 30;
 }
 
 void UGZMarkerManager::Initialize(const FGZMarkerConfig& Config, APlayerController* PC)
@@ -19,15 +20,16 @@ void UGZMarkerManager::Initialize(const FGZMarkerConfig& Config, APlayerControll
 		Debug::Print(TEXT("UGZMarkerManager::Initialize: already Initialized"));
 		return;
 	}
+	MarkerConfig = Config;
 	check(PC);
 	auto PoolManager = UGZObjectPoolManager::Get();
 	check(PoolManager);
 	check(MarkerConfig.MarkerWidgetClass);
 	ObjectPool = PoolManager->GetOrCreatePool(MarkerConfig.MarkerWidgetClass, PoolConfig);
 	check(ObjectPool);
-	MarkerConfig = Config;
 	ActiveMarkers.Reserve(PoolConfig.InitialPoolSize);
 	PlayerController = PC;
+	StartMarking();
 	bIsInitialized = true;
 }
 
@@ -64,4 +66,33 @@ UGZMarkerWidget* UGZMarkerManager::RemoveMarkerTarget(AActor* Target)
 		return MarkerWidget;
 	}
 	return nullptr;
+}
+
+void UGZMarkerManager::BeginDestroy()
+{
+	UObject::BeginDestroy();
+	//StopMarking();
+}
+
+void UGZMarkerManager::StartMarking()
+{
+	if (TimerHandle.IsValid())return;
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ThisClass::UpdateActiveMarkers, MarkingRate, true);
+}
+
+void UGZMarkerManager::StopMarking()
+{
+	if (TimerHandle.IsValid())
+		GetWorld()->GetTimerManager().ClearTimer(TimerHandle);
+}
+
+void UGZMarkerManager::UpdateActiveMarkers()
+{
+	for (auto& Marker : ActiveMarkers)
+	{
+		if (Marker.Key.IsValid())
+		{
+			Marker.Value->UpdateMarkerPosition();
+		}
+	}
 }

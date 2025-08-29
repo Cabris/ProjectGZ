@@ -1,43 +1,51 @@
 ﻿#pragma once
 #include "CoreMinimal.h"
-#include "GZCombatAbility.h"
+#include "GZWeaponAbility.h"
 #include "Equipment/GZWeaponInstance.h"
 #include "GZRangeAttackAbility.generated.h"
 
 class UGZWeaponInstance;
 //base class for ranged weapon fire ability: pistol, rifle, row.
 UCLASS()
-class PROJECTGZ_API UGZRangeAttackAbility : public UGZCombatAbility
+class PROJECTGZ_API UGZRangeAttackAbility : public UGZWeaponAbility
 {
 	GENERATED_BODY()
 
 public:
 	UGZRangeAttackAbility();
+	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	                             const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
-	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
-	                        const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
-
+virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
 protected:
+	bool CalculateFireResult(const FFireParams& FireParams, OUT FFireResult& FireResult);
 
-	//Loop body for repeat fire
-	UFUNCTION(BlueprintNativeEvent, Category="Ability|Combat")
-	void FireLoopBody();
 	//logic for single shot
 	UFUNCTION(BlueprintNativeEvent, Category="Ability|Combat")
 	bool DoOneFire();
 
-	UPROPERTY(Transient,BlueprintReadOnly, Category="Ability|Combat")
-	TObjectPtr<UGZWeaponInstance> CachedWeaponInstance;
 	UPROPERTY(Transient, BlueprintReadOnly, Category="Ability|Combat")
-	FWeaponConfig CachedWeaponConfig;
-	UPROPERTY(EditDefaultsOnly,BlueprintReadOnly, Category="Ability|Combat")
-	FAttackFilter AttackFilter;
-	
+	TObjectPtr<UAnimMontage> FireMontage;
+	UPROPERTY(Transient, BlueprintReadOnly, Category="Ability|Combat")
+	TObjectPtr<UAnimMontage> DryFireMontage;
+
 private:
-	void StartFireTimer();
-	void StopFireTimer();
+	//Loop body for repeat fire
+	UFUNCTION()
+	void TryDoFire();
+	UFUNCTION()
+	void OnInputReleased(float TimeHeld);
+
+	void StartAutoFire();
+	void StopAutoFire();
+	void HandleDamage(FFireResult& Result);
+
 	FTimerHandle FireTimerHandle;
-	UGZWeaponInstance* GetWeaponInstance() const;
 	int32 CurrentFireIndex;
+	float TimeSinceLastFire;
+	//Runs on Client
+	void ClientSendHitResultToServer(const FHitResult& HitResult);
+	//Runs on Server
+	void OnReceivedTargetDataFromClient(const FGameplayAbilityTargetDataHandle& GameplayAbilityTargetDataHandle, FGameplayTag GameplayTag);
+	FDelegateHandle TargetDataSetDelegateHandle;
 };

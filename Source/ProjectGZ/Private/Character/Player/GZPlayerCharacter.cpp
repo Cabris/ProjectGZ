@@ -97,22 +97,23 @@ UGZAttributeSet* AGZPlayerCharacter::GetAttributeSet() const
 	return UGZPawnFeature->GetAttributeSet();
 }
 
+void AGZPlayerCharacter::OnEquipmentTagChanged_Implementation(FGameplayTag EquipmentTag)
+{
+	if (!IsValid(AnimLayerSet))
+	{
+		Debug::Print(TEXT("OnEquipmentTagChanged: AnimLayerSet is Null!!"));
+		return;
+	}
+	TSubclassOf<UAnimInstance> EquipmentAnimLayer = AnimLayerSet->GetAnimLayer(EquipmentTag);
+	OnAnimLayerChanged.Broadcast(EquipmentAnimLayer);
+}
+
 void AGZPlayerCharacter::InitializePawnFeature()
 {
 	AGZPlayerState* GZPlayerState = GetPlayerState<AGZPlayerState>();
 	check(GZPlayerState);
 	UGZPawnFeature = GZPlayerState->GetPawnFeature();
 	UGZPawnFeature->InitAbilityActorInfo(GZPlayerState, this);
-
-	if (IsValid(AbilitySet))
-	{
-		TArray<FGameplayAbilitySpecHandle> Handles;
-		UGZPawnFeature->GetAbilitySystem()->ApplyInputAbilitySet(AbilitySet, GZPlayerState, Handles);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("AbilitySetClass not set"));
-	}
 	UGZPawnFeature->OnInitializePawnFeature();
 
 	AGZPlayerController* GZPlayerController = Cast<AGZPlayerController>(GetController());
@@ -125,3 +126,4 @@ void AGZPlayerCharacter::InitializePawnFeature()
 		}
 	}
 }
+

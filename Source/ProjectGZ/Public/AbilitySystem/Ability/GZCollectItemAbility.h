@@ -4,6 +4,7 @@
 #include "GZInteractAbility.h"
 #include "GZCollectItemAbility.generated.h"
 
+class UGZInventoryItemDefinition;
 class UGZInventoryManagerComponent;
 //Ability to pickup a item, loot treature box...
 UCLASS(BlueprintType)
@@ -22,6 +23,11 @@ protected:
 	bool bConsumeItemQuantity = true;
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
 	TObjectPtr<UAnimMontage> CollectMontage;
+	UFUNCTION(BlueprintImplementableEvent)
+	void PostCollectItem(const AActor* Actor);
+
+	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
+	bool bEquipItemIfPossible = true;
 
 private:
 	bool CollectItem();

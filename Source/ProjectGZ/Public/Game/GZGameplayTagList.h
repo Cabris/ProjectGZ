@@ -12,6 +12,8 @@ OP(InputTag_Crouch,              "InputTag.Crouch",              "蹲下") \
 OP(InputTag_Aim,                 "InputTag.Aim",                 "瞄準") \
 OP(InputTag_Strafe,              "InputTag.Strafe",              "橫移") \
 OP(InputTag_Interaction,         "InputTag.Interaction",         "互動") \
+OP(InputTag_Attack_Primary,      "InputTag.Attack.Primary",      "主攻擊") \
+OP(InputTag_Attack_Secondary,    "InputTag.Attack.Secondary",    "副攻擊") \
 OP(MessageTag_Effect_Applied,    "MessageTag.Effect.Applied",    "GE 套用訊息") \
 OP(MessageTag_Inventory_Changed, "MessageTag.Inventory.Changed", "背包變更") \
 OP(Item_Stack_Quantity,          "Item.Stack.Quantity",          "堆疊數量") \
@@ -19,10 +21,10 @@ OP(Item_Stack_Ammo,              "Item.Stack.Ammo",              "即時彈藥")
 OP(Item_Stack_Ammo_Spare,        "Item.Stack.Ammo.Spare",        "備用彈藥") \
 OP(Action_Interaction_Collect,   "Action.Interaction.Collect",   "撿起") \
 OP(Action_Interaction_OpenDoor,  "Action.Interaction.OpenDoor",  "開門") \
-OP(Action_Attack_Ranged_Pistol,  "Action.Attack.Ranged.Pistol",  "手槍射擊") \
-OP(Action_Attack_Ranged_Rifle,   "Action.Attack.Ranged.Rifle",   "步槍射擊") \
+OP(Action_Attack_Ranged,		 "Action.Attack.Ranged",         "通用射擊中") \
 OP(State_Aiming,                 "State.Aiming",                 "正在瞄準") \
 OP(State_Reloading,              "State.Reloading",              "裝填中") \
 OP(State_Sprinting,              "State.Sprinting",              "衝刺中") \
+OP(AnimationLayer_Item,          "AnimationLayer.Item",          "AnimationLayerItem") \
 OP(Cooldown_Generic,             "Cooldown.Generic",             "通用冷卻")\
 OP(Effect_DamageMagnitude,       "Effect.DamageMagnitude",       "傷害效果Magnitude")

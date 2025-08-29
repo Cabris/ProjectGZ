@@ -5,19 +5,20 @@
 #include "Equipment/GZEquipmentDefinition.h"
 #include "Equipment/GZEquipmentInstance.h"
 #include "Interfactions/GZAbilitySystemInterface.h"
-#include "Interfactions/GZPawnFeatureInterface.h"
 #include "Inventory/GZInventoryItemInstance.h"
 #include "Net/UnrealNetwork.h"
 
 
 UGZEquipmentInstance* FGZCarriedEquipmentList::AddEntry(const FEquipmentListAddEntryParams& Params)
 {
-	UObject* EquipmentOwner = Params.EquipmentOwner;
+	if (!IsValid(Params.EquipmentOwner))return nullptr;
+	UObject* EquipmentOwner = Params.EquipmentOwner.Get();
 
-	FGZCarriedEquipmentEntry Item = Items.AddDefaulted_GetRef();
+	FGZCarriedEquipmentEntry& Item = Items.AddDefaulted_GetRef();
 	Item.EquipmentInstance = NewObject<UGZEquipmentInstance>(EquipmentOwner, Params.EquipmentInstanceClass);
 	Item.EquipmentInstance->SetItemInstance(Params.ItemInstance);
 	Item.EquipmentInstance->SetEquipmentDefClass(Params.EquipmentDefClass);
+	Item.EquipmentDefinitionClass=Params.EquipmentDefClass;
 	if (IsValid(Params.EquipmentDefCDO))
 	{
 		auto& ActorsToSpawn = Params.EquipmentDefCDO->ActorsToSpawn;
@@ -89,8 +90,9 @@ UGZEquipmentInstance* UGZEquipmentManagerComponent::EquipItem(UGZInventoryItemIn
 
 	UGZPawnFeatureComponent* PawnFeature = GetPawnFeature();
 	if (!IsValid(PawnFeature))return nullptr;
-
-	const FEquipmentListAddEntryParams Param(ItemInstance, PawnFeature->GetPawn().Get());
+	APawn* Pawn = PawnFeature->GetPawn();
+	if (!IsValid(Pawn))return nullptr;
+	const FEquipmentListAddEntryParams Param(ItemInstance, Pawn);
 	UGZEquipmentInstance* EquipmentInstance = EquipmentList.AddEntry(Param);
 	if (!EquipmentInstance)return nullptr;
 

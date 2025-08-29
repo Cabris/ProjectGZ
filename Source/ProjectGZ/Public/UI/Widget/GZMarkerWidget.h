@@ -4,6 +4,8 @@
 #include "Interfactions/GZPoolableObject.h"
 #include "GZMarkerWidget.generated.h"
 
+class UCanvasPanelSlot;
+
 UENUM(BlueprintType)
 enum EMarkerDisplayType : uint8
 {
@@ -34,6 +36,8 @@ public:
 	virtual void OnReturnToPool_Implementation() override;
 	virtual void ResetObjectState_Implementation() override;
 	void SetTarget(AActor* Target, APlayerController* PC);
+	UFUNCTION(BlueprintCallable)
+	void SetupCanvasSlot(UCanvasPanelSlot* CanvasSlot);
 
 	UFUNCTION(BlueprintCallable)
 	void SetMarkerVisibility(bool bVisible);
@@ -41,16 +45,31 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category="Slot")
 	FSlotConfig SlotConfig;
 
+	UFUNCTION(BlueprintPure)
+	APlayerController* GetPlayerController() const
+	{
+		return PlayerController.Get();
+	}
+
+	UFUNCTION(BlueprintPure)
+	bool IsTargetActorValid() const
+	{
+		return TargetActor.IsValid();
+	}
+
+	UFUNCTION(BlueprintPure)
+	AActor* GetTargetActor() const
+	{
+		return TargetActor.Get();
+	}
+
+	void UpdateMarkerPosition();
+
 protected:
 	UFUNCTION(BlueprintImplementableEvent)
 	void OnTargetSet();
 	// UFUNCTION(BlueprintImplementableEvent)
 	// void OnMarkerDisplayChanged(EMarkerDisplayType DisplayType);
-
-	UPROPERTY(Transient)
-	TWeakObjectPtr<APlayerController> PlayerController;
-	UPROPERTY(Transient)
-	TWeakObjectPtr<AActor> TargetActor;
 
 	// UPROPERTY(BlueprintReadWrite, Category = "MarkerWidget", meta = (BindWidget))
 	// TObjectPtr<UTexture2D> MarkerIcon;
@@ -58,17 +77,15 @@ protected:
 	// TObjectPtr<UTextBlock> MarkerTitle;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "MarkerWidget")
-	float MarkingRate;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "MarkerWidget")
 	float ScreenEdgeBuffer;
 
 private:
-	void StartMarking();
-	void StopMarking();
-	void DoMarking();
-	void UpdateMarkerPosition();
+
 	bool IsPositionOnScreen(FVector2D ScreenPosition) const;
 	bool bIsCurrentlyVisible = true;
-	FTimerHandle TimerHandle;
 	FVector2D CachedScreenPosition;
+	UPROPERTY(Transient)
+	TWeakObjectPtr<APlayerController> PlayerController;
+	UPROPERTY(Transient)
+	TWeakObjectPtr<AActor> TargetActor;
 };

@@ -33,8 +33,8 @@ void UGZEquipmentInstance::SpawnEquipmentActors(TArray<FGZEquipmentActorToSpawn>
 		{
 			NewActor->SetReplicates(true);
 			NewActor->FinishSpawning(FTransform::Identity, true);
-			NewActor->SetActorRelativeTransform(ActorDef.AttachTransform);
 			NewActor->AttachToComponent(AttachTarget, FAttachmentTransformRules::KeepRelativeTransform, ActorDef.AttachSocket);
+			NewActor->SetActorRelativeTransform(ActorDef.AttachTransform);
 			SpawnedActors.Add(NewActor);
 		}
 	}

@@ -1,11 +1,11 @@
 ﻿#include "UI/Widget/GZMarkerWidget.h"
 #include "Blueprint/WidgetLayoutLibrary.h"
 #include "Components/CanvasPanelSlot.h"
+#include "ProjectGZ/ProjectGZ.h"
 
 UGZMarkerWidget::UGZMarkerWidget()
 {
 	SetMarkerVisibility(false);
-	MarkingRate = 30;
 	CachedScreenPosition = FVector2D::ZeroVector;
 	ScreenEdgeBuffer = 50;
 }
@@ -17,22 +17,38 @@ void UGZMarkerWidget::SetTarget(AActor* Target, APlayerController* PC)
 	OnTargetSet();
 }
 
+void UGZMarkerWidget::SetupCanvasSlot(UCanvasPanelSlot* CanvasSlot)
+{
+	if (Slot && Slot.Get() != CanvasSlot)
+	{
+		Debug::Print(TEXT("UGZMarkerWidget::SetupCanvasSlot: CanvasSlot is not Current Slot!"));
+		return;
+	}
+
+	if (IsValid(CanvasSlot))
+	{
+		CanvasSlot->SetAlignment(SlotConfig.SlotAlignment);
+		const FVector4f Anchors = SlotConfig.SlotAnchors;
+		CanvasSlot->SetAnchors(FAnchors(Anchors.X, Anchors.Y, Anchors.Z, Anchors.W));
+		CanvasSlot->SetZOrder(SlotConfig.SlotZOrder);
+	}
+}
+
 void UGZMarkerWidget::OnGetFromPool_Implementation()
 {
 	SetMarkerVisibility(true);
-	StartMarking();
 }
 
 void UGZMarkerWidget::ResetObjectState_Implementation()
 {
 	TargetActor = nullptr;
 	PlayerController = nullptr;
-	SetMarkerVisibility(false);
+	CachedScreenPosition = FVector2D::ZeroVector;
 }
 
 void UGZMarkerWidget::OnReturnToPool_Implementation()
 {
-	StopMarking();
+	SetMarkerVisibility(false);
 }
 
 void UGZMarkerWidget::SetMarkerVisibility(bool bVisible)
@@ -48,29 +64,6 @@ void UGZMarkerWidget::SetMarkerVisibility(bool bVisible)
 	SetVisibility(NewVisibility);
 }
 
-void UGZMarkerWidget::StartMarking()
-{
-	if (TimerHandle.IsValid())return;
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, this, &ThisClass::DoMarking, MarkingRate, true);
-}
-
-void UGZMarkerWidget::StopMarking()
-{
-	if (TimerHandle.IsValid())
-		GetWorld()->GetTimerManager().ClearTimer(TimerHandle);
-}
-
-void UGZMarkerWidget::DoMarking()
-{
-	if (TargetActor.IsValid())
-		UpdateMarkerPosition();
-	else
-	{
-		StopMarking();
-		SetMarkerVisibility(false);
-	}
-}
-
 void UGZMarkerWidget::UpdateMarkerPosition()
 {
 	auto WorldPosition = TargetActor->GetActorLocation();
@@ -80,16 +73,23 @@ void UGZMarkerWidget::UpdateMarkerPosition()
 	{
 		PC = PlayerController.Get();
 	}
-	else
+	else if (GetWorld())
 	{
 		PC = GetWorld()->GetFirstPlayerController();
+	}
+	else
+	{
+		Debug::Print(TEXT("UGZMarkerWidget::UpdateMarkerPosition: PlayerController: Null"));
+		return;
 	}
 	if (UWidgetLayoutLibrary::ProjectWorldLocationToWidgetPosition(PC, WorldPosition, ScreenPosition, true))
 	{
 		CachedScreenPosition = ScreenPosition;
 	}
-	bool bIsOnScreen = IsPositionOnScreen(ScreenPosition);
-	SetMarkerVisibility(bIsOnScreen);
+
+	//bool bIsOnScreen = IsPositionOnScreen(ScreenPosition);
+	bool bIsOnScreen = true;
+	//SetMarkerVisibility(bIsOnScreen);
 	UCanvasPanelSlot* CanvasSlot = Cast<UCanvasPanelSlot>(Slot);
 	if (CanvasSlot && bIsOnScreen)
 	{
