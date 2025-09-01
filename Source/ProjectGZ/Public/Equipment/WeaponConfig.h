@@ -23,7 +23,7 @@ USTRUCT(BlueprintType)
 struct FWeaponConfig
 {
 	GENERATED_BODY()
-	// ── 通用 ─────────────────────────────────
+	//通用
 	UPROPERTY(EditDefaultsOnly, Category="Common")
 	EWeaponClass WeaponClass = EWeaponClass::Ranged;
 
@@ -38,16 +38,16 @@ struct FWeaponConfig
 	float FireInterval = 0.10f; // 600RPM
 
 	UPROPERTY(EditDefaultsOnly, Category="Common")
-	FName MuzzleSocketName = TEXT("Muzzle");
+	FName MuzzleSocketName = TEXT("weapon_r_muzzle");
 
 	UPROPERTY(EditDefaultsOnly, Category="Common")
 	TEnumAsByte<ECollisionChannel> TraceChannel = ECC_Visibility;
 
-	// ── 遠程（最小集合） ──────────────────────
+	//遠程
 	UPROPERTY(EditDefaultsOnly, Category="Ranged", meta=(EditCondition="WeaponClass == EWeaponClass::Ranged"))
 	int32 MagazineSize = 30;
 
-	// Hitscan 射程（公尺，使用時請 *100 轉為 cm）
+	//Hitscan 射程in公尺
 	UPROPERTY(EditDefaultsOnly, Category="Ranged", meta=(EditCondition="WeaponClass == EWeaponClass::Ranged && !bUseProjectile"))
 	float MaxRangeMeters = 10000.f;
 
@@ -57,33 +57,27 @@ struct FWeaponConfig
 	UPROPERTY(EditDefaultsOnly, Category="Ranged", meta=(EditCondition="WeaponClass == EWeaponClass::Ranged && bUseProjectile"))
 	TSoftClassPtr<AActor> ProjectileClass;
 
-	// 投射物初速/重力（UE 單位 cm/s、無量綱）
+	//投射物初速/重力單位 cm/s
 	UPROPERTY(EditDefaultsOnly, Category="Ranged", meta=(EditCondition="WeaponClass == EWeaponClass::Ranged && bUseProjectile"))
 	float InitialSpeed = 6000.f;
 
 	UPROPERTY(EditDefaultsOnly, Category="Ranged", meta=(EditCondition="WeaponClass == EWeaponClass::Ranged && bUseProjectile"))
 	float GravityScale = 1.0f;
 
-	// ── 近戰（最小集合） ──────────────────────
+	//近戰
 	UPROPERTY(EditDefaultsOnly, Category="Melee", meta=(EditCondition="WeaponClass == EWeaponClass::Melee"))
 	float MeleeRange = 250.f; // 觸達距離（cm）
 
 	UPROPERTY(EditDefaultsOnly, Category="Melee", meta=(EditCondition="WeaponClass == EWeaponClass::Melee"))
 	float MeleeRadius = 60.f; // 掃掠半徑（cm）
 
-	// ── 投擲（最小集合） ──────────────────────
+	//投擲
 	UPROPERTY(EditDefaultsOnly, Category="Throwable", meta=(EditCondition="WeaponClass == EWeaponClass::Throwable"))
 	float FuseTime = 3.0f;
 
 	UPROPERTY(EditDefaultsOnly, Category="Throwable", meta=(EditCondition="WeaponClass == EWeaponClass::Throwable"))
 	float ExplosionRadius = 350.f; // cm
 
-	// ── 動畫同步（最小集合） ──────────────────
-	UPROPERTY(EditDefaultsOnly, Category="Anim")
-	TSoftObjectPtr<UAnimMontage> FireMontage;
-	UPROPERTY(EditDefaultsOnly, Category="Anim")
-	TSoftObjectPtr<UAnimMontage> DryFireMontage;
-	
 	// 擊發 Notify 的正規化時間（0~1），用來計算 PlayRate 對齊射速
 	UPROPERTY(EditDefaultsOnly, Category="Anim", meta=(ClampMin="0.0", ClampMax="1.0"))
 	float ShotNotifyNormalizedTime = 0.2f;

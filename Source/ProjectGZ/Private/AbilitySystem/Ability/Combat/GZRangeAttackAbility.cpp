@@ -2,8 +2,8 @@
 #include "AbilitySystemBlueprintLibrary.h"
 #include "GZFunctionLibrary.h"
 #include "Abilities/Tasks/AbilityTask.h"
-#include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
 #include "Abilities/Tasks/AbilityTask_WaitInputRelease.h"
+#include "AbilitySystem/Ability/Combat/GZAbilityTargetData_SingleTargetHit.h"
 #include "Character/GZCharacterBase.h"
 #include "Equipment/GZWeaponInstance.h"
 #include "ProjectGZ/ProjectGZ.h"
@@ -17,8 +17,6 @@ UGZRangeAttackAbility::UGZRangeAttackAbility()
 	CurrentFireIndex = 0;
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::InstancedPerActor;
 	TimeSinceLastFire = 0;
-	FireMontage = nullptr;
-	DryFireMontage = nullptr;
 }
 
 void UGZRangeAttackAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
@@ -26,8 +24,6 @@ void UGZRangeAttackAbility::OnGiveAbility(const FGameplayAbilityActorInfo* Actor
 	Super::OnGiveAbility(ActorInfo, Spec);
 	CachedWeaponInstance = nullptr;
 	TimeSinceLastFire = 0;
-	FireMontage = nullptr;
-	DryFireMontage = nullptr;
 	CurrentFireIndex = 0;
 }
 
@@ -53,16 +49,8 @@ void UGZRangeAttackAbility::ActivateAbility(const FGameplayAbilitySpecHandle Han
 		FAbilityTargetDataSetDelegate& Delegate = ASC->AbilityTargetDataSetDelegate(SpecHandle, OriginalPredictionKey);
 		TargetDataSetDelegateHandle = Delegate.AddUObject(this, &ThisClass::OnReceivedTargetDataFromClient);
 		//ensure that TargetData received before Bind delegate, return is CalledDelegate
-		bool bCalledDelegate = ASC->CallReplicatedTargetDataDelegatesIfSet(SpecHandle, OriginalPredictionKey);
-		if (!bCalledDelegate)
-		{
-			//設定伺服器端等待PlayerData資料的上傳
-		}
+		ASC->CallReplicatedTargetDataDelegatesIfSet(SpecHandle, OriginalPredictionKey);
 	}
-
-	//TODO: use async load
-	FireMontage = CachedWeaponConfig.FireMontage.LoadSynchronous();
-	DryFireMontage = CachedWeaponConfig.DryFireMontage.LoadSynchronous();
 
 	if (CachedWeaponConfig.FireMode == EFireMode::Auto)
 	{
@@ -101,31 +89,33 @@ void UGZRangeAttackAbility::EndAbility(const FGameplayAbilitySpecHandle Handle, 
 		FAbilityTargetDataSetDelegate& Delegate = ASC->AbilityTargetDataSetDelegate(SpecHandle, OriginalPredictionKey);
 		Delegate.Remove(TargetDataSetDelegateHandle);
 	}
+	if (FireTimerHandle.IsValid())
+		StopAutoFire();
 }
 
 void UGZRangeAttackAbility::OnInputReleased(float TimeHeld)
 {
-	StopAutoFire();
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
 void UGZRangeAttackAbility::TryDoFire()
 {
-	bool bIsFired = DoOneFire();
-	if (bIsFired)
+	FFireResult FireResult;
+	if (!DoFireInternal(FireResult))
 	{
-		CurrentFireIndex += 1;
-	}
-	else
-	{
-		StopAutoFire();
 		CancelAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true);
 	}
 }
 
-bool UGZRangeAttackAbility::DoOneFire_Implementation()
+bool UGZRangeAttackAbility::DoFireInternal(OUT FFireResult& Result)
 {
-	//////////Fire Check
+	if (IsLocalControlled())
+	{
+		//開始預測區域
+		FScopedPredictionWindow PredictionWindow(GetAbilitySystemComponent(), true);
+	}
+
+	//Fire Check
 	AGZCharacterBase* Character = GetCharacter();
 	if (!IsValid(Character) || !IsValid(CachedWeaponInstance))
 	{
@@ -133,27 +123,11 @@ bool UGZRangeAttackAbility::DoOneFire_Implementation()
 		return false;
 	}
 
-	bool bCheckCost = CommitAbilityCost(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo);
-	if (!bCheckCost)
-	{
-		Debug::Print(TEXT("UGZRangeAttackAbility::ActivateAbility: CommitAbilityCost Failed!"));
-		return false;
-	}
-
 	FVector ViewOrigin;
 	FVector ViewDirection;
 	if (!UGZFunctionLibrary::GZHelper_GetViewPointFromActor(Character, ViewOrigin, ViewDirection))
 		return false;
-	//////////////
-
-	//Play fire montage
-	if (FireMontage)
-	{
-		UAbilityTask_PlayMontageAndWait* WaitMontage =
-			UAbilityTask_PlayMontageAndWait::CreatePlayMontageAndWaitProxy(this, FName("WeaponFireMontage"), FireMontage, 1);
-		//WaitMontage->OnCompleted.AddDynamic(this, &UGZBowAttackTestAbility::OnMontageCompleted);
-		WaitMontage->ReadyForActivation();
-	}
+	//End Fire Check
 
 	//Fire Logic
 	FFireParams Params;
@@ -165,36 +139,118 @@ bool UGZRangeAttackAbility::DoOneFire_Implementation()
 	Params.Filter = AttackFilter;
 	Params.bDrawDebug = true;
 
-	FFireResult Result;
-	bool bIsResultValid = CalculateFireResult(Params, Result);
-	if (bIsResultValid)
+	//有成功發射
+	if (CalculateFireResult(Params, Result))
 	{
 		FHitResult& Hit = Result.Hit;
+		//if on client, do stuff before server check
 		if (IsLocalControlled())
 		{
+			CurrentFireIndex += 1;
+			//Do Client Fire Prediction
+			PlayClientFireFX(Hit);
+			//FGameplayTagContainer FailReasonTags;
+			CommitAbilityCost(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo);
+			//set last fire time
+			TimeSinceLastFire = GetWorld()->GetTimeSeconds();
 			ClientSendHitResultToServer(Hit);
 		}
-
-		//set last fire time
-		TimeSinceLastFire = GetWorld()->GetTimeSeconds();
-		HandleDamage(Result);
+		return true;
 	}
-
-
-#ifdef  WITH_EDITOR
-	if (Params.bDrawDebug)
-	{
-		DrawDebugLine(GetWorld(), Params.Origin, Result.EndLocation, FColor::MakeRandomColor(),
-		              false, 0.5f, 0, 1.0f);
-	}
-#endif
-
-	return true;
+	return false;
 }
 
-bool UGZRangeAttackAbility::CalculateFireResult(const FFireParams& Params, OUT FFireResult& FireResult)
+void UGZRangeAttackAbility::ClientSendHitResultToServer(const FHitResult& HitResult)
 {
-	if (!ensure(Params.Direction.IsNormalized()))
+	FGZAbilityTargetData_SingleTargetHit* Data = new FGZAbilityTargetData_SingleTargetHit();
+	Data->HitResult = HitResult;
+	Data->HitIndex = CurrentFireIndex;
+	//TODO: ccheck ClientTimestamp
+	Data->ClientTimestamp = GetWorld()->GetTimeSeconds();
+	FGameplayAbilityTargetDataHandle TargetDataHandle(Data);
+	auto OriginalPredictionKey = GetCurrentActivationInfo().GetActivationPredictionKey();
+	auto ASC = GetAbilitySystemComponent();
+
+	//Send Target Data to Server
+	//ASC->CallServerSetReplicatedTargetData();
+	FGameplayTag ApplicationTag;
+	ASC->ServerSetReplicatedTargetData(
+		GetCurrentAbilitySpecHandle(),
+		OriginalPredictionKey,
+		TargetDataHandle,
+		ApplicationTag,
+		ASC->ScopedPredictionKey);
+}
+
+void UGZRangeAttackAbility::OnReceivedTargetDataFromClient(const FGameplayAbilityTargetDataHandle& TargetDataHandle, FGameplayTag GameplayTag)
+{
+	auto ASC = GetAbilitySystemComponent();
+	FGameplayAbilitySpecHandle SpecHandle = GetCurrentAbilitySpecHandle();
+	FPredictionKey OriginalPredictionKey = GetCurrentActivationInfo().GetActivationPredictionKey();
+	ASC->ConsumeClientReplicatedTargetData(SpecHandle, OriginalPredictionKey);
+
+	for (int Idx = 0; Idx < TargetDataHandle.Num(); Idx++)
+	{
+		const FGameplayAbilityTargetData* BaseData = TargetDataHandle.Get(Idx);
+		//guarantee the BaseData is the type we want
+		if (BaseData && BaseData->HasHitResult() && BaseData->GetScriptStruct()->IsChildOf(FGZAbilityTargetData_SingleTargetHit::StaticStruct()))
+		{
+			const FGZAbilityTargetData_SingleTargetHit* Data = static_cast<const FGZAbilityTargetData_SingleTargetHit*>(BaseData);
+			const FHitResult* HitResult = Data->GetHitResult();
+			const int HitIndex = Data->HitIndex;
+			FString Msg = FString::Printf(TEXT("OnReceivedTargetDataFromClient: HitResult->ImpactPoint: %s, HitIndex: %d"),
+			                              *HitResult->ImpactPoint.ToString(), HitIndex);
+			Debug::Print(Msg);
+			//TODO: do server side check stuff...
+			bool bServerValidate = ServerValidateHitResult(*HitResult);
+			if (bServerValidate)
+			{
+				HandleDamage(*HitResult);
+				PlayAuthorityFireFX(*HitResult);
+			}
+			else
+			{
+				Debug::Print(TEXT("ServerValidateHitResult Failed"));
+				CancelAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true);
+			}
+		}
+	}
+}
+
+bool UGZRangeAttackAbility::ServerValidateHitResult(const FHitResult& ClientHit)
+{
+	FFireResult ServerResult;
+	bool bServerValid = DoFireInternal(ServerResult);
+	if (!bServerValid) return false;
+
+	// 驗證客戶端結果是否合理（考慮網路延遲容差）
+	if (ServerResult.bIsHit && ClientHit.bBlockingHit)
+	{
+		float DistanceDiff = FVector::Dist(ClientHit.ImpactPoint, ServerResult.Hit.ImpactPoint);
+		const float MaxAllowedDifference = 50.0f; // 5cm 容差
+		return DistanceDiff <= MaxAllowedDifference;
+	}
+
+	return ServerResult.bIsHit == ClientHit.bBlockingHit;
+}
+
+void UGZRangeAttackAbility::StartAutoFire()
+{
+	if (FireTimerHandle.IsValid())
+		StopAutoFire();
+	GetWorld()->GetTimerManager().SetTimer(FireTimerHandle, this, &ThisClass::TryDoFire, CachedWeaponConfig.FireInterval, true);
+}
+
+void UGZRangeAttackAbility::StopAutoFire()
+{
+	if (GetWorld()->GetTimerManager().IsTimerActive(FireTimerHandle))
+		GetWorld()->GetTimerManager().ClearTimer(FireTimerHandle);
+}
+
+
+bool UGZRangeAttackAbility::CalculateFireResult(const FFireParams& Params, OUT FFireResult& FireResult) const
+{
+	if (!Params.Direction.IsNormalized())
 	{
 		FireResult.bIsValid = false;
 		return false;
@@ -221,32 +277,36 @@ bool UGZRangeAttackAbility::CalculateFireResult(const FFireParams& Params, OUT F
 		FireResult.bIsValid = true;
 		FireResult.EndLocation = End;
 	}
+
+#ifdef  WITH_EDITOR
+	if (Params.bDrawDebug)
+	{
+		DrawDebugLine(GetWorld(), Params.Origin, FireResult.EndLocation, FColor::MakeRandomColor(),
+		              false, 0.5f, 0, 1.0f);
+	}
+#endif
 	return true;
 }
 
-void UGZRangeAttackAbility::HandleDamage(FFireResult& Result)
-{
-	AGZCharacterBase* Character = GetCharacter();
 
+void UGZRangeAttackAbility::HandleDamage(const FHitResult& Result)
+{
 	UGZAbilitySystemComponent* ASC = GetAbilitySystemComponent();
 	if (!ASC || !IsValid(ASC->GetOwner()))return;
-	if (!Result.bIsHit)return;
-	AActor* HitActor = Result.Hit.GetActor();
+	AActor* HitActor = Result.GetActor();
 	if (!IsValid(HitActor))return;
 	auto TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(HitActor);
 	if (!TargetASC) return;
 
 	//GE
-	// 建立 GameplayEffect Context
 	FGameplayEffectContextHandle ContextHandle = ASC->MakeEffectContext();
-	// Instigator 與 Controller
+	AGZCharacterBase* Character = GetCharacter();
 	ContextHandle.AddInstigator(Character, Character->GetController());
 	// 來源武器/裝備（讓 GE 知道是由哪把槍造成的）
 	ContextHandle.AddSourceObject(CachedWeaponInstance);
 	// 命中資訊（爆頭/命中骨頭、命中點、法線）
-	ContextHandle.AddHitResult(Result.Hit);
+	ContextHandle.AddHitResult(Result);
 
-	// 建立 GE 規格（Spec）
 	FGameplayEffectSpecHandle SpecHandle = ASC->MakeOutgoingSpec(DamageEffectClass, AbilityLevel, ContextHandle);
 	if (!SpecHandle.IsValid())return;
 
@@ -255,11 +315,12 @@ void UGZRangeAttackAbility::HandleDamage(FFireResult& Result)
 	if (!IsValid(DamageGECDO))return;
 
 	auto AppliedDamagePropertyTag = DamageGECDO->GetAppliedDamagePropertyTag();
-	if (AppliedDamagePropertyTag.IsValid())
+	if (!AppliedDamagePropertyTag.IsValid())
 	{
-		SpecHandle.Data->SetSetByCallerMagnitude(AppliedDamagePropertyTag, Damage);
+		Debug::Print(TEXT("Failed to GetAppliedDamagePropertyTag"));
+		return;
 	}
-
+	SpecHandle.Data->SetSetByCallerMagnitude(AppliedDamagePropertyTag, Damage);
 	// 正式套用 GE 到目標
 	const auto ActiveHandle = TargetASC->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(), TargetASC);
 	// 成功後可在此觸發 GameplayCue（若 GE 本身沒帶 Cue）
@@ -267,54 +328,4 @@ void UGZRangeAttackAbility::HandleDamage(FFireResult& Result)
 	bool bSuccessApply = ActiveHandle.WasSuccessfullyApplied();
 	FString Msg = FString::Printf(TEXT("Apply DamageEffect: %d"), bSuccessApply);
 	Debug::Print(Msg);
-}
-
-void UGZRangeAttackAbility::ClientSendHitResultToServer(const FHitResult& HitResult)
-{
-	auto ASC = GetAbilitySystemComponent();
-	FScopedPredictionWindow PredictionWindow(ASC, true);
-	FGameplayAbilityTargetData_SingleTargetHit* Data = new FGameplayAbilityTargetData_SingleTargetHit();
-	Data->HitResult = HitResult;
-	FGameplayAbilityTargetDataHandle TargetDataHandle(Data);
-	auto OriginalPredictionKey = GetCurrentActivationInfo().GetActivationPredictionKey();
-	//Send Target Data to Server
-	ASC->ServerSetReplicatedTargetData(
-		GetCurrentAbilitySpecHandle(),
-		OriginalPredictionKey,
-		TargetDataHandle,
-		FGameplayTag(),
-		ASC->ScopedPredictionKey);
-}
-
-void UGZRangeAttackAbility::OnReceivedTargetDataFromClient(const FGameplayAbilityTargetDataHandle& TargetDataHandle, FGameplayTag GameplayTag)
-{
-	auto ASC = GetAbilitySystemComponent();
-	FGameplayAbilitySpecHandle SpecHandle = GetCurrentAbilitySpecHandle();
-	FPredictionKey OriginalPredictionKey = GetCurrentActivationInfo().GetActivationPredictionKey();
-	ASC->ConsumeClientReplicatedTargetData(SpecHandle, OriginalPredictionKey);
-
-	for (int Idx = 0; Idx < TargetDataHandle.Num(); Idx++)
-	{
-		const FGameplayAbilityTargetData* Data = TargetDataHandle.Get(Idx);
-		if (Data && Data->HasHitResult())
-		{
-			const FHitResult* HitResult = Data->GetHitResult();
-			FString Msg = FString::Printf(TEXT("OnReceivedTargetDataFromClient: HitResult->ImpactPoint: %s"), *HitResult->ImpactPoint.ToString());
-			Debug::Print(Msg);
-			//TODO: do server side check stuff...
-		}
-	}
-}
-
-void UGZRangeAttackAbility::StartAutoFire()
-{
-	if (FireTimerHandle.IsValid())
-		StopAutoFire();
-	GetWorld()->GetTimerManager().SetTimer(FireTimerHandle, this, &ThisClass::TryDoFire, CachedWeaponConfig.FireInterval, true);
-}
-
-void UGZRangeAttackAbility::StopAutoFire()
-{
-	if (GetWorld()->GetTimerManager().IsTimerActive(FireTimerHandle))
-		GetWorld()->GetTimerManager().ClearTimer(FireTimerHandle);
 }

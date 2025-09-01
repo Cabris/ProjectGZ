@@ -16,18 +16,17 @@ public:
 	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	                             const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
-virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
+	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+	                        const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled) override;
+
 protected:
-	bool CalculateFireResult(const FFireParams& FireParams, OUT FFireResult& FireResult);
-
+	UFUNCTION(BlueprintImplementableEvent)
+	void PlayClientFireFX(const FHitResult& HitResult);
+	UFUNCTION(BlueprintImplementableEvent)
+	void PlayAuthorityFireFX(const FHitResult& HitResult);
+	bool CalculateFireResult(const FFireParams& FireParams, OUT FFireResult& FireResult) const;
 	//logic for single shot
-	UFUNCTION(BlueprintNativeEvent, Category="Ability|Combat")
-	bool DoOneFire();
-
-	UPROPERTY(Transient, BlueprintReadOnly, Category="Ability|Combat")
-	TObjectPtr<UAnimMontage> FireMontage;
-	UPROPERTY(Transient, BlueprintReadOnly, Category="Ability|Combat")
-	TObjectPtr<UAnimMontage> DryFireMontage;
+	bool DoFireInternal(OUT FFireResult& Result);
 
 private:
 	//Loop body for repeat fire
@@ -38,7 +37,8 @@ private:
 
 	void StartAutoFire();
 	void StopAutoFire();
-	void HandleDamage(FFireResult& Result);
+	void HandleDamage(const FHitResult& HitResult);
+	bool ServerValidateHitResult(const FHitResult& HitResult);
 
 	FTimerHandle FireTimerHandle;
 	int32 CurrentFireIndex;

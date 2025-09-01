@@ -26,9 +26,6 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category="Ability|Combat")
 	float AbilityLevel = 1;
-
-	UPROPERTY(EditDefaultsOnly, Category="Ability|Combat")
-	TSubclassOf<UGZDamageEffect> DamageEffectClass;
 private:
 
 };

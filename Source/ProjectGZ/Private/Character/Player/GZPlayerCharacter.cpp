@@ -39,6 +39,13 @@ AGZPlayerCharacter::AGZPlayerCharacter()
 	Camera->bUsePawnControlRotation = false;
 }
 
+void AGZPlayerCharacter::BeginPlay()
+{
+	Super::BeginPlay();
+	BindAnimLayerChangedEvent();
+	OnAnimLayerChanged.Broadcast(AnimLayerSet->DefaultAnimLayerClass);
+}
+
 void AGZPlayerCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);

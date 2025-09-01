@@ -13,6 +13,7 @@
 #include "ProjectGZ/Public/Data/Input/GZDataAssetInputConfig.h"
 #include "Game/GZGameplayTags.h"
 #include "Game/GZInputComponent.h"
+#include "ProjectGZ/ProjectGZ.h"
 
 AGZPlayerController::AGZPlayerController()
 {
@@ -79,7 +80,7 @@ void AGZPlayerController::Look(const FInputActionValue& inputActionValue)
 {
 	FVector2D inputAxisVector = inputActionValue.Get<FVector2D>();
 	AGZCharacterBase* ControlledPawn = GetGZCharacter();
-
+	if (!ControlledPawn) return;
 	ICameraControllable* CameraControllable = Cast<ICameraControllable>(ControlledPawn);
 	if (!CameraControllable)
 	{
@@ -96,6 +97,7 @@ void AGZPlayerController::Aim(const FInputActionValue& inputActionValue)
 	if (inputBool)
 	{
 		AGZCharacterBase* ControlledPawn = GetGZCharacter();
+		if (!ControlledPawn) return;
 		IAimControllable* AimControllable = Cast<IAimControllable>(ControlledPawn);
 		if (!AimControllable)
 		{
@@ -126,6 +128,7 @@ void AGZPlayerController::Strafe(const FInputActionValue& inputActionValue)
 	if (inputBool)
 	{
 		AGZCharacterBase* ControlledPawn = GetGZCharacter();
+		if (!ControlledPawn) return;
 		IStrafingable* Strafingable = Cast<IStrafingable>(ControlledPawn);
 		if (Strafingable)
 		{
@@ -144,18 +147,16 @@ void AGZPlayerController::Sprint(const FInputActionValue& inputActionValue)
 void AGZPlayerController::PostProcessInput(const float DeltaTime, const bool bGamePaused)
 {
 	Super::PostProcessInput(DeltaTime, bGamePaused);
-	AGZCharacterBase* GZCharacter = GetGZCharacter();
-	UGZAbilitySystemComponent* ASC = GZCharacter->GetAbilitySystemComponent();
+	UGZAbilitySystemComponent* ASC = GetGZAbilitySystem();
 	if (ASC)
 	{
-		ASC->HandlePostProcessInput(DeltaTime,bGamePaused);
+		ASC->HandlePostProcessInput(DeltaTime, bGamePaused);
 	}
 }
 
 void AGZPlayerController::AbilityInputPressed(FGameplayTag InputTag)
 {
-	AGZCharacterBase* GZCharacter = GetGZCharacter();
-	UGZAbilitySystemComponent* ASC = GZCharacter->GetAbilitySystemComponent();
+	UGZAbilitySystemComponent* ASC = GetGZAbilitySystem();
 	if (ASC)
 	{
 		ASC->HandleAbilityInputPressed(InputTag);
@@ -164,8 +165,7 @@ void AGZPlayerController::AbilityInputPressed(FGameplayTag InputTag)
 
 void AGZPlayerController::AbilityInputReleased(FGameplayTag InputTag)
 {
-	AGZCharacterBase* GZCharacter = GetGZCharacter();
-	UGZAbilitySystemComponent* ASC = GZCharacter->GetAbilitySystemComponent();
+	UGZAbilitySystemComponent* ASC = GetGZAbilitySystem();
 	if (ASC)
 	{
 		ASC->HandleAbilityInputReleased(InputTag);
@@ -206,15 +206,22 @@ void AGZPlayerController::Crouch(const FInputActionValue& inputActionValue)
 
 AGZCharacterBase* AGZPlayerController::GetGZCharacter() const
 {
-	try
+	AGZCharacterBase* ControlledPawn = GetPawn<AGZCharacterBase>();
+	if (ControlledPawn)
 	{
-		AGZCharacterBase* ControlledPawn = GetPawn<AGZCharacterBase>();
-		check(ControlledPawn);
 		return ControlledPawn;
 	}
-	catch (...)
+	else
 	{
 		UE_LOG(LogTemp, Warning, TEXT("No pawn controlled"));
+		return nullptr;
 	}
-	return nullptr;
+}
+
+UGZAbilitySystemComponent* AGZPlayerController::GetGZAbilitySystem() const
+{
+	AGZCharacterBase* GZCharacter = GetGZCharacter();
+	if (!GZCharacter) return nullptr;
+	UGZAbilitySystemComponent* ASC = GZCharacter->GetAbilitySystemComponent();
+	return ASC;
 }

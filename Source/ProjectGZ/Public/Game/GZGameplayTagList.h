@@ -28,3 +28,4 @@ OP(State_Sprinting,              "State.Sprinting",              "衝刺中") \
 OP(AnimationLayer_Item,          "AnimationLayer.Item",          "AnimationLayerItem") \
 OP(Cooldown_Generic,             "Cooldown.Generic",             "通用冷卻")\
 OP(Effect_DamageMagnitude,       "Effect.DamageMagnitude",       "傷害效果Magnitude")
+

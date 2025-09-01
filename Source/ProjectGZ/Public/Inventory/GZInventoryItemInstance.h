@@ -12,6 +12,10 @@ class PROJECTGZ_API UGZInventoryItemInstance : public UObject
 	GENERATED_BODY()
 
 public:
+	//~UObject interface
+	virtual bool IsSupportedForNetworking() const override { return true; }
+	//~End of UObject interface
+	
 	UFUNCTION(BlueprintPure)
 	int32 GetStackByTag(FGameplayTag Tag) const;
 	UFUNCTION(BlueprintPure)
@@ -26,7 +30,6 @@ public:
 	void SetStackByTag(const FGameplayTag& Tag, int32 Stack);
 	void SetItemDefinitionClass(const TSubclassOf<UGZInventoryItemDefinition>& ItemDefClass);
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
-
 protected:
 	UPROPERTY(Replicated, VisibleAnywhere)
 	TSubclassOf<UGZInventoryItemDefinition> ItemDefinitionClass;

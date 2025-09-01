@@ -25,12 +25,11 @@ struct FAttackFilter
 	UPROPERTY()
 	TWeakObjectPtr<const AActor> Instigator = nullptr;
 
-	// 還要額外忽略的演員（例如：武器 Actor、臨時特效 Actor）
+	// 額外忽略的Actor（武器 Actor、臨時特效 Actor）
 	UPROPERTY()
 	TArray<TWeakObjectPtr<const AActor>> ExtraIgnoredActors;
 
-
-	// 若你想用「物件類型」而不是 Channel，也可以加這個（選用）
+	// 用「物件類型」而不是 Channel
 	// FCollisionObjectQueryParams ObjectTypes = FCollisionObjectQueryParams::AllDynamicObjects;
 };
 
@@ -56,7 +55,7 @@ struct FFireResult
 };
 
 //base c++ class for ranged/melee weapon
-UCLASS()
+UCLASS(Blueprintable, BlueprintType)
 class PROJECTGZ_API UGZWeaponInstance : public UGZEquipmentInstance
 {
 	GENERATED_BODY()
@@ -64,7 +63,8 @@ class PROJECTGZ_API UGZWeaponInstance : public UGZEquipmentInstance
 public:
 	const FWeaponConfig& GetConfig() const { return WeaponConfig; }
 	static void BuildCollisionParams(const FAttackFilter& Filter, FCollisionQueryParams& OutQuery);
-
+	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
+	void FireWeapon(const FHitResult& HitResult);
 protected:
 	UPROPERTY(EditDefaultsOnly, Category="Equipment|Weapon")
 	FWeaponConfig WeaponConfig;

@@ -20,6 +20,9 @@ class PROJECTGZ_API UGZEquipmentInstance : public UObject
 	GENERATED_BODY()
 
 public:
+	//~UObject interface
+	virtual bool IsSupportedForNetworking() const override { return true; }
+	//~End of UObject interface
 	virtual void OnEquipped();
 	virtual void OnUnequipped();
 	virtual void SpawnEquipmentActors(TArray<FGZEquipmentActorToSpawn>& ActorsToSpawn);

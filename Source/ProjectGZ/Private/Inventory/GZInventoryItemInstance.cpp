@@ -49,3 +49,4 @@ void UGZInventoryItemInstance::GetLifetimeReplicatedProps(TArray<FLifetimeProper
 	DOREPLIFETIME(ThisClass, ItemDefinitionClass);
 	DOREPLIFETIME(ThisClass, TagStackList);
 }
+

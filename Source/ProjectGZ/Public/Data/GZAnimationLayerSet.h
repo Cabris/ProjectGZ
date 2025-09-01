@@ -21,6 +21,7 @@ class PROJECTGZ_API UGZAnimationLayerSet : public UDataAsset
 	GENERATED_BODY()
 
 public:
+	UFUNCTION(BlueprintCallable, Category="AnimationLayerSet")
 	TSubclassOf<UAnimInstance> GetAnimLayer(FGameplayTag Tag)
 	{
 		FGZAnimationLayerEntry* AnimLayer = AnimLayerSet.FindByPredicate([Tag](FGZAnimationLayerEntry& Entry)
@@ -36,6 +37,6 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, meta=(TitleProperty="AnimationLayerTag"))
 	TArray<FGZAnimationLayerEntry> AnimLayerSet;
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	TSubclassOf<UAnimInstance> DefaultAnimLayerClass;
 };

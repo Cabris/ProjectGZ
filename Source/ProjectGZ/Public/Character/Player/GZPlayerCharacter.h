@@ -25,6 +25,7 @@ class PROJECTGZ_API AGZPlayerCharacter : public AGZCharacterBase, public ICamera
 
 public:
 	AGZPlayerCharacter();
+	virtual void BeginPlay() override;
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void OnRep_PlayerState() override;
 	virtual void PitchCamera(float AxisValue) override;
@@ -42,6 +43,9 @@ public:
 	{
 		return UGZPawnFeature;
 	}
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void BindAnimLayerChangedEvent();
 
 	UPROPERTY(BlueprintAssignable)
 	FOnAnimLayerChangedEventSingnature OnAnimLayerChanged;

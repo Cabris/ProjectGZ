@@ -87,9 +87,9 @@ void UGZAbilitySystemComponent::HandlePostProcessInput(float DeltaTime, bool bGa
 	//Initialized Cache
 	//Cached Abilities to be actived
 
-	HoldingAbilitySpecHandles.RemoveAll([this](const FGameplayAbilitySpecHandle& H)
+	HoldingAbilitySpecHandles.RemoveAll([this](const FGameplayAbilitySpecHandle& Handle)
 	{
-		return FindAbilitySpecFromHandle(H) == nullptr;
+		return FindAbilitySpecFromHandle(Handle) == nullptr;
 	});
 
 	TArray<FGameplayAbilitySpecHandle> WillActiveAbilityHandles;

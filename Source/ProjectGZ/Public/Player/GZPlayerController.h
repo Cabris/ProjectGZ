@@ -7,6 +7,7 @@
 #include "GameFramework/PlayerController.h"
 #include "GZPlayerController.generated.h"
 
+class UGZAbilitySystemComponent;
 class AGZCharacterBase;
 class UInputMappingContext;
 class UGZDataAssetInputConfig;
@@ -40,4 +41,5 @@ private:
 	void AbilityInputPressed(FGameplayTag InputTag);
 	void AbilityInputReleased(FGameplayTag InputTag);
 	AGZCharacterBase* GetGZCharacter() const;
+	UGZAbilitySystemComponent* GetGZAbilitySystem() const;
 };

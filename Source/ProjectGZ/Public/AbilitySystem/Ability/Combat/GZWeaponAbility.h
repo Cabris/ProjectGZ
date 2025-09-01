@@ -13,6 +13,8 @@ class PROJECTGZ_API UGZWeaponAbility : public UGZEquipmentAbility
 	GENERATED_BODY()
 
 protected:
+	UPROPERTY(EditDefaultsOnly, Category="Ability|Combat")
+	TSubclassOf<UGZDamageEffect> DamageEffectClass;
 	UGZWeaponInstance* GetWeaponInstance() const;
 	UPROPERTY(Transient, BlueprintReadOnly, Category="Ability|Combat")
 	TObjectPtr<UGZWeaponInstance> CachedWeaponInstance;
