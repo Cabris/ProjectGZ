@@ -16,6 +16,12 @@ UGZInventoryItemInstance* UGZEquipmentAbility::GetItemInstance() const
 
 UGZEquipmentInstance* UGZEquipmentAbility::GetEquipmentInstance() const
 {
+	if (!IsInstantiated())
+	{
+		UE_LOG(LogTemp, Error, TEXT("%hs called on the CDO.  This function uses instance variables and therefore is invalid on the CDO."), __func__)
+		return nullptr;
+	}
+
 	FGameplayAbilitySpec* Spec = GetCurrentAbilitySpec();
 	if (!Spec) return nullptr;
 	auto SourceObject = Spec->SourceObject;

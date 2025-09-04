@@ -9,12 +9,14 @@ UGZGameEffectCost::UGZGameEffectCost()
 void UGZGameEffectCost::OnPropertiesUpdated()
 {
 	Super::OnPropertiesUpdated();
-	if (IsValid(CostDataAsset))
-		RebuildModifiers(CostDataAsset.Get());
+	RebuildModifiers();
 }
 
-void UGZGameEffectCost::RebuildModifiers(UGZAbilityCostDataAsset* InCostDataAsset)
+void UGZGameEffectCost::RebuildModifiers()
 {
+	if (!IsValid(CostDataAsset))return;
+	UGZAbilityCostDataAsset* InCostDataAsset = CostDataAsset.Get();
+	
 	Modifiers.Empty();
 
 	for (const FSetByCallerCostRow& Row : InCostDataAsset->GetAbilityCosts())
@@ -37,5 +39,3 @@ void UGZGameEffectCost::RebuildModifiers(UGZAbilityCostDataAsset* InCostDataAsse
 		Modifiers.Add(Info);
 	}
 }
-
-

@@ -11,18 +11,9 @@ void AGZHUD::InitializeOverlay(AGZPlayerController* PC, AGZPlayerState* PS, UGZA
 	checkf(OverlayWidgetClass, TEXT("OverlayWidgetClass is not set!"));
 	checkf(OverlayWidgetControllerClass, TEXT("OverlayWidgetControllerClass is not set!"));
 	FWidgetControllerParams WidgetParams(PC,PS);
-
-	/*UGZUserWidget* UserWidget = CreateWidget<UGZUserWidget>(GetWorld(), OverlayWidgetClass);
-	check(UserWidget);
-	OverlayWidget = UserWidget;*/
+	
 	OverlayWidget = GetOrCreateWidget(OverlayWidget, OverlayWidgetClass);
 
-	/*if (!IsValid(OverlayWidgetController))
-	{
-		UGZOverlayWidgetController* WidgetController = NewObject<UGZOverlayWidgetController>(this, OverlayWidgetControllerClass);
-		check(WidgetController);
-		OverlayWidgetController = WidgetController;
-	}*/
 	OverlayWidgetController = GetWidgetController(OverlayWidgetController, OverlayWidgetControllerClass);
 	OverlayWidgetController->SetWidgetControllerParams(WidgetParams);
 	OverlayWidget->SetWidgetController(OverlayWidgetController);

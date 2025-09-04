@@ -14,7 +14,7 @@ public:
 	UGZGameEffectCooldown()
 	{
 		DurationPolicy = EGameplayEffectDurationType::HasDuration;
-		DurationMagnitude = FScalableFloat(0.f);
+		DurationMagnitude = FScalableFloat(0.42f);
 		Modifiers.Empty();
 	}
 

@@ -9,7 +9,7 @@ void FGZTagStackList::AddItemStack(FGameplayTag Tag, int32 StackCount)
 		{
 			Entry.StackCount += StackCount;
 			ItemStack[Tag] = Entry.StackCount;
-			MarkArrayDirty();
+			MarkItemDirty(Entry);
 			return;
 		}
 	}
@@ -17,7 +17,7 @@ void FGZTagStackList::AddItemStack(FGameplayTag Tag, int32 StackCount)
 	NewEntry.ItemTag = Tag;
 	NewEntry.StackCount = StackCount;
 	ItemStack.Add(Tag, StackCount);
-	MarkArrayDirty();
+	MarkItemDirty(NewEntry);
 }
 
 void FGZTagStackList::RemoveItemStack(FGameplayTag Tag, int32 StackCount)
@@ -52,7 +52,7 @@ void FGZTagStackList::SetItemStackCount(FGameplayTag Tag, int32 StackCount)
 		{
 			Entry.StackCount = StackCount;
 			ItemStack[Tag] = Entry.StackCount;
-			MarkArrayDirty();
+			MarkItemDirty(Entry);
 			return;
 		}
 	}

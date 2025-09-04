@@ -19,7 +19,7 @@ public:
 	virtual FVector GetWorldPosition() const override;
 	virtual FText GetInteractionText() const override;
 	virtual bool IsInteractable() const override;
-	virtual const FGameplayTag& GetInteractAbilityTriggerTag() override;
+	virtual const FGameplayTag& GetInteractAbilityTriggerTag()const override;
 	virtual void DoInteract_Implementation() override;
 	virtual void OnBeginFocus_Implementation() override;
 	virtual void OnEndFocus_Implementation() override;

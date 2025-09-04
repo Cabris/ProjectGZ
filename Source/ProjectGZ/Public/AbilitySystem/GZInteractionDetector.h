@@ -99,9 +99,6 @@ protected:
 	// 執行檢測邏輯
 	void PerformDetection();
 
-	// 獲取視點資訊
-	virtual bool GetViewPoint(FVector& OutLocation, FVector& OutDirection) const;
-
 	// 評分候選目標
 	virtual float ScoreCandidate(const FVector& ViewLocation, const FVector& ViewDirection, const FVector& TargetLocation) const;
 

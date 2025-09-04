@@ -20,7 +20,7 @@ void UGZInventoryWidgetController::BroadcastInitialValues()
 void UGZInventoryWidgetController::BindCallbacksToDependencies()
 {
 	const TObjectPtr<UGZInventoryManagerComponent>& InventoryManager = PawnFeatureComponent->GetInventoryManager();
-	if (!IsValid(InventoryManager.Get()))return;
+	check(IsValid(InventoryManager.Get()));
 	InventoryManager->OnItemAdded.AddDynamic(this, &ThisClass::HandleItemAdded);
 	InventoryManager->OnItemWillRemove.AddDynamic(this, &ThisClass::HandleItemWillRemove);
 	InventoryManager->OnItemChanged.AddDynamic(this, &ThisClass::HandleItemChanged);

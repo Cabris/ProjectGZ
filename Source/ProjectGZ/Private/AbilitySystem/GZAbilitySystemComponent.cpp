@@ -46,8 +46,8 @@ void UGZAbilitySystemComponent::HandleAbilityInputPressed(FGameplayTag InputTag)
 			UGZGameplayAbility* Ability = Cast<UGZGameplayAbility>(Spec.Ability);
 			if (!Ability)
 			{
-				Debug::Print(FString::Printf(TEXT("Cast to UGZGameplayAbility failed: %s, Tag: %s"),
-				                             *Spec.Ability->GetName(), *InputTag.ToString()));
+				//Debug::Print(FString::Printf(TEXT("Cast to UGZGameplayAbility failed: %s, Tag: %s"),
+				//                             *Spec.Ability->GetName(), *InputTag.ToString()));
 				continue;
 			}
 			PressedAbilitySpecHandles.AddUnique(Spec.Handle);
@@ -73,8 +73,8 @@ void UGZAbilitySystemComponent::HandleAbilityInputReleased(FGameplayTag InputTag
 			UGZGameplayAbility* Ability = Cast<UGZGameplayAbility>(Spec.Ability);
 			if (!Ability)
 			{
-				Debug::Print(FString::Printf(TEXT("Cast to UGZGameplayAbility failed: %s, Tag: %s"),
-				                             *Spec.Ability->GetName(), *InputTag.ToString()));
+				//Debug::Print(FString::Printf(TEXT("Cast to UGZGameplayAbility failed: %s, Tag: %s"),
+				//                             *Spec.Ability->GetName(), *InputTag.ToString()));
 				continue;
 			}
 			ReleasedAbilitySpecHandles.AddUnique(Spec.Handle);
@@ -127,7 +127,7 @@ void UGZAbilitySystemComponent::HandlePostProcessInput(float DeltaTime, bool bGa
 		{
 			constexpr bool bAllowRemoteActivation = true;
 			bool bIsSuccesses = TryActivateAbility(SpecHandle, bAllowRemoteActivation);
-			Debug::Print(FString::Printf(TEXT("TryActivateAbility: bIsSuccesses: %d, Ability: %s"), bIsSuccesses, *Spec->Ability->GetName()));
+			//Debug::Print(FString::Printf(TEXT("TryActivateAbility: bIsSuccesses: %d, Ability: %s"), bIsSuccesses, *Spec->Ability->GetName()));
 		}
 	}
 

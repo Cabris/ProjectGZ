@@ -33,6 +33,6 @@ public:
 protected:
 	UPROPERTY(Replicated, VisibleAnywhere)
 	TSubclassOf<UGZInventoryItemDefinition> ItemDefinitionClass;
-	UPROPERTY(Replicated)
-	FGZTagStackList TagStackList; //used for item Stack number
+	// UPROPERTY(Replicated)
+	// FGZTagStackList TagStackList; //used for item Stack number
 };

@@ -4,6 +4,7 @@
 #include "Equipment/GZWeaponInstance.h"
 #include "GZRangeAttackAbility.generated.h"
 
+class UGZGameEffectCooldown;
 class UGZWeaponInstance;
 //base class for ranged weapon fire ability: pistol, rifle, row.
 UCLASS()
@@ -23,18 +24,21 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent)
 	void PlayClientFireFX(const FHitResult& HitResult);
 	UFUNCTION(BlueprintImplementableEvent)
+	void PlayClientFailFX();
+	UFUNCTION(BlueprintImplementableEvent)
 	void PlayAuthorityFireFX(const FHitResult& HitResult);
 	bool CalculateFireResult(const FFireParams& FireParams, OUT FFireResult& FireResult) const;
-	//logic for single shot
+	//logic for single fire task
 	bool DoFireInternal(OUT FFireResult& Result);
 
 private:
-	//Loop body for repeat fire
+	//check fire valid and do fire task
 	UFUNCTION()
 	void TryDoFire();
 	UFUNCTION()
 	void OnInputReleased(float TimeHeld);
 
+	void InitializeCachedData();
 	void StartAutoFire();
 	void StopAutoFire();
 	void HandleDamage(const FHitResult& HitResult);
@@ -42,7 +46,6 @@ private:
 
 	FTimerHandle FireTimerHandle;
 	int32 CurrentFireIndex;
-	float TimeSinceLastFire;
 	//Runs on Client
 	void ClientSendHitResultToServer(const FHitResult& HitResult);
 	//Runs on Server

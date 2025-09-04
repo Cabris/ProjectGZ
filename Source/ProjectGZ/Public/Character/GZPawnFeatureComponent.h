@@ -32,6 +32,8 @@ struct FPawnFeatureStruct
 	TObjectPtr<UGZWeaponMenuComponent> WeaponMenu = nullptr;
 	UPROPERTY()
 	TObjectPtr<APawn> Pawn = nullptr;
+	UPROPERTY()
+	TObjectPtr<APlayerState> PlayerState = nullptr;
 };
 
 //Owned by PlayerState
@@ -73,6 +75,11 @@ public:
 	const TObjectPtr<APawn>& GetPawn()
 	{
 		return PawnFeatureStruct.Pawn;
+	}
+
+	const TObjectPtr<APlayerState>& GetPlayerState()
+	{
+		return PawnFeatureStruct.PlayerState;
 	}
 
 	void SetControlledPawn(APawn* NewPawn)

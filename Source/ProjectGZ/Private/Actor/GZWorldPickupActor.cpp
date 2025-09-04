@@ -8,7 +8,7 @@
 AGZWorldPickupActor::AGZWorldPickupActor()
 {
 	PrimaryActorTick.bCanEverTick = false;
-
+	bReplicates = true;
 	StaticMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent"));
 	StaticMeshComponent->SetupAttachment(GetRootComponent());
 	StaticMeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);

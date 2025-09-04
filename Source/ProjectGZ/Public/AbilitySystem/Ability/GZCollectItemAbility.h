@@ -4,9 +4,10 @@
 #include "GZInteractAbility.h"
 #include "GZCollectItemAbility.generated.h"
 
+class IGZCollectable;
 class UGZInventoryItemDefinition;
 class UGZInventoryManagerComponent;
-//Ability to pickup a item, loot treature box...
+//Ability to pickup a item, loot treasure box...
 UCLASS(BlueprintType)
 class PROJECTGZ_API UGZCollectItemAbility : public UGZInteractAbility
 {
@@ -19,22 +20,18 @@ public:
 
 protected:
 	UGZInventoryManagerComponent* GetInventoryManager() const;
+	UFUNCTION(BlueprintImplementableEvent)
+	void PlayClientCollectItemFX(const AActor* Actor);
+	UFUNCTION(BlueprintImplementableEvent)
+	void PlayClientCollectItemFailFX();
+	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
+	bool bTryEquipItem = true;
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
 	bool bConsumeItemQuantity = true;
-	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
-	TObjectPtr<UAnimMontage> CollectMontage;
-	UFUNCTION(BlueprintImplementableEvent)
-	void PostCollectItem(const AActor* Actor);
-
-	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
-	bool bEquipItemIfPossible = true;
 
 private:
-	bool CollectItem();
-	UFUNCTION()
-	void OnMontageCompleted();
-	UFUNCTION()
-	void OnMontageInterrupted();
+ 	bool CollectItemTask();
+	bool CollectItemToInventory(IGZCollectable* Collectable) const;
 	UPROPERTY()
 	TObjectPtr<AActor> TargetActor;
 };

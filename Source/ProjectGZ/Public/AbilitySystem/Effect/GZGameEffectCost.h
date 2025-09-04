@@ -12,7 +12,7 @@ class PROJECTGZ_API UGZGameEffectCost : public UGZGameplayEffect
 
 public:
 	UGZGameEffectCost();
-	void RebuildModifiers(UGZAbilityCostDataAsset* InCostDataAsset);
+	void RebuildModifiers();
 protected:
 	virtual void OnPropertiesUpdated() override;
 	UPROPERTY(EditDefaultsOnly, Category="Cost")

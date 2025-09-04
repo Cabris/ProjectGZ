@@ -58,7 +58,7 @@ bool AGZInteractableActor::IsInteractable() const
 	return bIsInteractable;
 }
 
-const FGameplayTag& AGZInteractableActor::GetInteractAbilityTriggerTag()
+const FGameplayTag& AGZInteractableActor::GetInteractAbilityTriggerTag()const
 {
 	return InteractAbilityTriggerTag;
 }

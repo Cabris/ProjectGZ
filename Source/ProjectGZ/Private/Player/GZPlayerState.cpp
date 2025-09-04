@@ -25,9 +25,11 @@ AGZPlayerState::AGZPlayerState()
 	PawnFeatureStruct.InventoryManager = InventoryManager;
 	PawnFeatureStruct.EquipmentManager = EquipmentManager;
 	PawnFeatureStruct.WeaponMenu = WeaponMenu;
+	PawnFeatureStruct.PlayerState=this;
 	PawnFeature = CreateDefaultSubobject<UGZPawnFeatureComponent>("PawnFeatureComponent");
 	PawnFeature->SetupPawnFeature(PawnFeatureStruct);
 	OnPawnSet.AddDynamic(this, &ThisClass::OnControlledPawnSet);
+	bReplicates = true;
 }
 
 void AGZPlayerState::OnControlledPawnSet(APlayerState* Player, APawn* NewPawn, APawn* OldPawn)

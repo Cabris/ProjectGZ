@@ -107,7 +107,7 @@ void UGZInteractionDetector::PerformDetection()
 	}
 
 	FVector ViewLocation, ViewDirection;
-	if (!GetViewPoint(ViewLocation, ViewDirection))
+	if (!UGZFunctionLibrary::GZHelper_GetViewPointFromActor(OwnerActor.Get(),ViewLocation,ViewDirection))
 	{
 		return;
 	}
@@ -169,10 +169,6 @@ void UGZInteractionDetector::PerformDetection()
 	}
 }
 
-bool UGZInteractionDetector::GetViewPoint(FVector& OutLocation, FVector& OutDirection) const
-{
-	return  UGZFunctionLibrary::GZHelper_GetViewPointFromActor(OwnerActor.Get(),OutLocation,OutDirection);
-}
 
 float UGZInteractionDetector::ScoreCandidate(const FVector& ViewLocation, const FVector& ViewDirection, const FVector& TargetLocation) const
 {

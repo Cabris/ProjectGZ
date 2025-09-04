@@ -12,14 +12,14 @@ struct FGZAbilityTargetData_SingleTargetHit : public FGameplayAbilityTargetData_
 {
 	GENERATED_BODY()
 
-	FGZAbilityTargetData_SingleTargetHit(): HitIndex(INDEX_NONE), ClientTimestamp(0)
+	FGZAbilityTargetData_SingleTargetHit(): FireIndex(INDEX_NONE), ClientTimestamp(0)
 	{
 	}
 
 	//加入自定義屬性:
 	//用以區分多個hit point，於server side Validate 射擊次數
 	UPROPERTY()
-	int32 HitIndex;
+	int32 FireIndex;
 	//用以區分射擊時間，避免重複
 	UPROPERTY()
 	float ClientTimestamp;
@@ -35,7 +35,7 @@ struct FGZAbilityTargetData_SingleTargetHit : public FGameplayAbilityTargetData_
 		}
 
 		// 序列化自定義數據
-		Ar << HitIndex;
+		Ar << FireIndex;
 		Ar << ClientTimestamp;
 		return true;
 	}

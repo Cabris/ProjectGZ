@@ -13,6 +13,7 @@ class PROJECTGZ_API UGZPawnComponent : public UActorComponent
 public:
 	// Sets default values for this component's properties
 	UGZPawnComponent();
-protected:
 	UGZPawnFeatureComponent* GetPawnFeature() const;
+protected:
+	
 };

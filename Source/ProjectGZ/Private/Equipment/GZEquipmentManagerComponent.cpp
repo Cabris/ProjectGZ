@@ -27,7 +27,7 @@ UGZEquipmentInstance* FGZCarriedEquipmentList::AddEntry(const FEquipmentListAddE
 	APawn* Instigator = Cast<APawn>(EquipmentOwner);
 	if (IsValid(Instigator))
 		Item.EquipmentInstance->SetInstigator(Instigator);
-
+	MarkItemDirty(Item);
 	return Item.EquipmentInstance;
 }
 
