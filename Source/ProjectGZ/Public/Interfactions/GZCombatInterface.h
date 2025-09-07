@@ -23,5 +23,5 @@ public:
 	UFUNCTION(BlueprintNativeEvent, Category="CombatInterface")
 	FName GetCombatSocketName();
 	UFUNCTION(BlueprintNativeEvent, Category="CombatInterface")
-	void OnEquipmentTagChanged(FGameplayTag EquipmentTag);
+	void UpdateEquipmentTag(FGameplayTag EquipmentTag);
 };

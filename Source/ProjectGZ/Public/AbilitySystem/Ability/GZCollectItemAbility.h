@@ -21,9 +21,9 @@ public:
 protected:
 	UGZInventoryManagerComponent* GetInventoryManager() const;
 	UFUNCTION(BlueprintImplementableEvent)
-	void PlayClientCollectItemFX(const AActor* Actor);
+	void PlayCollectItemFX(const AActor* Actor);
 	UFUNCTION(BlueprintImplementableEvent)
-	void PlayClientCollectItemFailFX();
+	void PlayCollectItemFailFX();
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction")
 	bool bTryEquipItem = true;
 	UPROPERTY(EditDefaultsOnly, Category = "Interaction")

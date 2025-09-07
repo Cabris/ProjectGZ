@@ -16,7 +16,7 @@ struct PROJECTGZ_API FGZMarkerConfig
 	UPROPERTY(EditDefaultsOnly, Category = "Marker Config")
 	TSubclassOf<UGZMarkerWidget> MarkerWidgetClass;
 	UPROPERTY(EditDefaultsOnly, Category = "Marker Config")
-	int32 ZOrder;
+	int32 ZOrder=0;
 };
 
 UCLASS(Blueprintable, BlueprintType)

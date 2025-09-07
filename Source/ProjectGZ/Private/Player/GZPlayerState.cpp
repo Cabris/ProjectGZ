@@ -1,11 +1,9 @@
 #include "Player/GZPlayerState.h"
 #include "AbilitySystem/GZAbilitySystemComponent.h"
 #include "AbilitySystem/GZAttributeSet.h"
-#include "Character//GZPawnFeatureComponent.h"
-#include "Equipment/GZEquipmentManagerComponent.h"
-#include "Equipment/GZWeaponMenuComponent.h"
-#include "Inventory/GZInventoryManagerComponent.h"
-
+#include "Interfactions/GZCombatInterface.h"
+#include "Net/UnrealNetwork.h"
+#include "ProjectGZ/ProjectGZ.h"
 
 AGZPlayerState::AGZPlayerState()
 {
@@ -14,25 +12,40 @@ AGZPlayerState::AGZPlayerState()
 	AbilitySystemComponent = CreateDefaultSubobject<UGZAbilitySystemComponent>("AbilitySystemComponent");
 	AbilitySystemComponent->SetIsReplicated(true);
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
-
-	InventoryManager = CreateDefaultSubobject<UGZInventoryManagerComponent>("InventoryManagerComponent");
-	EquipmentManager = CreateDefaultSubobject<UGZEquipmentManagerComponent>("EquipmentManagerComponent");
-	WeaponMenu = CreateDefaultSubobject<UGZWeaponMenuComponent>("WeaponMenuComponent");
-
-	FPawnFeatureStruct PawnFeatureStruct;
-	PawnFeatureStruct.AbilitySystemComponent = AbilitySystemComponent;
-	PawnFeatureStruct.AttributeSet = AttributeSet;
-	PawnFeatureStruct.InventoryManager = InventoryManager;
-	PawnFeatureStruct.EquipmentManager = EquipmentManager;
-	PawnFeatureStruct.WeaponMenu = WeaponMenu;
-	PawnFeatureStruct.PlayerState=this;
-	PawnFeature = CreateDefaultSubobject<UGZPawnFeatureComponent>("PawnFeatureComponent");
-	PawnFeature->SetupPawnFeature(PawnFeatureStruct);
-	OnPawnSet.AddDynamic(this, &ThisClass::OnControlledPawnSet);
 	bReplicates = true;
 }
 
-void AGZPlayerState::OnControlledPawnSet(APlayerState* Player, APawn* NewPawn, APawn* OldPawn)
+void AGZPlayerState::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
-	PawnFeature->SetControlledPawn(NewPawn);
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(ThisClass, CurrentEquipmentTag);
+}
+
+UGZAbilitySystemComponent* AGZPlayerState::GetAbilitySystemComponent() const
+{
+	return AbilitySystemComponent;
+}
+
+UGZAttributeSet* AGZPlayerState::GetAttributeSet() const
+{
+	return AttributeSet;
+}
+
+void AGZPlayerState::UpdateCurrentEquipmentTag(FGameplayTag NewEquipmentTag)
+{
+	CurrentEquipmentTag = NewEquipmentTag;
+}
+
+void AGZPlayerState::OnRep_CurrentEquipmentTag(const FGameplayTag& OldEquipmentTag)
+{
+	auto Pawn = GetPawn();
+	check(Pawn);
+	if (Pawn->Implements<UGZCombatInterface>())
+	{
+		IGZCombatInterface::Execute_UpdateEquipmentTag(Pawn, CurrentEquipmentTag);
+	}
+	else
+	{
+		Debug::Print(TEXT("OnWeaponSlotSelected: Pawn not Implements UGZCombatInterface"));
+	}
 }

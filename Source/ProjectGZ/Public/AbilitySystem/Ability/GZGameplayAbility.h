@@ -37,9 +37,26 @@ public:
 		return ActivationPolicy;
 	}
 
+	//True if Local Client or Single Player
 	bool IsLocalControlled() const
 	{
-		return CurrentActorInfo->IsLocallyControlled(); // && !CurrentActorInfo->IsNetAuthority(); //for candidate server;
+		return CurrentActorInfo->IsLocallyControlled();
+	}
+
+	//True is Listen Server or Single Player
+	bool IsNetAuthority() const
+	{
+		return CurrentActorInfo->IsNetAuthority();
+	}
+
+	bool IsListenServer() const
+	{
+		if (!IsNetAuthority() || !IsLocalControlled())
+			return false;
+		ENetMode CurrentNetMode = GetWorld()->GetNetMode();
+		if (CurrentNetMode == NM_Standalone)
+			return true;
+		return false;
 	}
 
 protected:

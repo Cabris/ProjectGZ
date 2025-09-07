@@ -5,6 +5,8 @@
 #include "Data/GZAnimationLayerSet.h"
 #include "Interfactions/GZPawnFeatureInterface.h"
 #include "GZPawnFeatureComponent.generated.h"
+class AGZPlayerState;
+class AGZPlayerController;
 DECLARE_MULTICAST_DELEGATE_OneParam(FOnActorChangeEventSingnature, AActor*);
 
 class UGZInventoryItemInstance;
@@ -13,7 +15,7 @@ class UGZAbilitySystemComponent;
 class UGZInventoryManagerComponent;
 class UGZEquipmentManagerComponent;
 class UGZInventoryItemDefinition;
-class UGZWeaponMenuComponent;
+class UGZWeaponSlotComponent;
 class APawn;
 
 USTRUCT()
@@ -21,19 +23,21 @@ struct FPawnFeatureStruct
 {
 	GENERATED_BODY()
 	UPROPERTY()
-	TObjectPtr<UGZAbilitySystemComponent> AbilitySystemComponent = nullptr;
-	UPROPERTY()
-	TObjectPtr<UGZAttributeSet> AttributeSet = nullptr;
+	TObjectPtr<UGZAbilitySystemComponent> AbilitySystem = nullptr;
 	UPROPERTY()
 	TObjectPtr<UGZInventoryManagerComponent> InventoryManager = nullptr;
 	UPROPERTY()
 	TObjectPtr<UGZEquipmentManagerComponent> EquipmentManager = nullptr;
 	UPROPERTY()
-	TObjectPtr<UGZWeaponMenuComponent> WeaponMenu = nullptr;
+	TObjectPtr<UGZWeaponSlotComponent> WeaponMenu = nullptr;
+	UPROPERTY()
+	TObjectPtr<APlayerController> PlayerController = nullptr;
+	UPROPERTY()
+	TObjectPtr<APlayerState> PlayerState = nullptr;
 	UPROPERTY()
 	TObjectPtr<APawn> Pawn = nullptr;
 	UPROPERTY()
-	TObjectPtr<APlayerState> PlayerState = nullptr;
+	int HasAuthority = -1;
 };
 
 //Owned by PlayerState
@@ -43,66 +47,25 @@ class PROJECTGZ_API UGZPawnFeatureComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:
-	UGZPawnFeatureComponent(); //initialize InventoryManager/EquipmentManager here
+	UGZPawnFeatureComponent();
+	void InitializePawnFeature(AGZPlayerController* PC, AGZPlayerState* PS, APawn* Pawn);
 	static UGZPawnFeatureComponent* Get(AActor* Target);
-	void SetupPawnFeature(const FPawnFeatureStruct& FeatureStruct);
 
-	const TObjectPtr<UGZAbilitySystemComponent>& GetAbilitySystem()
-	{
-		return PawnFeatureStruct.AbilitySystemComponent;
-	}
+	APawn* GetPawn();
+	UGZAbilitySystemComponent* GetAbilitySystem();
+	UGZInventoryManagerComponent* GetInventoryManager();
+	UGZEquipmentManagerComponent* GetEquipmentManager();
+	UGZWeaponSlotComponent* GetWeaponSlot();
+	APlayerController* GetPlayerController();
 
-	const TObjectPtr<UGZAttributeSet>& GetAttributeSet()
-	{
-		return PawnFeatureStruct.AttributeSet;
-	}
-
-	const TObjectPtr<UGZInventoryManagerComponent>& GetInventoryManager()
-	{
-		return PawnFeatureStruct.InventoryManager;
-	}
-
-	const TObjectPtr<UGZEquipmentManagerComponent>& GetEquipmentManager()
-	{
-		return PawnFeatureStruct.EquipmentManager;
-	}
-
-	const TObjectPtr<UGZWeaponMenuComponent>& GetWeaponMenu()
-	{
-		return PawnFeatureStruct.WeaponMenu;
-	}
-
-	const TObjectPtr<APawn>& GetPawn()
-	{
-		return PawnFeatureStruct.Pawn;
-	}
-
-	const TObjectPtr<APlayerState>& GetPlayerState()
-	{
-		return PawnFeatureStruct.PlayerState;
-	}
-
-	void SetControlledPawn(APawn* NewPawn)
-	{
-		PawnFeatureStruct.Pawn = NewPawn;
-	}
-
-	void InitAbilityActorInfo(AActor* InOwnerActor, AActor* InAvatarActor);
-	void OnInitializePawnFeature();
 	virtual bool TryGrantItemToPawn(const TSubclassOf<UGZInventoryItemDefinition>& ItemDefinitionClass, APawn* ReceivingPawn);
 	virtual bool TryGrantEquipmentToPawn(UGZInventoryItemInstance* ItemInstance);
-	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	FOnActorChangeEventSingnature OnFocusActor;
 	FOnActorChangeEventSingnature OnUnfocusActor;
 
 protected:
-	UPROPERTY(Replicated)
 	FPawnFeatureStruct PawnFeatureStruct;
-
-	UPROPERTY(EditDefaultsOnly, Category = "PawnFeature")
-	TObjectPtr<UGZInputGameplayAbilitySet> AbilitySet;
-
 private:
 	UFUNCTION()
 	void OnWeaponSlotSelected(UGZInventoryItemInstance* Instance, int SlotIdx);

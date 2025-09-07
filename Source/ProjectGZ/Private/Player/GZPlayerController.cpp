@@ -6,6 +6,9 @@
 #include "InputActionValue.h"
 #include "Character/GZCharacterBase.h"
 #include "Character/GZAimMotionComponent.h"
+#include "Character/GZPawnFeatureComponent.h"
+#include "Equipment/GZEquipmentManagerComponent.h"
+#include "Equipment/GZWeaponSlotComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Interfactions/AimControllable.h"
 #include "Interfactions/CameraControllable.h"
@@ -13,12 +16,20 @@
 #include "ProjectGZ/Public/Data/Input/GZDataAssetInputConfig.h"
 #include "Game/GZGameplayTags.h"
 #include "Game/GZInputComponent.h"
+#include "Inventory/GZInventoryManagerComponent.h"
+#include "Player/GZPlayerState.h"
 #include "ProjectGZ/ProjectGZ.h"
 
 AGZPlayerController::AGZPlayerController()
 {
 	bReplicates = true; //for multiplayer usage
 	InputConfigDA = nullptr;
+	auto InventoryManager = CreateDefaultSubobject<UGZInventoryManagerComponent>("InventoryManagerComponent");
+	auto EquipmentManager = CreateDefaultSubobject<UGZEquipmentManagerComponent>("EquipmentManagerComponent");
+	auto WeaponMenu = CreateDefaultSubobject<UGZWeaponSlotComponent>("WeaponMenuComponent");
+	PawnFeatureComponent = CreateDefaultSubobject<UGZPawnFeatureComponent>("PawnFeatureComponent");
+	bool bHasAuthority = HasAuthority();
+	UE_LOG(LogTemp, Warning, TEXT("AGZPlayerController::bHasAuthority: %d"), bHasAuthority);
 }
 
 void AGZPlayerController::BeginPlay()
@@ -220,8 +231,7 @@ AGZCharacterBase* AGZPlayerController::GetGZCharacter() const
 
 UGZAbilitySystemComponent* AGZPlayerController::GetGZAbilitySystem() const
 {
-	AGZCharacterBase* GZCharacter = GetGZCharacter();
-	if (!GZCharacter) return nullptr;
-	UGZAbilitySystemComponent* ASC = GZCharacter->GetAbilitySystemComponent();
-	return ASC;
+	AGZPlayerState* PS = GetPlayerState<AGZPlayerState>();
+	if (!PS) return nullptr;
+	return PS->GetAbilitySystemComponent();
 }

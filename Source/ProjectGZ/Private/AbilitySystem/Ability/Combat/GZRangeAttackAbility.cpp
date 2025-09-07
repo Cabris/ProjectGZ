@@ -57,7 +57,8 @@ void UGZRangeAttackAbility::ActivateAbility(const FGameplayAbilitySpecHandle Han
 		return;
 	}
 
-	if (!IsLocalControlled()) //On Server
+	//On Dedicated Server or Listen Server, but not On Client
+	if (IsNetAuthority() && !IsLocalControlled() || IsListenServer())
 	{
 		//Bind delegate for receive TargetData from Client version UGZRangeAttackAbility
 		FGameplayAbilitySpecHandle SpecHandle = GetCurrentAbilitySpecHandle();
@@ -96,49 +97,32 @@ void UGZRangeAttackAbility::EndAbility(const FGameplayAbilitySpecHandle Handle, 
 	}
 	if (FireTimerHandle.IsValid())
 		StopAutoFire();
-	FString Msg = FString::Printf(TEXT("UGZRangeAttackAbility::EndAbility: IsLocalControlled= %d"), IsLocalControlled());
-	Debug::Print(Msg);
+	//DEBUG_PRINTF(TEXT("UGZRangeAttackAbility::EndAbility: IsLocalControlled= %d"), IsLocalControlled());
 }
 
 void UGZRangeAttackAbility::OnInputReleased(float TimeHeld)
 {
-	FString Msg = FString::Printf(TEXT("UGZRangeAttackAbility::OnInputReleased: IsLocalControlled= %d"), IsLocalControlled());
-	Debug::Print(Msg);
+	// FString Msg = FString::Printf(TEXT("UGZRangeAttackAbility::OnInputReleased: IsLocalControlled= %d"), IsLocalControlled());
+	// Debug::Print(Msg);
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, false);
 }
 
 void UGZRangeAttackAbility::TryDoFire()
 {
-	if (IsLocalControlled())
-	{
-		FScopedPredictionWindow PredictionWindow(GetAbilitySystemComponent(), true); //開始預測區域
-	}
-	bool bCanFire = true;
+	FScopedPredictionWindow PredictionWindow(GetAbilitySystemComponent(), true); //開始預測區域
 	FGameplayTagContainer CostFailReasonTags;
 	FGameplayTagContainer CooldownFailReasonTags;
 	bool bCostSuccess = CommitAbilityCost(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, &CostFailReasonTags);
+	bool bCooldown = CommitAbilityCooldown(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false, &CooldownFailReasonTags);
 
-	if (CachedWeaponConfig.FireMode == EFireMode::Semi)
-	{
-		CommitAbilityCooldown(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, false,
-		                                              &CooldownFailReasonTags);
-	}
-
-	if (!bCostSuccess)
-	{
-		FString Msg = FString::Printf(
-			TEXT("UGZRangeAttackAbility::TryDoFire Fail: bCostSuccess: %d, IsLocalControlled= %d"), bCostSuccess, IsLocalControlled());
-		Debug::Print(Msg);
-	}
-
-
-	if (IsLocalControlled())
+	bool bIsLocalControlled = IsLocalControlled();
+	if (bIsLocalControlled)
 	{
 		FFireResult FireResult;
 		if (bCostSuccess && DoFireInternal(FireResult))
 		{
 			FHitResult& Hit = FireResult.Hit;
-			PlayClientFireFX(Hit);
+			PlayFireFX(Hit);
 			ClientSendHitResultToServer(Hit);
 			FString Msg = FString::Printf(TEXT("UGZRangeAttackAbility::Client::Fired: CurrentFireIndex: %d"), CurrentFireIndex);
 			Debug::Print(Msg);
@@ -146,8 +130,7 @@ void UGZRangeAttackAbility::TryDoFire()
 		}
 		else
 		{
-			//TODO: Play Failed FX
-			PlayClientFailFX();
+			PlayFailFX();
 			CancelAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true);
 		}
 	}
@@ -195,7 +178,6 @@ void UGZRangeAttackAbility::ClientSendHitResultToServer(const FHitResult& HitRes
 	FGZAbilityTargetData_SingleTargetHit* Data = new FGZAbilityTargetData_SingleTargetHit();
 	Data->HitResult = HitResult;
 	Data->FireIndex = CurrentFireIndex;
-	//TODO: ccheck ClientTimestamp
 	Data->ClientTimestamp = GetWorld()->GetTimeSeconds();
 	FGameplayAbilityTargetDataHandle TargetDataHandle(Data);
 	auto OriginalPredictionKey = GetCurrentActivationInfo().GetActivationPredictionKey();
@@ -234,8 +216,9 @@ void UGZRangeAttackAbility::OnReceivedTargetDataFromClient(const FGameplayAbilit
 			bool bServerValidate = ServerValidateHitResult(*HitResult);
 			if (bServerValidate)
 			{
+				//server comfirm client
 				HandleDamage(*HitResult);
-				PlayAuthorityFireFX(*HitResult);
+				PlayFireFX(*HitResult);
 				FString Msg = FString::Printf(TEXT("UGZRangeAttackAbility::Server::Fired: CurrentFireIndex: %d"), FireIndex);
 				Debug::Print(Msg);
 			}
@@ -243,6 +226,7 @@ void UGZRangeAttackAbility::OnReceivedTargetDataFromClient(const FGameplayAbilit
 			{
 				//server found client may cheat
 				Debug::Print(TEXT("UGZRangeAttackAbility::ServerValidateHitResult Failed"));
+				PlayFailFX();
 				CancelAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true);
 			}
 		}
@@ -288,7 +272,6 @@ void UGZRangeAttackAbility::StopAutoFire()
 		GetWorld()->GetTimerManager().ClearTimer(FireTimerHandle);
 }
 
-
 bool UGZRangeAttackAbility::CalculateFireResult(const FFireParams& Params, OUT FFireResult& FireResult) const
 {
 	if (!Params.Direction.IsNormalized())
@@ -321,7 +304,7 @@ bool UGZRangeAttackAbility::CalculateFireResult(const FFireParams& Params, OUT F
 	}
 
 #ifdef  WITH_EDITOR
-	if (Params.bDrawDebug)
+	if (Params.bDrawDebug && HasAuthority(&CurrentActivationInfo))
 	{
 		DrawDebugLine(GetWorld(), Params.Origin, FireResult.EndLocation, FColor::MakeRandomColor(),
 		              false, 0.5f, 0, 1.0f);

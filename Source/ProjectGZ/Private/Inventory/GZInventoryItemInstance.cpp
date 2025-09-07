@@ -7,13 +7,12 @@
 
 int32 UGZInventoryItemInstance::GetStackByTag(FGameplayTag Tag) const
 {
-	return 0;
-	//return TagStackList.GetItemStackCount(Tag);
+	return TagStackList.GetItemStackCount(Tag);
 }
 
 void UGZInventoryItemInstance::SetStackByTag(const FGameplayTag& Tag, int32 Stack)
 {
-	//TagStackList.SetItemStackCount(Tag, Stack);
+	TagStackList.SetItemStackCount(Tag, Stack);
 }
 
 TSubclassOf<UGZInventoryItemDefinition> UGZInventoryItemInstance::GetItemDefinitionClass() const
@@ -29,8 +28,7 @@ UGZInventoryItemDefinition* UGZInventoryItemInstance::GetItemDefinition() const
 
 int32 UGZInventoryItemInstance::GetDefaultStack() const
 {
-	return 0;
-	//return TagStackList.GetItemStackCount(GZGameplayTags::Item_Stack_Quantity);
+	return TagStackList.GetItemStackCount(GZGameplayTags::Item_Stack_Quantity);
 }
 
 bool UGZInventoryItemInstance::IsEquipmentItem()
@@ -49,6 +47,6 @@ void UGZInventoryItemInstance::GetLifetimeReplicatedProps(TArray<FLifetimeProper
 {
 	UObject::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(ThisClass, ItemDefinitionClass);
-	//DOREPLIFETIME(ThisClass, TagStackList);
+	DOREPLIFETIME(ThisClass, TagStackList);
 }
 

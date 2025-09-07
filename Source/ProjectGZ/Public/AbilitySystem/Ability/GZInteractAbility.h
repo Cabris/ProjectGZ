@@ -12,6 +12,7 @@ class PROJECTGZ_API UGZInteractAbility : public UGZGameplayAbility
 	GENERATED_BODY()
 
 public:
+
 	UGZInteractAbility();
 	virtual void PostLoad() override;
 #if WITH_EDITOR
@@ -26,6 +27,7 @@ public:
 	}
 
 protected:
+	//Return False will auto CancelAbility
 	virtual bool ActivateAbilityInternal(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	                                     const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData,
 	                                     AActor* InteractableActor, IGZInteractable* Interactable)

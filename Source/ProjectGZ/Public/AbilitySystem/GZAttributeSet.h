@@ -28,13 +28,13 @@ public:
 	FGameplayAttributeData MaxHealth;
 	ATTRIBUTE_ACCESSORS(UGZAttributeSet, MaxHealth)
 	UFUNCTION()
-	void OnRep_MaxHealth(const FGameplayAttributeData& Attribute) const;
+	void OnRep_MaxHealth(const FGameplayAttributeData& OldMaxHealth) const;
 
 	UPROPERTY(BlueprintReadOnly, Replicated, ReplicatedUsing=OnRep_Health, Category="Vital Attributes")
 	FGameplayAttributeData Health;
 	ATTRIBUTE_ACCESSORS(UGZAttributeSet, Health)
 	UFUNCTION()
-	void OnRep_Health(const FGameplayAttributeData& Attribute) const;
+	void OnRep_Health(const FGameplayAttributeData& OldHealth) const;
 
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;

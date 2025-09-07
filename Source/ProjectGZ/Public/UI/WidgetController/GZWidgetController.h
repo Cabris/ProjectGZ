@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "Interfactions/GZPawnFeatureInterface.h"
+#include "Player/GZPlayerController.h"
 #include "Player/GZPlayerState.h"
 #include "UObject/Object.h"
 #include "GZWidgetController.generated.h"
@@ -18,7 +19,7 @@ struct FWidgetControllerParams
 
 	FWidgetControllerParams(AGZPlayerController* PC, AGZPlayerState* PS)
 	{
-		PawnFeature = PS->GetPawnFeature();
+		PawnFeature = PC->GetPawnFeature();
 		PlayerState = PS;
 		PlayerController = PC;
 		AbilitySystemComponent = PS->GetAbilitySystemComponent();

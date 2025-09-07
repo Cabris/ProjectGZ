@@ -37,18 +37,15 @@ public:
 
 	virtual UGZAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	virtual UGZAttributeSet* GetAttributeSet() const override;
-	virtual void OnEquipmentTagChanged_Implementation(FGameplayTag EquipmentTag) override;
 
-	FORCEINLINE virtual UGZPawnFeatureComponent* GetPawnFeature() override
-	{
-		return UGZPawnFeature;
-	}
+	//IGZCombatInterface
+	virtual void UpdateEquipmentTag_Implementation(FGameplayTag EquipmentTag) override;
+	//IGZCombatInterface
+
+	virtual UGZPawnFeatureComponent* GetPawnFeature() override;
 
 	UFUNCTION(BlueprintImplementableEvent)
 	void BindAnimLayerChangedEvent();
-
-	UPROPERTY(BlueprintAssignable)
-	FOnAnimLayerChangedEventSingnature OnAnimLayerChanged;
 
 protected:
 	UPROPERTY(VisibleAnywhere, Category = "Components")
@@ -57,12 +54,14 @@ protected:
 	TObjectPtr<USpringArmComponent> SpringArm;
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	TObjectPtr<UGZAimMotionComponent> AimMotionComponent;
-	UPROPERTY(VisibleAnywhere, Category = "Components")
-	TObjectPtr<UGZPawnFeatureComponent> UGZPawnFeature;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Animation")
+	UPROPERTY(EditDefaultsOnly, Category = "AbilitySet")
+	TObjectPtr<UGZInputGameplayAbilitySet> AbilitySet;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Animations")
 	TObjectPtr<UGZAnimationLayerSet> AnimLayerSet;
-
+	UPROPERTY(BlueprintAssignable, Category = "Animations")
+	FOnAnimLayerChangedEventSingnature OnAnimLayerChanged;
 private:
 	bool bIsStrafing;
 	void InitializePawnFeature();

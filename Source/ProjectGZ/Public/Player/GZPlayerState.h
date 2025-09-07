@@ -7,51 +7,32 @@
 #include "Interfactions/GZAbilitySystemInterface.h"
 #include "Interfactions/GZPawnFeatureInterface.h"
 #include "GZPlayerState.generated.h"
-class UGZWeaponMenuComponent;
+class UGZWeaponSlotComponent;
 class UGZEquipmentManagerComponent;
 class UGZInventoryManagerComponent;
 class UGZAbilitySystemComponent;
 class UGZPawnFeatureComponent;
 
 UCLASS()
-class PROJECTGZ_API AGZPlayerState : public APlayerState, public IGZAbilitySystemInterface, public IGZPawnFeatureInterface
+class PROJECTGZ_API AGZPlayerState : public APlayerState, public IGZAbilitySystemInterface
 {
 	GENERATED_BODY()
 
 public:
-	UFUNCTION()
-	void OnControlledPawnSet(APlayerState* Player, APawn* NewPawn, APawn* OldPawn);
 	AGZPlayerState();
-
-	FORCEINLINE virtual UGZAbilitySystemComponent* GetAbilitySystemComponent() const override
-	{
-		return AbilitySystemComponent;
-	}
-
-	FORCEINLINE virtual UGZAttributeSet* GetAttributeSet() const override
-	{
-		return AttributeSet;
-	}
-
-	virtual UGZPawnFeatureComponent* GetPawnFeature() override
-	{
-		return PawnFeature;
-	}
-
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+	virtual UGZAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	virtual UGZAttributeSet* GetAttributeSet() const override;
+	void UpdateCurrentEquipmentTag(FGameplayTag NewEquipmentTag);
 protected:
-	
-	UPROPERTY(VisibleAnywhere, Category = "PawnFeature")
-	TObjectPtr<UGZPawnFeatureComponent> PawnFeature;
-	
 	UPROPERTY(VisibleAnywhere, Category = "PawnFeature|Ability")
 	TObjectPtr<UGZAbilitySystemComponent> AbilitySystemComponent;
 	UPROPERTY(VisibleAnywhere, Category = "PawnFeature|Ability")
 	TObjectPtr<UGZAttributeSet> AttributeSet;
+	UPROPERTY(BlueprintReadOnly, ReplicatedUsing=OnRep_CurrentEquipmentTag, Category = "Animations")
+	FGameplayTag CurrentEquipmentTag;
 
-	UPROPERTY(VisibleAnywhere, Category = "PawnFeature|Manager")
-	TObjectPtr<UGZInventoryManagerComponent> InventoryManager;
-	UPROPERTY(VisibleAnywhere, Category = "PawnFeature|Manager")
-	TObjectPtr<UGZEquipmentManagerComponent> EquipmentManager;
-	UPROPERTY(VisibleAnywhere, Category = "PawnFeature|Manager")
-	TObjectPtr<UGZWeaponMenuComponent> WeaponMenu;
+private:
+	UFUNCTION()
+	void OnRep_CurrentEquipmentTag(const FGameplayTag& OldEquipmentTag);
 };

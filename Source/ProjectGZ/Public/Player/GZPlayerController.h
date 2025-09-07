@@ -5,8 +5,12 @@
 #include "CoreMinimal.h"
 #include "GameplayTagContainer.h"
 #include "GameFramework/PlayerController.h"
+#include "Interfactions/GZPawnFeatureInterface.h"
 #include "GZPlayerController.generated.h"
 
+class UGZWeaponSlotComponent;
+class UGZEquipmentManagerComponent;
+class UGZInventoryManagerComponent;
 class UGZAbilitySystemComponent;
 class AGZCharacterBase;
 class UInputMappingContext;
@@ -15,7 +19,7 @@ class UInputAction;
 struct FInputActionValue;
 
 UCLASS()
-class PROJECTGZ_API AGZPlayerController : public APlayerController
+class PROJECTGZ_API AGZPlayerController : public APlayerController, public IGZPawnFeatureInterface
 {
 	GENERATED_BODY()
 
@@ -24,8 +28,14 @@ public:
 	virtual void SetupInputComponent() override;
 	virtual void BeginPlay() override;
 	virtual void PlayerTick(float DeltaTime) override;
+	AGZCharacterBase* GetGZCharacter() const;
+	UGZAbilitySystemComponent* GetGZAbilitySystem() const;
+	
+	virtual UGZPawnFeatureComponent* GetPawnFeature() override
+	{
+		return PawnFeatureComponent;
+	}
 
-protected:
 private:
 	UPROPERTY(EditAnywhere, Category = "Input")
 	UGZDataAssetInputConfig* InputConfigDA;
@@ -40,6 +50,15 @@ private:
 	virtual void PostProcessInput(const float DeltaTime, const bool bGamePaused) override;
 	void AbilityInputPressed(FGameplayTag InputTag);
 	void AbilityInputReleased(FGameplayTag InputTag);
-	AGZCharacterBase* GetGZCharacter() const;
-	UGZAbilitySystemComponent* GetGZAbilitySystem() const;
+	
+	UPROPERTY(VisibleAnywhere, Category = "PawnFeature")
+	TObjectPtr<UGZPawnFeatureComponent> PawnFeatureComponent;
+	/*
+	UPROPERTY(VisibleAnywhere, Category = "PawnFeature|Manager")
+	TObjectPtr<UGZInventoryManagerComponent> InventoryManager;
+	UPROPERTY(VisibleAnywhere, Category = "PawnFeature|Manager")
+	TObjectPtr<UGZEquipmentManagerComponent> EquipmentManager;
+	UPROPERTY(VisibleAnywhere, Category = "PawnFeature|Manager")
+	TObjectPtr<UGZWeaponMenuComponent> WeaponMenu;
+	*/
 };

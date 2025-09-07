@@ -89,13 +89,12 @@ void UGZStartInteractionAbility::ActivateAbility(
 	const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
-
-	UE_LOG(LogTemp, Warning, TEXT("[UGZStartInteractionAbility::ActivateAbility] IsLocalControlled=%d"), IsLocalControlled());
-
 	UGZAbilitySystemComponent* ASC = GetAbilitySystemComponent();
 
-	if (!IsLocalControlled()) //On Server
+	//On Dedicated Server or Listen Server, but not On Client
+	if (IsNetAuthority() && !IsLocalControlled()||IsListenServer()) 
 	{
+		//Server Side check
 		//Bind delegate for receive TargetData from Client version UGZRangeAttackAbility
 		FGameplayAbilitySpecHandle SpecHandle = GetCurrentAbilitySpecHandle();
 		FPredictionKey OriginalPredictionKey = GetCurrentActivationInfo().GetActivationPredictionKey();
@@ -104,8 +103,11 @@ void UGZStartInteractionAbility::ActivateAbility(
 		//ensure that TargetData received before Bind delegate, return is CalledDelegate
 		ASC->CallReplicatedTargetDataDelegatesIfSet(SpecHandle, OriginalPredictionKey);
 	}
-	else //On Client
+	
+	//On Client or Listen Server or Single Player 
+	if (IsLocalControlled()||IsListenServer()) 
 	{
+		//Local Prediction
 		FScopedPredictionWindow PredictionWindow(ASC, true); //開始預測區域
 		if (!InteractionDetector)
 		{
@@ -145,7 +147,7 @@ void UGZStartInteractionAbility::EndAbility(const FGameplayAbilitySpecHandle Han
 	UE_LOG(LogTemp, Warning, TEXT("[UGZStartInteractionAbility::EndAbility] IsLocalControlled=%d"), IsLocalControlled());
 }
 
-bool UGZStartInteractionAbility::AttemptInteraction_Internal(AActor* Target)const
+bool UGZStartInteractionAbility::AttemptInteraction_Internal(AActor* Target) const
 {
 	if (!Target)
 		return false;
@@ -170,8 +172,6 @@ bool UGZStartInteractionAbility::AttemptInteraction_Internal(AActor* Target)cons
 	EventData.Target = Target; // 互動對象
 	UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(ASCOwnerActor, InteractionTag, EventData);
 	IGZInteractable::Execute_DoInteract(Target);
-	UE_LOG(LogTemp, Warning, TEXT("[UGZStartInteractionAbility::AttemptInteraction_Internal] IsLocalControlled=%d, Target: %s"),
-	       IsLocalControlled(), *Target->GetFullName());
 	return true;
 }
 

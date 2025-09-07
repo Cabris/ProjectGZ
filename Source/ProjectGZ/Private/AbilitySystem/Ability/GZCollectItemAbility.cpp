@@ -4,6 +4,7 @@
 #include "Character/GZPawnFeatureComponent.h"
 #include "Interfactions/GZCollectable.h"
 #include "Abilities/Tasks/AbilityTask_PlayMontageAndWait.h"
+#include "ProjectGZ/ProjectGZ.h"
 
 
 bool UGZCollectItemAbility::ActivateAbilityInternal(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
@@ -19,22 +20,21 @@ bool UGZCollectItemAbility::ActivateAbilityInternal(const FGameplayAbilitySpecHa
 
 bool UGZCollectItemAbility::CollectItemTask()
 {
-	IGZCollectable* Collectable = Cast<IGZCollectable>(TargetActor);
-	bool bIsCollect = CollectItemToInventory(Collectable);
-	if (!bIsCollect)
+	if (IsNetAuthority()) //On Server or Single player
 	{
-		PlayClientCollectItemFailFX();
-		CancelAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true);
-		UE_LOG(LogTemp, Warning, TEXT("[UGZCollectItemAbility::CollectItemTask] CollectItemToInventory Fail, IsLocalControlled=%d"),
-		       IsLocalControlled());
-		return false;
+		IGZCollectable* Collectable = Cast<IGZCollectable>(TargetActor);
+		if (!CollectItemToInventory(Collectable))
+		{
+			PlayCollectItemFailFX();
+			UE_LOG(LogTemp, Warning, TEXT("[UGZCollectItemAbility::CollectItemTask] CollectItemToInventory Fail, IsLocalControlled=%s"),
+			       *TargetActor->GetFullName());
+			return false;
+		}
 	}
-	PlayClientCollectItemFX(TargetActor);
+	PlayCollectItemFX(TargetActor);
 	IGZCollectable::Execute_OnCollected(TargetActor);
 	CommitAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo);
 	EndAbility(CurrentSpecHandle, CurrentActorInfo, CurrentActivationInfo, true, true);
-	UE_LOG(LogTemp, Warning, TEXT("[UGZCollectItemAbility::CollectItemTask] CollectItemToInventory Success, IsLocalControlled=%d"),
-	       IsLocalControlled());
 	return true;
 }
 
@@ -53,21 +53,19 @@ bool UGZCollectItemAbility::CollectItemToInventory(IGZCollectable* Collectable) 
 		return false;
 	}
 
-	if (!IsLocalControlled()) //On Server
+	UGZInventoryItemInstance* Instance = InventoryManager->AddItemDefToInventory(Collectable->GetItemDefinitionClass());
+	if (!Instance)
 	{
-		UGZInventoryItemInstance* Instance = InventoryManager->AddItemDefToInventory(Collectable->GetItemDefinitionClass());
-		if (!Instance)
-		{
-			UE_LOG(LogTemp, Error, TEXT("UGZCollectItemAbility::CollectItemToInventory: AddItemDefToInventory fail!"));
-			return false;
-		}
-		UGZPawnFeatureComponent* PawnFeature = GetPawnFeature();
-		if (IsValid(PawnFeature) && bTryEquipItem)
-		{
-			bool Success = PawnFeature->TryGrantEquipmentToPawn(Instance);
-			UE_LOG(LogTemp, Warning, TEXT("UGZCollectItemAbility::CollectItemToInventory: TryGrantEquipmentToPawn: %d"), Success);
-		}
+		UE_LOG(LogTemp, Error, TEXT("UGZCollectItemAbility::CollectItemToInventory: AddItemDefToInventory fail!"));
+		return false;
 	}
+	UGZPawnFeatureComponent* PawnFeature = GetPawnFeature();
+	if (IsValid(PawnFeature) && bTryEquipItem)
+	{
+		bool Success = PawnFeature->TryGrantEquipmentToPawn(Instance);
+		UE_LOG(LogTemp, Warning, TEXT("UGZCollectItemAbility::CollectItemToInventory: TryGrantEquipmentToPawn: %d"), Success);
+	}
+
 	UE_LOG(LogTemp, Warning, TEXT("UGZCollectItemAbility::CollectItemToInventory: Success"));
 	return true;
 }

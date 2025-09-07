@@ -1,20 +1,29 @@
 ﻿#include "Inventory/GZInventoryManagerComponent.h"
-
 #include "Character/GZPawnFeatureComponent.h"
 #include "Engine/ActorChannel.h"
-#include "Game/GZGameplayTags.h"
-#include "GameFramework/GameplayMessageSubsystem.h"
 #include "Inventory/GZInventoryItemDefinition.h"
 #include "Net/UnrealNetwork.h"
 
-UGZInventoryItemInstance* FGZInventoryList::AddEntry(const TSubclassOf<UGZInventoryItemDefinition>& ItemDefClass)
+bool FGZInventoryList::NetDeltaSerialize(FNetDeltaSerializeInfo& DeltaParms)
+{
+	bool bHasAuthority = OwnerComponent->GetOwner()->HasAuthority();
+	// UE_LOG(LogTemp, Warning, TEXT("FGZInventoryList::NetDeltaSerialize: %p, Items.Num(): %d, bHasAuthority: %d"), this, Items.Num(),
+	//        bHasAuthority);
+	// 嘗試序列化
+	bool result = FFastArraySerializer::FastArrayDeltaSerialize<FGZInventoryEntry, FGZInventoryList>(
+		Items, DeltaParms, *this);
+	// UE_LOG(LogTemp, Error, TEXT("FGZInventoryList::NetDeltaSerialize: Result: %s"), result ? TEXT("SUCCESS") : TEXT("FAILED"));
+	return result;
+}
+
+UGZInventoryItemInstance* FGZInventoryList::AddEntry(const TSubclassOf<UGZInventoryItemDefinition>& ItemDefClass, AActor* Outer)
 {
 	if (!IsValid(OwnerComponent.Get()))return nullptr;
 	if (!IsValid(ItemDefClass))return nullptr;
 	UGZInventoryItemDefinition* ItemDef = ItemDefClass.GetDefaultObject();
 	if (!ItemDef)return nullptr;
 	FGZInventoryEntry& NewEntry = Items.AddDefaulted_GetRef();
-	NewEntry.ItemInstance = NewObject<UGZInventoryItemInstance>(OwnerComponent->GetOwner());
+	NewEntry.ItemInstance = NewObject<UGZInventoryItemInstance>(Outer);
 	NewEntry.ItemInstance->SetItemDefinitionClass(ItemDefClass);
 	const TArray<FGameplayTagStackEntry>& ItemTagStacks = ItemDef->GetItemTagStacksRef();
 	for (const FGameplayTagStackEntry& ItemTagStack : ItemTagStacks)
@@ -22,13 +31,9 @@ UGZInventoryItemInstance* FGZInventoryList::AddEntry(const TSubclassOf<UGZInvent
 		NewEntry.ItemInstance->SetStackByTag(ItemTagStack.Tag, ItemTagStack.Count);
 	}
 	MarkItemDirty(NewEntry);
-	auto PawnFeature = OwnerComponent->GetPawnFeature();
-	auto PC = PawnFeature->GetPlayerState();
-	UE_LOG(LogTemp, Warning, TEXT("AddEntry::GetPlayerState: %p"), PC.Get());
-	UE_LOG(LogTemp, Warning, TEXT("AddEntry::InventoryList: %p"), this);
 	bool bHasAuthority = OwnerComponent->GetOwner()->HasAuthority();
-	UE_LOG(LogTemp, Warning, TEXT("AddEntry::bHasAuthority: %d"), bHasAuthority);
-
+	UE_LOG(LogTemp, Warning, TEXT("FGZInventoryList::NetDeltaSerialize: %p, Items.Num(): %d, bHasAuthority: %d"), this, Items.Num(),
+	       bHasAuthority);
 	return NewEntry.ItemInstance.Get();
 }
 
@@ -69,6 +74,41 @@ const FGZInventoryEntry* FGZInventoryList::GetFirstEntryByEquipmentDefClass(cons
 	return nullptr;
 }
 
+void FGZInventoryList::PostReplicatedAdd(const TArrayView<int32> AddedIndices, int32 FinalSize)
+{
+	bool bHasAuthority = OwnerComponent->GetOwner()->HasAuthority(); //HasAuthority false
+	UE_LOG(LogTemp, Warning, TEXT("FGZInventoryList::PostReplicatedAdd: %p, Items.Num(): %d, bHasAuthority: %d, FinalSize: %d"),
+	       this, Items.Num(), bHasAuthority, FinalSize);
+	for (int32 Idx : AddedIndices)
+	{
+		auto& Entry = Items[Idx];
+		if (IsValid(Entry.ItemInstance))
+		{
+			OwnerComponent->OnItemAdded.Broadcast(Entry.GetItemInstance());
+		}
+	}
+}
+
+void FGZInventoryList::PreReplicatedRemove(const TArrayView<int32> RemovedIndices, int32 FinalSize)
+{
+	for (int32 Idx : RemovedIndices)
+	{
+		auto& Entry = Items[Idx];
+		if (IsValid(Entry.GetItemInstance()))
+			OwnerComponent->OnItemWillRemove.Broadcast(Entry.GetItemInstance());
+	}
+}
+
+void FGZInventoryList::PostReplicatedChange(const TArrayView<int32> ChangedIndices, int32 FinalSize)
+{
+	for (int32 Idx : ChangedIndices)
+	{
+		auto& Entry = Items[Idx];
+		if (IsValid(Entry.GetItemInstance()))
+			OwnerComponent->OnItemChanged.Broadcast(Entry.GetItemInstance());
+	}
+}
+
 const TArray<FGZInventoryEntry>& UGZInventoryManagerComponent::GetEntries() const
 {
 	return InventoryList.GetItems();
@@ -79,9 +119,6 @@ UGZInventoryManagerComponent::UGZInventoryManagerComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 	SetIsReplicatedByDefault(true);
 	InventoryList.SetOwnerComponent(this);
-	InventoryList.OnReplicatedRemove.BindUObject(this, &ThisClass::OnReplicatedRemove);
-	InventoryList.OnPostReplicatedAdd.BindUObject(this, &ThisClass::OnPostReplicatedAdd);
-	InventoryList.OnPostReplicatedChange.BindUObject(this, &ThisClass::OnPostReplicatedChange);
 }
 
 void UGZInventoryManagerComponent::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -93,59 +130,17 @@ void UGZInventoryManagerComponent::GetLifetimeReplicatedProps(TArray<FLifetimePr
 void UGZInventoryManagerComponent::OnPostReplicatedAdd(const TArray<FGZInventoryEntry>& ItemEntries, const TArrayView<int32>& AddedIndices,
                                                        int32 FinalSize)
 {
-	auto PawnFeature = GetPawnFeature();
-	auto PC = PawnFeature->GetPlayerState();
 	bool bHasAuthority = GetOwner()->HasAuthority();
-	UE_LOG(LogTemp, Warning, TEXT("OnPostReplicatedAdd::GetPlayerState: %p, HasAuthority: %d"), PC.Get(), bHasAuthority);
-	UE_LOG(LogTemp, Warning, TEXT("OnPostReplicatedAdd::InventoryList: %p"), &InventoryList);
-	if (ItemEntries.Num() == 0)
-	{
-		UE_LOG(LogTemp, Error, TEXT("OnPostReplicatedAdd:: InventoryList.Items.Num() == 0"));
-		return;
-	}
+	UE_LOG(LogTemp, Warning, TEXT("OnPostReplicatedAdd::HasAuthority: %d"), bHasAuthority);
 	for (int32 Idx : AddedIndices)
 	{
 		auto& Entry = ItemEntries[Idx];
-		if (IsValid(Entry.ItemInstance))
-			OnItemAdded.Broadcast(Entry.ItemInstance);
+		if (IsValid(Entry.GetItemInstance()))
+			OnItemAdded.Broadcast(Entry.GetItemInstance());
 	}
 }
 
-void UGZInventoryManagerComponent::OnReplicatedRemove(const TArray<FGZInventoryEntry>& ItemEntries,
-                                                      const TArrayView<int32>& RemovingIndices,
-                                                      int32 FinalSize)
-{
-	for (int32 Idx : RemovingIndices)
-	{
-		auto& Entry = ItemEntries[Idx];
-		if (IsValid(Entry.ItemInstance))
-			OnItemWillRemove.Broadcast(Entry.ItemInstance);
-	}
-}
-
-void UGZInventoryManagerComponent::OnPostReplicatedChange(const TArray<FGZInventoryEntry>& ItemEntries,
-                                                          const TArrayView<int32>& ChangedIndices,
-                                                          int32 FinalSize)
-{
-	auto PawnFeature = GetPawnFeature();
-	auto PC = PawnFeature->GetPlayerState();
-	UE_LOG(LogTemp, Warning, TEXT("OnPostReplicatedChange::GetPlayerState: %p, HasAuthority: %d"), PC.Get(), GetOwner()->HasAuthority());
-	UE_LOG(LogTemp, Warning, TEXT("OnPostReplicatedChange::InventoryList: %p"), &InventoryList);
-
-	if (ItemEntries.Num() == 0)
-	{
-		UE_LOG(LogTemp, Error, TEXT("OnPostReplicatedChange:: InventoryList.Items.Num() == 0"));
-		return;
-	}
-	for (int32 Idx : ChangedIndices)
-	{
-		auto& Entry = ItemEntries[Idx];
-		if (IsValid(Entry.ItemInstance))
-			OnItemChanged.Broadcast(Entry.ItemInstance);
-	}
-}
-
-//Call On Server
+//Called On Server
 UGZInventoryItemInstance* UGZInventoryManagerComponent::AddItemDefToInventory(
 	const TSubclassOf<UGZInventoryItemDefinition>& ItemDefinitionClass)
 {
@@ -158,7 +153,7 @@ UGZInventoryItemInstance* UGZInventoryManagerComponent::AddItemDefToInventory(
 		return existEntry->ItemInstance;
 	}*/
 
-	UGZInventoryItemInstance* Instance = InventoryList.AddEntry(ItemDefinitionClass);
+	UGZInventoryItemInstance* Instance = InventoryList.AddEntry(ItemDefinitionClass, GetOwner());
 	if (!Instance)return nullptr;
 	if (IsReadyForReplication() && IsUsingRegisteredSubObjectList())
 	{
@@ -168,7 +163,7 @@ UGZInventoryItemInstance* UGZInventoryManagerComponent::AddItemDefToInventory(
 	return Instance;
 }
 
-//Call On Server
+//Called On Server
 bool UGZInventoryManagerComponent::RemoveItemFromInventory(UGZInventoryItemInstance* ItemInstance)
 {
 	if (!IsValid(ItemInstance)) return false;
@@ -189,7 +184,7 @@ void UGZInventoryManagerComponent::ReadyForReplication()
 		const TArray<FGZInventoryEntry>& ItemEntries = GetEntries();
 		for (const FGZInventoryEntry& Entry : ItemEntries)
 		{
-			UGZInventoryItemInstance* Instance = Entry.ItemInstance.Get();
+			UGZInventoryItemInstance* Instance = Entry.GetItemInstance();
 			if (IsValid(Instance))
 				AddReplicatedSubObject(Instance);
 		}
@@ -203,7 +198,7 @@ bool UGZInventoryManagerComponent::ReplicateSubobjects(UActorChannel* Channel, F
 
 	for (const FGZInventoryEntry& Entry : ItemEntries)
 	{
-		UGZInventoryItemInstance* Instance = Entry.ItemInstance.Get();
+		UGZInventoryItemInstance* Instance = Entry.GetItemInstance();
 		if (IsValid(Instance))
 		{
 			WroteSomething |= Channel->ReplicateSubobject(Instance, *Bunch, *RepFlags);

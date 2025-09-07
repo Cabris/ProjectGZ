@@ -18,7 +18,7 @@ UGZEquipmentInstance* FGZCarriedEquipmentList::AddEntry(const FEquipmentListAddE
 	Item.EquipmentInstance = NewObject<UGZEquipmentInstance>(EquipmentOwner, Params.EquipmentInstanceClass);
 	Item.EquipmentInstance->SetItemInstance(Params.ItemInstance);
 	Item.EquipmentInstance->SetEquipmentDefClass(Params.EquipmentDefClass);
-	Item.EquipmentDefinitionClass=Params.EquipmentDefClass;
+	Item.EquipmentDefinitionClass = Params.EquipmentDefClass;
 	if (IsValid(Params.EquipmentDefCDO))
 	{
 		auto& ActorsToSpawn = Params.EquipmentDefCDO->ActorsToSpawn;
@@ -90,7 +90,8 @@ UGZEquipmentInstance* UGZEquipmentManagerComponent::EquipItem(UGZInventoryItemIn
 
 	UGZPawnFeatureComponent* PawnFeature = GetPawnFeature();
 	if (!IsValid(PawnFeature))return nullptr;
-	APawn* Pawn = PawnFeature->GetPawn();
+	APawn* Pawn = PawnFeature->GetPlayerController()->GetPawn();
+	
 	if (!IsValid(Pawn))return nullptr;
 	const FEquipmentListAddEntryParams Param(ItemInstance, Pawn);
 	UGZEquipmentInstance* EquipmentInstance = EquipmentList.AddEntry(Param);
@@ -99,6 +100,7 @@ UGZEquipmentInstance* UGZEquipmentManagerComponent::EquipItem(UGZInventoryItemIn
 	TObjectPtr<UGZAbilitySystemComponent> ASC = PawnFeature->GetAbilitySystem();
 	auto DefinitionClass = ItemInstance->GetItemDefinition()->GetEquipmentDef();
 	if (!IsValid(DefinitionClass)) return nullptr;
+	
 	for (FInputAbilityEntry& GrantedAbility : DefinitionClass.GetDefaultObject()->GrantedAbilities)
 	{
 		ASC->GiveEquipmentGrantedAbility(GrantedAbility, EquipmentInstance, EquipmentInstance->GetGrantedAbilitySpecHandle());
@@ -126,6 +128,7 @@ void UGZEquipmentManagerComponent::UnEquipItem(UGZEquipmentInstance* EquipmentIn
 		{
 			for (auto Handle : EquipmentInstance->GetGrantedAbilitySpecHandle())
 				ASC->ClearAbility(Handle);
+			EquipmentInstance->GetGrantedAbilitySpecHandle().Reset();
 		}
 	}
 

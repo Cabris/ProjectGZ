@@ -94,17 +94,20 @@ bool AGZPlayerCharacter::IsStrafing()
 
 UGZAbilitySystemComponent* AGZPlayerCharacter::GetAbilitySystemComponent() const
 {
-	if (!UGZPawnFeature) return nullptr;
-	return UGZPawnFeature->GetAbilitySystem();
+	AGZPlayerState* GZPlayerState = GetPlayerState<AGZPlayerState>();
+	if (!GZPlayerState) return nullptr;
+	UGZAbilitySystemComponent* ASC = GZPlayerState->GetAbilitySystemComponent();
+	return ASC;
 }
 
 UGZAttributeSet* AGZPlayerCharacter::GetAttributeSet() const
 {
-	if (!UGZPawnFeature) return nullptr;
-	return UGZPawnFeature->GetAttributeSet();
+	AGZPlayerState* GZPlayerState = GetPlayerState<AGZPlayerState>();
+	if (!GZPlayerState) return nullptr;
+	return GZPlayerState->GetAttributeSet();
 }
 
-void AGZPlayerCharacter::OnEquipmentTagChanged_Implementation(FGameplayTag EquipmentTag)
+void AGZPlayerCharacter::UpdateEquipmentTag_Implementation(FGameplayTag EquipmentTag)
 {
 	if (!IsValid(AnimLayerSet))
 	{
@@ -115,22 +118,44 @@ void AGZPlayerCharacter::OnEquipmentTagChanged_Implementation(FGameplayTag Equip
 	OnAnimLayerChanged.Broadcast(EquipmentAnimLayer);
 }
 
+UGZPawnFeatureComponent* AGZPlayerCharacter::GetPawnFeature()
+{
+	AGZPlayerController* GZPlayerController = GetController<AGZPlayerController>();
+	if (!IsValid(GZPlayerController)) return nullptr;
+	return GZPlayerController->GetPawnFeature();
+}
+
 void AGZPlayerCharacter::InitializePawnFeature()
 {
 	AGZPlayerState* GZPlayerState = GetPlayerState<AGZPlayerState>();
 	check(GZPlayerState);
-	UGZPawnFeature = GZPlayerState->GetPawnFeature();
-	UGZPawnFeature->InitAbilityActorInfo(GZPlayerState, this);
-	UGZPawnFeature->OnInitializePawnFeature();
+	UGZAbilitySystemComponent* ASC = GetAbilitySystemComponent();
+	if (IsValid(ASC))
+	{
+		ASC->InitAbilityActorInfo(GZPlayerState, this);
+		ASC->OnAbilityActorInfoSet();
+	}
+
+	if (IsValid(AbilitySet))
+	{
+		TArray<FGameplayAbilitySpecHandle> Handles;
+		ASC->ApplyInputAbilitySet(AbilitySet, GZPlayerState, Handles);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("AbilitySetClass not set"));
+	}
 
 	AGZPlayerController* GZPlayerController = Cast<AGZPlayerController>(GetController());
 	if (GZPlayerController)
 	{
+		UGZPawnFeatureComponent* PawnFeature = GZPlayerController->GetPawnFeature();
+		PawnFeature->InitializePawnFeature(GZPlayerController, GZPlayerState, this);
 		//init HUD
 		if (AGZHUD* HUD = GZPlayerController->GetHUD<AGZHUD>())
 		{
-			HUD->InitializeOverlay(GZPlayerController, GZPlayerState, UGZPawnFeature->GetAbilitySystem(), UGZPawnFeature->GetAttributeSet());
+			HUD->InitializeOverlay(GZPlayerController, GZPlayerState, GZPlayerState->GetAbilitySystemComponent(),
+			                       GZPlayerState->GetAttributeSet());
 		}
 	}
 }
-

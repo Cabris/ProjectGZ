@@ -22,11 +22,9 @@ public:
 
 protected:
 	UFUNCTION(BlueprintImplementableEvent)
-	void PlayClientFireFX(const FHitResult& HitResult);
+	void PlayFireFX(const FHitResult& HitResult);
 	UFUNCTION(BlueprintImplementableEvent)
-	void PlayClientFailFX();
-	UFUNCTION(BlueprintImplementableEvent)
-	void PlayAuthorityFireFX(const FHitResult& HitResult);
+	void PlayFailFX();
 	bool CalculateFireResult(const FFireParams& FireParams, OUT FFireResult& FireResult) const;
 	//logic for single fire task
 	bool DoFireInternal(OUT FFireResult& Result);

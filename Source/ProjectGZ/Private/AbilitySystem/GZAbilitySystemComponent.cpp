@@ -196,6 +196,12 @@ void UGZAbilitySystemComponent::AbilitySpecInputReleased(FGameplayAbilitySpec& S
 void UGZAbilitySystemComponent::ApplyInputAbilitySet(const UGZInputGameplayAbilitySet* InputAbilitySet, UObject* SourceObject,
                                                      TArray<FGameplayAbilitySpecHandle>& OutHandles)
 {
+	if (!IsOwnerActorAuthoritative())
+	{
+		DEBUG_PRINTF(TEXT("UGZAbilitySystemComponent::ApplyInputAbilitySet: skip in client"));
+		return;
+	}
+	
 	if (!InputAbilitySet)return;
 	for (const FInputAbilityEntry& Entry : InputAbilitySet->GetInputAbilityList())
 	{
