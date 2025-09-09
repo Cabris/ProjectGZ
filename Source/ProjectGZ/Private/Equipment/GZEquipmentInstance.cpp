@@ -58,9 +58,9 @@ void UGZEquipmentInstance::GetLifetimeReplicatedProps(TArray<class FLifetimeProp
 	DOREPLIFETIME(ThisClass, SpawnedActors);
 	DOREPLIFETIME(ThisClass, Instigator);
 	DOREPLIFETIME(ThisClass, ItemInstance);
-	DOREPLIFETIME(ThisClass, EquipmentDefClass);
-	DOREPLIFETIME(ThisClass, EquipmentDefinition);
-	DOREPLIFETIME(ThisClass, GrantedAbilitySpecHandle)
+	// DOREPLIFETIME(ThisClass, EquipmentDefClass);
+	// DOREPLIFETIME(ThisClass, EquipmentDefinition);
+	// DOREPLIFETIME(ThisClass, GrantedAbilitySpecHandle)
 }
 
 void UGZEquipmentInstance::SetInstigator(const TObjectPtr<APawn>& InInstigator)
@@ -78,6 +78,7 @@ TArray<FGameplayAbilitySpecHandle>& UGZEquipmentInstance::GetGrantedAbilitySpecH
 	return GrantedAbilitySpecHandle;
 }
 
+/*
 void UGZEquipmentInstance::SetEquipmentDefClass(const TSubclassOf<UGZEquipmentDefinition>& InEquipmentDefClass)
 {
 	EquipmentDefClass = InEquipmentDefClass;
@@ -86,3 +87,4 @@ void UGZEquipmentInstance::SetEquipmentDefClass(const TSubclassOf<UGZEquipmentDe
 		EquipmentDefinition = EquipmentDefClass.GetDefaultObject();
 	}
 }
+*/

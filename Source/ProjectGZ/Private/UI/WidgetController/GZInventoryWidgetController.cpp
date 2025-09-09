@@ -13,8 +13,7 @@ void UGZInventoryWidgetController::BroadcastInitialValues()
 	{
 		TrackItems.Add(Entries[i].GetItemInstance());
 	}
-
-	OnItemListInitialized.ExecuteIfBound(TrackItems);
+	HandleItemListChanged(TrackItems);
 }
 
 void UGZInventoryWidgetController::BindCallbacksToDependencies()
@@ -50,5 +49,11 @@ void UGZInventoryWidgetController::HandleItemWillRemove(UGZInventoryItemInstance
 
 void UGZInventoryWidgetController::HandleItemChanged(UGZInventoryItemInstance* ItemInstance)
 {
+	if (!TrackItems.Contains(ItemInstance))return;
 	OnItemChanged.ExecuteIfBound(ItemInstance);
+}
+
+void UGZInventoryWidgetController::HandleItemListChanged(TArray<UGZInventoryItemInstance*>& ItemList)
+{
+	OnItemListInitialized.ExecuteIfBound(TrackItems);
 }

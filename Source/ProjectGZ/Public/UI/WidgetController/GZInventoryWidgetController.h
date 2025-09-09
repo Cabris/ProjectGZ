@@ -28,6 +28,7 @@ protected:
 	void HandleItemWillRemove(UGZInventoryItemInstance* ItemInstance);
 	UFUNCTION()
 	void HandleItemChanged(UGZInventoryItemInstance* ItemInstance);
+	void HandleItemListChanged(TArray<UGZInventoryItemInstance*>& ItemList);
 	UPROPERTY(Transient)
 	TArray<UGZInventoryItemInstance*> TrackItems;
 };

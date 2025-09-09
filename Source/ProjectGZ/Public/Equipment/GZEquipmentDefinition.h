@@ -34,4 +34,6 @@ public:
 	TArray<FGZEquipmentActorToSpawn> ActorsToSpawn;
 	UPROPERTY(EditDefaultsOnly, Category="Equipment")
 	TArray<FInputAbilityEntry> GrantedAbilities;//Fire,Reload...
+
+	static UGZEquipmentDefinition* GetDefinition(UGZInventoryItemInstance* ItemInstance);
 };

@@ -31,7 +31,6 @@ public:
 	//Set weapon owner pawn
 	void SetInstigator(const TObjectPtr<APawn>& Instigator);
 	void SetItemInstance(const TObjectPtr<UGZInventoryItemInstance>& ItemInstance);
-	void SetEquipmentDefClass(const TSubclassOf<UGZEquipmentDefinition>& EquipmentDefClass);
 	TArray<FGameplayAbilitySpecHandle>& GetGrantedAbilitySpecHandle();
 
 	//Get weapon owner pawn
@@ -44,11 +43,15 @@ public:
 	UFUNCTION(BlueprintPure, Category=WeaponInstance)
 	TArray<AActor*> GetSpawnedActors() const { return SpawnedActors; }
 
+	/*
+	void SetEquipmentDefClass(const TSubclassOf<UGZEquipmentDefinition>& EquipmentDefClass);
+
 	UFUNCTION(BlueprintPure, Category=WeaponInstance)
 	TSubclassOf<UGZEquipmentDefinition> GetEquipmentDefClass() const { return EquipmentDefClass; }
 
 	UFUNCTION(BlueprintPure, Category=WeaponInstance)
 	UGZEquipmentDefinition* GetEquipmentDefinition() const { return EquipmentDefinition; }
+	*/
 
 protected:
 	UFUNCTION(BlueprintImplementableEvent)
@@ -60,12 +63,18 @@ protected:
 	TObjectPtr<APawn> Instigator; //weapon owner pawn
 	UPROPERTY(VisibleAnywhere, Replicated, Category="Equipment")
 	TObjectPtr<UGZInventoryItemInstance> ItemInstance;
-	UPROPERTY(VisibleAnywhere, Replicated, Category="Equipment")
-	TSubclassOf<UGZEquipmentDefinition> EquipmentDefClass;
-	UPROPERTY(VisibleAnywhere, Replicated, Category="Equipment")
-	TObjectPtr<UGZEquipmentDefinition> EquipmentDefinition;
-	UPROPERTY(VisibleAnywhere, Replicated, Category="Equipment")
+
+	/*	
+		UPROPERTY(VisibleAnywhere, Replicated, Category="Equipment")
+		TSubclassOf<UGZEquipmentDefinition> EquipmentDefClass;
+		UPROPERTY(VisibleAnywhere, Replicated, Category="Equipment")
+		TObjectPtr<UGZEquipmentDefinition> EquipmentDefinition;
+	*/
+
+	UPROPERTY(VisibleAnywhere, Category="Equipment")
 	TArray<FGameplayAbilitySpecHandle> GrantedAbilitySpecHandle;
+
+
 	UPROPERTY(VisibleAnywhere, Replicated, Category="Equipment")
 	TArray<TObjectPtr<AActor>> SpawnedActors;
 

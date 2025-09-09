@@ -1,6 +1,4 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
-
-#pragma once
+﻿#pragma once
 
 #include "CoreMinimal.h"
 #include "GZEquipmentDefinition.h"
@@ -85,7 +83,7 @@ public:
 	}
 
 	UGZEquipmentInstance* AddEntry(const FEquipmentListAddEntryParams& Params);
-	void RemoveEntry(UGZEquipmentInstance* EntryInstance);
+	void RemoveEntry(UGZEquipmentInstance* EquipmentInstance);
 	void RemoveAllEntries();
 	const FGZCarriedEquipmentEntry* GetEntryByInstance(const TObjectPtr<UGZEquipmentInstance>& Instance);
 	const FGZCarriedEquipmentEntry* GetEntryByEquipmentDefClass(const TSubclassOf<UGZEquipmentDefinition>& DefinitionClass);
@@ -115,9 +113,12 @@ class PROJECTGZ_API UGZEquipmentManagerComponent : public UGZPawnComponent
 public:
 	// Sets default values for this component's properties
 	UGZEquipmentManagerComponent();
-	UGZEquipmentInstance* GetEquipmentInstanceByClass(const TSubclassOf<UGZEquipmentInstance>& InstanceClass);
+	UGZEquipmentInstance* GetInstanceByClass(const TSubclassOf<UGZEquipmentInstance>& InstanceClass);
+	UGZEquipmentInstance* GetInstanceByItem(const UGZInventoryItemInstance* ItemInstance);
+
 	UGZEquipmentInstance* EquipItem(UGZInventoryItemInstance* ItemInstance);
-	void UnEquipItem(UGZEquipmentInstance* EquipmentInstance);
+	bool HasInstanceByClass(const TSubclassOf<UGZEquipmentInstance>& InstanceClass);
+	void UnEquip(UGZEquipmentInstance* EquipmentInstance);
 	virtual void ReadyForReplication() override;
 	virtual bool ReplicateSubobjects(UActorChannel* Channel, FOutBunch* Bunch, FReplicationFlags* RepFlags) override;
 	virtual void UninitializeComponent() override;

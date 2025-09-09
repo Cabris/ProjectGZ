@@ -42,31 +42,37 @@ bool UGZCollectItemAbility::CollectItemToInventory(IGZCollectable* Collectable) 
 {
 	if (!Collectable)
 	{
-		UE_LOG(LogTemp, Error, TEXT("UGZCollectItemAbility::CollectItemToInventory: Can not cast InteractableActor to IGZCollectable!"));
+		DEBUG_PRINTF(TEXT("UGZCollectItemAbility::CollectItemToInventory: Can not cast InteractableActor to IGZCollectable!"));
 		return false;
 	}
 
 	UGZInventoryManagerComponent* InventoryManager = GetInventoryManager();
 	if (!InventoryManager)
 	{
-		UE_LOG(LogTemp, Error, TEXT("UGZCollectItemAbility::CollectItemToInventory: InventoryManager is null!"));
+		DEBUG_PRINTF(TEXT("UGZCollectItemAbility::CollectItemToInventory: InventoryManager is null!"));
 		return false;
 	}
 
+	//Add item to Inventory
 	UGZInventoryItemInstance* Instance = InventoryManager->AddItemDefToInventory(Collectable->GetItemDefinitionClass());
 	if (!Instance)
 	{
-		UE_LOG(LogTemp, Error, TEXT("UGZCollectItemAbility::CollectItemToInventory: AddItemDefToInventory fail!"));
+		DEBUG_PRINTF(TEXT("UGZCollectItemAbility::CollectItemToInventory: AddItemDefToInventory fail!"));
 		return false;
 	}
+
 	UGZPawnFeatureComponent* PawnFeature = GetPawnFeature();
-	if (IsValid(PawnFeature) && bTryEquipItem)
+	if (!PawnFeature)
 	{
-		bool Success = PawnFeature->TryGrantEquipmentToPawn(Instance);
-		UE_LOG(LogTemp, Warning, TEXT("UGZCollectItemAbility::CollectItemToInventory: TryGrantEquipmentToPawn: %d"), Success);
+		DEBUG_PRINTF(TEXT("UGZCollectItemAbility::CollectItemToInventory: GetPawnFeature fail!"));
+		return false;
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("UGZCollectItemAbility::CollectItemToInventory: Success"));
+	if (bTryEquipItem)
+	{
+		bool Success = PawnFeature->TryGrantEquipmentToPawn(Instance);
+		DEBUG_PRINTF(TEXT("UGZCollectItemAbility::CollectItemToInventory: TryGrantEquipmentToPawn: %d"), Success);
+	}
 	return true;
 }
 

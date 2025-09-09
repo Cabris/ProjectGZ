@@ -6,6 +6,7 @@
 #include "GameFramework/Pawn.h"
 #include "Interfactions/GZPawnFeatureInterface.h"
 #include "Inventory/GZInventoryItemDefinition.h"
+#include "Inventory/GZInventoryManagerComponent.h"
 
 
 // Sets default values
@@ -52,14 +53,21 @@ void AGZWeaponSpawner::AttemptPickUpWeapon(APawn* ReceivingPawn)
 bool AGZWeaponSpawner::GiveWeapon(const TSubclassOf<UGZInventoryItemDefinition>& ItemDefinitionClass, APawn* ReceivingPawn)
 {
 	IGZPawnFeatureInterface* PawnFeature = Cast<IGZPawnFeatureInterface>(ReceivingPawn);
-	if (PawnFeature && PawnFeature->GetPawnFeature())
+	if (!PawnFeature)
 	{
-		bool Success = PawnFeature->GetPawnFeature()->TryGrantItemToPawn(ItemDefinitionClass, ReceivingPawn);
-		return Success;
+		UE_LOG(LogTemp, Error, TEXT("Can not cast ReceivingPawn to IGZPawnFeatureInterface"));
+		return false;
 	}
-	UE_LOG(LogTemp, Error, TEXT("Can not cast ReceivingPawn to IGZPawnFeatureInterface"));
+	auto InventoryManager = PawnFeature->GetPawnFeature()->GetInventoryManager();
+	if (!InventoryManager)
+	{
+		UE_LOG(LogTemp, Error, TEXT("InventoryManager is Null"));
+		return false;
+	}
 
-	return false;
+	UGZInventoryItemInstance* ItemInstance = InventoryManager->AddItemDefToInventory(ItemDefinitionClass);
+	UE_LOG(LogTemp, Warning, TEXT("ItemInstance: %p"), ItemInstance);
+	return ItemInstance != nullptr;
 }
 
 void AGZWeaponSpawner::StartTimer()

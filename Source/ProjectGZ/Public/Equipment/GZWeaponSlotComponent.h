@@ -19,17 +19,24 @@ public:
 	UGZWeaponSlotComponent();
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	UGZInventoryItemInstance* GetActiveWeaponItemInstance();
-	void AddWeaponToSlot(UGZInventoryItemInstance* Instance, uint8 SlotIdx);
-	bool SetActiveWeaponSlot(uint8 SlotIdx);
-	void RemoveWeaponFromSlot(UGZInventoryItemInstance* Instance);
-	UGZInventoryItemInstance* GetWeaponItemInstance(uint8 SlotIdx);
+	void AddWeaponToSlot(UGZInventoryItemInstance* Instance, int32 SlotIdx);
+	void SetActiveWeaponSlot(int32 SlotIdx);
+	void RemoveWeaponFromSlot(int32 SlotIdx);
+	UGZInventoryItemInstance* GetWeaponItemInstance(int32 SlotIdx);
 	int32 FindFirstAvailableSlotIndex();
 	int32 GetActiveWeaponSlot() const;
 	int32 GetWeaponNum();
-	
+	bool HasWeaponInSlots(UGZInventoryItemInstance* Instance);
+	bool IsSlotIdxValid(int32 SlotIdx) const;
+	int32 GetWeaponSlot(UGZInventoryItemInstance* Instance);
+	//For UI Event
+	UPROPERTY(BlueprintAssignable)
 	FWeaponSlotChangedSingnature OnSlotAdded;
+	UPROPERTY(BlueprintAssignable)
 	FWeaponSlotChangedSingnature OnSlotRemoved;
+	UPROPERTY(BlueprintAssignable)
 	FWeaponSlotChangedSingnature OnSlotSelected;
+	UPROPERTY(BlueprintAssignable)
 	FWeaponSlotChangedSingnature OnSlotUnselected;
 
 protected:
@@ -38,7 +45,11 @@ protected:
 	UPROPERTY(Replicated)
 	TObjectPtr<UGZInventoryItemInstance> ActiveWeapon = nullptr;
 	UPROPERTY(Replicated)
-	int8 ActiveWeaponSlot = INDEX_NONE;
+	int32 ActiveWeaponSlot = INDEX_NONE;
 	UPROPERTY(Replicated)
-	uint8 SlotCount = 3;
+	int32 SlotCapacity = 3;
+
+private:
+	void UnequipItem(int32 SlotIdx);
+	void EquipItem(int32 SlotIdx);
 };

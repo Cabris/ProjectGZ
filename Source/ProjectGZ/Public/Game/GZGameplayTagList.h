@@ -21,6 +21,8 @@ OP(Item_Stack_Ammo,              "Item.Stack.Ammo",              "即時彈藥")
 OP(Item_Stack_Ammo_Spare,        "Item.Stack.Ammo.Spare",        "備用彈藥") \
 OP(Action_Interaction_Collect,   "Action.Interaction.Collect",   "撿起") \
 OP(Action_Interaction_OpenDoor,  "Action.Interaction.OpenDoor",  "開門") \
+OP(Action_Inventory_Use,		 "Action.Inventory.Use",		 "使用物品") \
+OP(Action_Inventory_Drop,		 "Action.Inventory.Drop",		 "丟棄物品") \
 OP(Action_Attack_Ranged,		 "Action.Attack.Ranged",         "通用射擊中") \
 OP(State_Aiming,                 "State.Aiming",                 "正在瞄準") \
 OP(State_Reloading,              "State.Reloading",              "裝填中") \

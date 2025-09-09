@@ -35,10 +35,11 @@ public:
 	{
 		return PawnFeatureComponent;
 	}
+protected:
+	UPROPERTY(EditDefaultsOnly, Category = "Input")
+	UGZDataAssetInputConfig* InputConfigDA;
 
 private:
-	UPROPERTY(EditAnywhere, Category = "Input")
-	UGZDataAssetInputConfig* InputConfigDA;
 
 	void Move(const FInputActionValue& inputActionValue);
 	void Jump(const FInputActionValue& inputActionValue);
@@ -47,18 +48,12 @@ private:
 	void Aim(const FInputActionValue& inputActionValue);
 	void Strafe(const FInputActionValue& inputActionValue);
 	void Sprint(const FInputActionValue& inputActionValue);
+	
 	virtual void PostProcessInput(const float DeltaTime, const bool bGamePaused) override;
 	void AbilityInputPressed(FGameplayTag InputTag);
 	void AbilityInputReleased(FGameplayTag InputTag);
 	
 	UPROPERTY(VisibleAnywhere, Category = "PawnFeature")
 	TObjectPtr<UGZPawnFeatureComponent> PawnFeatureComponent;
-	/*
-	UPROPERTY(VisibleAnywhere, Category = "PawnFeature|Manager")
-	TObjectPtr<UGZInventoryManagerComponent> InventoryManager;
-	UPROPERTY(VisibleAnywhere, Category = "PawnFeature|Manager")
-	TObjectPtr<UGZEquipmentManagerComponent> EquipmentManager;
-	UPROPERTY(VisibleAnywhere, Category = "PawnFeature|Manager")
-	TObjectPtr<UGZWeaponMenuComponent> WeaponMenu;
-	*/
+
 };

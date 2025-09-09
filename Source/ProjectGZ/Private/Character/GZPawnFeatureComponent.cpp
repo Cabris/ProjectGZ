@@ -29,58 +29,48 @@ UGZPawnFeatureComponent::UGZPawnFeatureComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
-bool UGZPawnFeatureComponent::TryGrantItemToPawn(const TSubclassOf<UGZInventoryItemDefinition>& ItemDefinitionClass,
-                                                 APawn* ReceivingPawn)
-{
-	if (!GetInventoryManager()) return false;
-	UGZInventoryItemInstance* ItemInstance = GetInventoryManager()->AddItemDefToInventory(ItemDefinitionClass);
-	if (!ItemInstance) return false;
-	return true;
-}
-
+//User PICKUP an equipment
 bool UGZPawnFeatureComponent::TryGrantEquipmentToPawn(UGZInventoryItemInstance* ItemInstance)
 {
-	if (!IsValid(ItemInstance)) return false;
-	UGZInventoryItemDefinition* ItemDefinition = ItemInstance->GetItemDefinition();
-	if (!IsValid(ItemDefinition)) return false;
-	TSubclassOf<UGZEquipmentDefinition> EquipmentDefClass = ItemDefinition->GetEquipmentDef();
-	if (!IsValid(EquipmentDefClass)) return false;
-
+	if (!CheckComponents())return false;
+	UGZWeaponSlotComponent* WeaponSlotManager = GetWeaponSlotManager();
 	//Check Slot has space
-	UGZWeaponSlotComponent* const& WeaponSlot = GetWeaponSlot();
-	if (!IsValid(WeaponSlot))return false;
-	
-	int32 Idx=WeaponSlot->FindFirstAvailableSlotIndex();
+	int32 Idx = WeaponSlotManager->FindFirstAvailableSlotIndex();
 	if (Idx == INDEX_NONE)
 	{
 		DEBUG_PRINTF(TEXT("Failed to TryGrantEquipmentToPawn: WeaponSlot is Full"));
 		return false;
 	}
-	WeaponSlot->AddWeaponToSlot(ItemInstance, Idx);
- 
-	
-	//can be equipped
-	UGZEquipmentDefinition* EquipmentDef = EquipmentDefClass.GetDefaultObject();
-	UGZEquipmentManagerComponent* EquipmentManager = GetEquipmentManager();
-	if (!EquipmentManager || !EquipmentDef || !IsValid(EquipmentDef->InstanceClass))
+
+	if (!WeaponSlotManager->HasWeaponInSlots(ItemInstance))
 	{
-		DEBUG_PRINTF(TEXT("Failed to TryGrantEquipmentToPawn: EquipmentDef is NULL"));
+		//Add to slot
+		WeaponSlotManager->AddWeaponToSlot(ItemInstance, Idx);
+		WeaponSlotManager->SetActiveWeaponSlot(Idx);
+	}
+	return true;
+}
+
+//User DROP an equipment
+bool UGZPawnFeatureComponent::TryRemoveEquipmentFromPawn(UGZInventoryItemInstance* ItemInstance)
+{
+	UGZEquipmentDefinition* EquipmentDef = UGZEquipmentDefinition::GetDefinition(ItemInstance);
+
+	if (!IsValid(EquipmentDef))
+	{
+		DEBUG_PRINTF(TEXT("Failed to TryRemoveEquipmentFromPawn: EquipmentDef is NULL"));
 		return false;
 	}
-
-	UGZEquipmentInstance* OwningWeaponInstance = EquipmentManager->GetEquipmentInstanceByClass(EquipmentDef->InstanceClass);
-	if (!OwningWeaponInstance)
+	if (!CheckComponents())return false;
+	UGZWeaponSlotComponent* WeaponSlotManager = GetWeaponSlotManager();
+	//Remove from slot
+	int32 SlotIdx = WeaponSlotManager->GetWeaponSlot(ItemInstance);
+	if (SlotIdx == INDEX_NONE)
 	{
-		//add weapon to Equipment
-		UGZEquipmentInstance* NewWeaponInstance = EquipmentManager->EquipItem(ItemInstance);
-		if (!IsValid(NewWeaponInstance))
-		{
-			Debug::Print(TEXT("Failed to TryGrantEquipmentToPawn: NewWeaponInstance is NULL"));
-			return false;
-		}
+		DEBUG_PRINTF(TEXT("Failed to TryRemoveEquipmentFromPawn: GetWeaponSlot is INDEX_NONE"));
+		return false;
 	}
-
-
+	WeaponSlotManager->RemoveWeaponFromSlot(SlotIdx);
 	return true;
 }
 
@@ -122,6 +112,23 @@ void UGZPawnFeatureComponent::OnWeaponSlotSelected(UGZInventoryItemInstance* Ins
 	}
 }
 
+bool UGZPawnFeatureComponent::CheckComponents()
+{
+	UGZEquipmentManagerComponent* EquipmentManager = GetEquipmentManager();
+	if (!IsValid(EquipmentManager))
+	{
+		DEBUG_PRINTF(TEXT("Failed to TryRemoveEquipmentFromPawn: EquipmentManager is NULL"));
+		return false;
+	}
+	UGZWeaponSlotComponent* WeaponSlot = GetWeaponSlotManager();
+	if (!IsValid(WeaponSlot))
+	{
+		DEBUG_PRINTF(TEXT("Failed to TryRemoveEquipmentFromPawn: WeaponSlot is NULL"));
+		return false;
+	}
+	return true;
+}
+
 APawn* UGZPawnFeatureComponent::GetPawn()
 {
 	return PawnFeatureStruct.Pawn;
@@ -142,7 +149,7 @@ UGZEquipmentManagerComponent* UGZPawnFeatureComponent::GetEquipmentManager()
 	return PawnFeatureStruct.EquipmentManager;
 }
 
-UGZWeaponSlotComponent* UGZPawnFeatureComponent::GetWeaponSlot()
+UGZWeaponSlotComponent* UGZPawnFeatureComponent::GetWeaponSlotManager()
 {
 	return PawnFeatureStruct.WeaponMenu;
 }

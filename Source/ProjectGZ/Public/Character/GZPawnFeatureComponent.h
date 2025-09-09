@@ -55,18 +55,21 @@ public:
 	UGZAbilitySystemComponent* GetAbilitySystem();
 	UGZInventoryManagerComponent* GetInventoryManager();
 	UGZEquipmentManagerComponent* GetEquipmentManager();
-	UGZWeaponSlotComponent* GetWeaponSlot();
+	UGZWeaponSlotComponent* GetWeaponSlotManager();
 	APlayerController* GetPlayerController();
 
-	virtual bool TryGrantItemToPawn(const TSubclassOf<UGZInventoryItemDefinition>& ItemDefinitionClass, APawn* ReceivingPawn);
+	//add equipment to pawn
 	virtual bool TryGrantEquipmentToPawn(UGZInventoryItemInstance* ItemInstance);
-
+	//remove equipment to pawn
+	virtual bool TryRemoveEquipmentFromPawn(UGZInventoryItemInstance* ItemInstance);
 	FOnActorChangeEventSingnature OnFocusActor;
 	FOnActorChangeEventSingnature OnUnfocusActor;
 
 protected:
 	FPawnFeatureStruct PawnFeatureStruct;
+
 private:
 	UFUNCTION()
 	void OnWeaponSlotSelected(UGZInventoryItemInstance* Instance, int SlotIdx);
+	bool CheckComponents();
 };
