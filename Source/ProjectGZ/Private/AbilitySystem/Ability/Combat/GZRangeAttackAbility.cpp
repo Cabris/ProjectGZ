@@ -21,35 +21,11 @@ UGZRangeAttackAbility::UGZRangeAttackAbility()
 	CooldownTags.AddTag(GZGameplayTags::Cooldown_Generic);
 }
 
-void UGZRangeAttackAbility::InitializeCachedData()
-{
-	if (IsValid(CachedWeaponInstance))return;
-	CachedWeaponInstance = GetWeaponInstance();
-	UGZAbilitySystemComponent* ASC = GetAbilitySystemComponent();
-	UE_LOG(LogTemp, Warning, TEXT("UGZRangeAttackAbility::OnGiveAbility: CachedWeaponInstance= %p, "), CachedWeaponInstance.Get());
-	if (IsValid(CachedWeaponInstance))
-	{
-		CachedWeaponConfig = CachedWeaponInstance->GetConfig();
-	}
-	else
-	{
-		CachedWeaponInstance = nullptr;
-		Debug::Print(TEXT("ActivateAbility Fail: WeaponInstance is Null"));
-	}
-}
-
-void UGZRangeAttackAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
-{
-	Super::OnGiveAbility(ActorInfo, Spec);
-	InitializeCachedData();
-}
-
 void UGZRangeAttackAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
                                             const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 	auto ASC = GetAbilitySystemComponent();
-	InitializeCachedData();
 	if (!IsValid(CachedWeaponInstance))
 	{
 		Debug::Print(TEXT("ActivateAbility Fail: WeaponInstance is Null"));
@@ -163,7 +139,7 @@ bool UGZRangeAttackAbility::DoFireInternal(OUT FFireResult& Result)
 	Params.InitialSpeed = CachedWeaponConfig.InitialSpeed;
 	Params.MaxRange = CachedWeaponConfig.MaxRangeMeters * 100;
 	Params.Filter = AttackFilter;
-	Params.bDrawDebug = true;
+	Params.bDrawDebug = CachedWeaponConfig.bDrawDebug;
 
 	bool bFireSuccess = CalculateFireResult(Params, Result);
 	if (!bFireSuccess)

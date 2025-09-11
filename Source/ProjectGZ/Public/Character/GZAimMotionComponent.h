@@ -1,11 +1,10 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
-
 #include "CoreMinimal.h"
+#include "AbilitySystem/Ability/Combat/GZWeaponAbility.h"
 #include "Components/ActorComponent.h"
 #include "GZAimMotionComponent.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCameraRigTagChangedSingnature, const FGameplayTag&, CameraRigTag);
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class PROJECTGZ_API UGZAimMotionComponent : public UActorComponent
@@ -13,21 +12,35 @@ class PROJECTGZ_API UGZAimMotionComponent : public UActorComponent
 	GENERATED_BODY()
 
 public:
-	// Sets default values for this component's properties
 	UGZAimMotionComponent();
-
-protected:
-	// Called when the game starts
-	virtual void BeginPlay() override;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Aim")
-	bool bIsAiming;
-	UPROPERTY(EditAnywhere, Category="Aim")
-	TObjectPtr<APawn> AimingPawn;
-public:
-	// Called every frame
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType,
-	                           FActorComponentTickFunction* ThisTickFunction) override;
 	void AimAtRotation(FRotator rotator);
 	void UnAim();
 	bool GetIsAiming();
+	virtual void GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const override;
+	
+	void SetCameraRigTag(FGameplayTag CameraPoseOverrideTag, float CameraPoseRecoveryTime, bool IsActivate);
+	UPROPERTY(BlueprintAssignable)
+	FCameraRigTagChangedSingnature OnCameraRigTagChanged;
+protected:
+	virtual void BeginPlay() override;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Aim", ReplicatedUsing=OnRep_bIsAiming)
+	bool bIsAiming;
+	UPROPERTY(VisibleAnywhere, Category="Aim")
+	TObjectPtr<APawn> AimingPawn;
+	UPROPERTY(EditDefaultsOnly, Category="Aim")
+	FGameplayTag DefaultCameraRigTag;
+	
+/*
+	int32 ActiveCameraRig;
+	float BoomLength;
+	float BoomStep;
+*/
+private:
+	UFUNCTION()
+	void OnRep_bIsAiming(const bool& bOldIsAiming);
+	UFUNCTION()
+	void OnCameraRecovery();
+	FGameplayTag CurrentActivateCameraRigTag;
+	float CurrentActivateCameraPoseRecoveryTime;
+	FTimerHandle RecoveryTimeerHandle;
 };

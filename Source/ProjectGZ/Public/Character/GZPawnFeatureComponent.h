@@ -15,7 +15,7 @@ class UGZAbilitySystemComponent;
 class UGZInventoryManagerComponent;
 class UGZEquipmentManagerComponent;
 class UGZInventoryItemDefinition;
-class UGZWeaponSlotComponent;
+class UGZWeaponSlotsComponent;
 class APawn;
 
 USTRUCT()
@@ -29,7 +29,7 @@ struct FPawnFeatureStruct
 	UPROPERTY()
 	TObjectPtr<UGZEquipmentManagerComponent> EquipmentManager = nullptr;
 	UPROPERTY()
-	TObjectPtr<UGZWeaponSlotComponent> WeaponMenu = nullptr;
+	TObjectPtr<UGZWeaponSlotsComponent> WeaponMenu = nullptr;
 	UPROPERTY()
 	TObjectPtr<APlayerController> PlayerController = nullptr;
 	UPROPERTY()
@@ -48,14 +48,14 @@ class PROJECTGZ_API UGZPawnFeatureComponent : public UActorComponent
 
 public:
 	UGZPawnFeatureComponent();
-	void InitializePawnFeature(AGZPlayerController* PC, AGZPlayerState* PS, APawn* Pawn);
+	void InitializePawnFeature(AGZPlayerController* PC, AGZPlayerState* PS, UGZAbilitySystemComponent* ASC, APawn* Pawn);
 	static UGZPawnFeatureComponent* Get(AActor* Target);
 
 	APawn* GetPawn();
 	UGZAbilitySystemComponent* GetAbilitySystem();
 	UGZInventoryManagerComponent* GetInventoryManager();
 	UGZEquipmentManagerComponent* GetEquipmentManager();
-	UGZWeaponSlotComponent* GetWeaponSlotManager();
+	UGZWeaponSlotsComponent* GetWeaponSlotsManager();
 	APlayerController* GetPlayerController();
 
 	//add equipment to pawn
@@ -70,6 +70,6 @@ protected:
 
 private:
 	UFUNCTION()
-	void OnWeaponSlotSelected(UGZInventoryItemInstance* Instance, int SlotIdx);
+	void OnActiveWeaponSlotChanged( int ActiveSlot);
 	bool CheckComponents();
 };

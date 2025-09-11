@@ -260,7 +260,7 @@ bool UGZStartInteractionAbility::ServerValidateTargetData(AActor* TargetFromClie
 
 void UGZStartInteractionAbility::OnFocusChanged(AActor* NewFocus, AActor* OldFocus)
 {
-	if (auto PawnFeature = UGZPawnFeatureComponent::Get(CurrentActorInfo->OwnerActor.Get()))
+	if (auto PawnFeature = GetPawnFeature())
 	{
 		if (NewFocus)
 		{

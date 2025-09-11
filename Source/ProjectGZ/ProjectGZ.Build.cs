@@ -17,7 +17,7 @@ public class ProjectGZ : ModuleRules
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
 			"AnimGraphRuntime", "GameplayTags", "GameplayTasks",
-			"PCG", "NetCore", "OnlineSubsystemUtils", "GameplayMessageRuntime", "GZ_Helper" 
+			"PCG", "NetCore", "OnlineSubsystemUtils", "GameplayMessageRuntime", "GZ_Helper", "GameplayCameras"
 		});
 
 		// Uncomment if you are using Slate UI

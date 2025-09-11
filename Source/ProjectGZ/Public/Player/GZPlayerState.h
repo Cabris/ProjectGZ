@@ -7,7 +7,7 @@
 #include "Interfactions/GZAbilitySystemInterface.h"
 #include "Interfactions/GZPawnFeatureInterface.h"
 #include "GZPlayerState.generated.h"
-class UGZWeaponSlotComponent;
+class UGZWeaponSlotsComponent;
 class UGZEquipmentManagerComponent;
 class UGZInventoryManagerComponent;
 class UGZAbilitySystemComponent;

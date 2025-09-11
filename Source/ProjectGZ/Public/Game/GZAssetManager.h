@@ -40,7 +40,8 @@ public:
 	 * @return          Streamable Handle；保存它可取消或延長生命週期
 	 */
 	template <typename AssetType>
-	TSharedPtr<FStreamableHandle> LoadPrimaryAssetAsync(const FPrimaryAssetId& Id, const TArray<FName>& Bundles, TFunction<void(AssetType*)> OnLoaded,
+	TSharedPtr<FStreamableHandle> LoadPrimaryAssetAsync(const FPrimaryAssetId& Id, const TArray<FName>& Bundles,
+	                                                    TFunction<void(AssetType*)> OnLoaded,
 	                                                    TAsyncLoadPriority Priority = FStreamableManager::DefaultAsyncLoadPriority)
 	{
 		if (!Id.IsValid())
@@ -90,7 +91,8 @@ public:
 	// ------------ 軟資產：非同步載入（樣板） ------------
 
 	template <typename AssetType>
-	TSharedPtr<FStreamableHandle> LoadSoftAsync(const TSoftObjectPtr<AssetType>& Ref, UObject* WeakOwner, TFunction<void(AssetType*)> OnLoaded,
+	TSharedPtr<FStreamableHandle> LoadSoftAsync(const TSoftObjectPtr<AssetType>& Ref, UObject* WeakOwner,
+	                                            TFunction<void(AssetType*)> OnLoaded,
 	                                            TAsyncLoadPriority Priority = FStreamableManager::DefaultAsyncLoadPriority)
 	{
 		if (Ref.IsNull())
@@ -164,5 +166,13 @@ public:
 		if (!Handle.IsValid()) return;
 		if (bCancelIfLoading) { Handle->CancelHandle(); }
 		Handle->ReleaseHandle();
+	}
+	
+	//根據傳入的表格和Tag返回尋找到的資料，表格類型不確定，所以使用T來表示，在使用此函數時，需要指定對應類型
+	template <typename T>
+	static T* GetDataTableRowByTag(UDataTable* DataTable, const FGameplayTag& Tag)
+	{
+		T* Row = DataTable->FindRow<T>(Tag.GetTagName(), TEXT(""));
+		return Row;
 	}
 };

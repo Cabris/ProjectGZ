@@ -21,6 +21,11 @@ protected:
 	UFUNCTION(BlueprintImplementableEvent, Category="Widget")
 	void WidgetControllerSet();
 
+	//Called after NativePreConstruct, before Tick
+	virtual void NativeConstruct() override;
+	//Called after RemoveFromParent, Last step in Destruction
+	virtual void NativeDestruct() override;
+	
 	template <typename WidgetControllerType>
 	WidgetControllerType* GetWidgetController()
 	{

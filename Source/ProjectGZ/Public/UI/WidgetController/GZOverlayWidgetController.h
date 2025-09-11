@@ -63,14 +63,14 @@ private:
 	TObjectPtr<UGZMarkerManager> MarkerManager;
 
 	//根據傳入的表格和Tag返回尋找到的資料，表格類型不確定，所以使用T來表示，在使用此函數時，需要指定對應類型
-	template <typename T>
-	T* GetDataTableRowByTag(UDataTable* DataTable, const FGameplayTag& Tag);
+	// template <typename T>
+	// T* GetDataTableRowByTag(UDataTable* DataTable, const FGameplayTag& Tag);
 	FGameplayMessageListenerHandle EffectAppliedMessageListenerHandle;
 };
 
-template <typename T>
-T* UGZOverlayWidgetController::GetDataTableRowByTag(UDataTable* DataTable, const FGameplayTag& Tag)
-{
-	T* Row = DataTable->FindRow<T>(Tag.GetTagName(), TEXT(""));
-	return Row;
-}
+// template <typename T>
+// T* UGZOverlayWidgetController::GetDataTableRowByTag(UDataTable* DataTable, const FGameplayTag& Tag)
+// {
+// 	T* Row = DataTable->FindRow<T>(Tag.GetTagName(), TEXT(""));
+// 	return Row;
+// }

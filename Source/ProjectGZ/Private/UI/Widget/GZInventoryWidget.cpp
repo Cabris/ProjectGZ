@@ -9,25 +9,20 @@
 
 UGZInventoryWidget::UGZInventoryWidget()
 {
-	// 設定預設數量標籤 - 您可能需要根據實際的標籤系統調整
 	DefaultQuantityTag = GZGameplayTags::Item_Stack_Quantity;
 }
 
 void UGZInventoryWidget::NativeConstruct()
 {
 	Super::NativeConstruct();
-	// 嘗試綁定到控制器
 	BindToController();
-	// 觸發 BP 初始化事件
 	OnInventoryWidgetInitialized();
 }
 
 void UGZInventoryWidget::NativeDestruct()
 {
-	// 清理資源
 	UnbindFromController();
 	RequestClearAllItems();
-
 	Super::NativeDestruct();
 }
 
@@ -54,7 +49,7 @@ void UGZInventoryWidget::BindToController()
 
 	UGZInventoryWidgetController* InventoryController = GetWidgetController<UGZInventoryWidgetController>();
 	check(IsValid(InventoryController));
-	// 綁定事件
+	//綁定事件
 	InventoryController->OnItemAdded.BindUObject(this, &ThisClass::HandleItemAdded);
 	InventoryController->OnItemWillRemove.BindUObject(this, &ThisClass::HandleItemWillRemove);
 	InventoryController->OnItemChanged.BindUObject(this, &ThisClass::HandleItemChanged);
@@ -84,7 +79,6 @@ void UGZInventoryWidget::HandleItemListInitialized(const TArray<UGZInventoryItem
 {
 	check(IsValid(ListView));
 	ListView->SetListItems(ItemList);
-	// 觸發 BP 事件
 	OnInventoryListCompletelyChanged();
 	UE_LOG(LogTemp, Log, TEXT("UGZInventoryWidget::RebuildCompleteItemList - Rebuilt list with %d items"),
 	       ItemList.Num());
@@ -94,7 +88,6 @@ void UGZInventoryWidget::HandleItemAdded(UGZInventoryItemInstance* ItemInstance)
 {
 	check(IsValid(ListView));
 	ListView->AddItem(ItemInstance);
-	// 觸發 BP 事件
 	OnInventoryItemAdded(ItemInstance);
 	int32 Stack = ItemInstance->GetDefaultStack();
 	Stack = 1;
@@ -121,15 +114,3 @@ void UGZInventoryWidget::HandleItemChanged(UGZInventoryItemInstance* ItemInstanc
 		InventoryEntryWidget->UpdateDisplay();
 	}
 }
-
-/*void UGZInventoryWidget::SortItemList(TArray<UGZInventoryListItemObject*>& ItemList)
-{
-	// 根據物品名稱排序 (可以擴展為更複雜的排序邏輯)
-	ItemList.Sort([](const UGZInventoryListItemObject& A, const UGZInventoryListItemObject& B)
-	{
-		const FName NameA = A.GetItemName();
-		const FName NameB = B.GetItemName();
-
-		return NameA.LexicalLess(NameB);
-	});
-}*/

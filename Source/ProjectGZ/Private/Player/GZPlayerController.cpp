@@ -8,7 +8,7 @@
 #include "Character/GZAimMotionComponent.h"
 #include "Character/GZPawnFeatureComponent.h"
 #include "Equipment/GZEquipmentManagerComponent.h"
-#include "Equipment/GZWeaponSlotComponent.h"
+#include "Equipment/GZWeaponSlotsComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Interfactions/AimControllable.h"
 #include "Interfactions/CameraControllable.h"
@@ -26,7 +26,7 @@ AGZPlayerController::AGZPlayerController()
 	InputConfigDA = nullptr;
 	auto InventoryManager = CreateDefaultSubobject<UGZInventoryManagerComponent>("InventoryManagerComponent");
 	auto EquipmentManager = CreateDefaultSubobject<UGZEquipmentManagerComponent>("EquipmentManagerComponent");
-	auto WeaponMenu = CreateDefaultSubobject<UGZWeaponSlotComponent>("WeaponMenuComponent");
+	auto WeaponMenu = CreateDefaultSubobject<UGZWeaponSlotsComponent>("WeaponMenuComponent");
 	PawnFeatureComponent = CreateDefaultSubobject<UGZPawnFeatureComponent>("PawnFeatureComponent");
 	bool bHasAuthority = HasAuthority();
 	UE_LOG(LogTemp, Warning, TEXT("AGZPlayerController::bHasAuthority: %d"), bHasAuthority);

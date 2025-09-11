@@ -7,6 +7,7 @@
 #include "Interfactions/GZAbilitySystemInterface.h"
 #include "Inventory/GZInventoryItemInstance.h"
 #include "Net/UnrealNetwork.h"
+#include "ProjectGZ/ProjectGZ.h"
 
 
 UGZEquipmentInstance* FGZCarriedEquipmentList::AddEntry(const FEquipmentListAddEntryParams& Params)
@@ -127,19 +128,25 @@ bool UGZEquipmentManagerComponent::HasInstanceByClass(const TSubclassOf<UGZEquip
 
 void UGZEquipmentManagerComponent::UnEquip(UGZEquipmentInstance* EquipmentInstance)
 {
-	if (!EquipmentInstance)return;
+	if (!EquipmentInstance)
+		return;
 	if (IsUsingRegisteredSubObjectList())
 	{
 		RemoveReplicatedSubObject(EquipmentInstance);
 	}
 
-	if (IGZAbilitySystemInterface* ASI = Cast<IGZAbilitySystemInterface>(GetOwner()))
+	if (EquipmentInstance->GetGrantedAbilitySpecHandle().Num() > 0)
 	{
-		if (UGZAbilitySystemComponent* ASC = ASI->GetAbilitySystemComponent())
+		UGZAbilitySystemComponent* ASC = GetPawnFeature()->GetAbilitySystem();
+		if (ASC)
 		{
 			for (auto Handle : EquipmentInstance->GetGrantedAbilitySpecHandle())
 				ASC->ClearAbility(Handle);
 			EquipmentInstance->GetGrantedAbilitySpecHandle().Reset();
+		}
+		else
+		{
+			DEBUG_PRINTF(TEXT("UGZEquipmentManagerComponent::UnEquip: GetAbilitySystem is NULL"));
 		}
 	}
 

@@ -4,6 +4,7 @@
 #include "AssetRegistry/PackageReader.h"
 #include "Character/GZPawnFeatureComponent.h"
 #include "Game/GameplayEventMessage.h"
+#include "Game/GZAssetManager.h"
 #include "Game/GZGameplayTags.h"
 #include "GameFramework/GameplayMessageSubsystem.h"
 #include "Player/GZPlayerController.h"
@@ -41,7 +42,7 @@ void UGZOverlayWidgetController::BindCallbacksToDependencies()
 			if (MarkerManager)
 			{
 				auto Marker = MarkerManager->AddMarkerTarget(FocusActor);
-				OnMarkerWidgetAdded.Broadcast(Marker);//Widget add to canvas
+				OnMarkerWidgetAdded.Broadcast(Marker); //Widget add to canvas
 			} //OnActorFocused.Broadcast(FocusActor);
 		});
 		PawnFeatureComponent->OnUnfocusActor.AddWeakLambda(this, [this](AActor* UnfocusActor)
@@ -49,7 +50,7 @@ void UGZOverlayWidgetController::BindCallbacksToDependencies()
 			if (MarkerManager)
 			{
 				auto Marker = MarkerManager->RemoveMarkerTarget(UnfocusActor);
-				OnMarkerWidgetRemoved.Broadcast(Marker);//Widget remove from canvas
+				OnMarkerWidgetRemoved.Broadcast(Marker); //Widget remove from canvas
 			} //OnActorUnfocused.Broadcast(UnfocusActor);
 		});
 	}
@@ -74,7 +75,7 @@ void UGZOverlayWidgetController::OnMessage(FGameplayTag Channel, const FGZVerbMe
 	auto& Tags = Payload.ContextTags;
 	for (FGameplayTag Tag : Tags)
 	{
-		FUIWidgetDataRow* Row = GetDataTableRowByTag<FUIWidgetDataRow>(MessageWidgetDataTable, Tag);
+		FUIWidgetDataRow* Row = UGZAssetManager::GetDataTableRowByTag<FUIWidgetDataRow>(MessageWidgetDataTable, Tag);
 		if (Row)
 		{
 			OnMessageWidgetRow.Broadcast(*Row);

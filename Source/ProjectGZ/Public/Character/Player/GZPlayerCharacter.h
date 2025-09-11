@@ -10,6 +10,8 @@
 #include "Interfactions/GZPawnFeatureInterface.h"
 #include "Interfactions/Strafingable.h"
 #include "GZPlayerCharacter.generated.h"
+class UCameraRigAsset;
+class UGameplayCameraComponent;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAnimLayerChangedEventSingnature, TSubclassOf<UAnimInstance>, AnimLayer);
 
 class UGZAnimationLayerSet;
@@ -28,8 +30,7 @@ public:
 	virtual void BeginPlay() override;
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void OnRep_PlayerState() override;
-	virtual void PitchCamera(float AxisValue) override;
-	virtual void YawCamera(float AxisValue) override;
+
 	virtual UGZAimMotionComponent* GetAimMotionComponent() override;
 	virtual void Strafe() override;
 	virtual void Unstrafe() override;
@@ -37,6 +38,11 @@ public:
 
 	virtual UGZAbilitySystemComponent* GetAbilitySystemComponent() const override;
 	virtual UGZAttributeSet* GetAttributeSet() const override;
+
+	//ICameraControllable
+	virtual void PitchCamera(float AxisValue) override;
+	virtual void YawCamera(float AxisValue) override;
+	//ICameraControllable
 
 	//IGZCombatInterface
 	virtual void UpdateEquipmentTag_Implementation(FGameplayTag EquipmentTag) override;
@@ -54,14 +60,22 @@ protected:
 	TObjectPtr<USpringArmComponent> SpringArm;
 	UPROPERTY(VisibleAnywhere, Category = "Components")
 	TObjectPtr<UGZAimMotionComponent> AimMotionComponent;
+	UPROPERTY(VisibleAnywhere, Category = "Components")
+	TObjectPtr<UGameplayCameraComponent> GameplayCamera;
 
-	UPROPERTY(EditDefaultsOnly, Category = "AbilitySet")
+	UPROPERTY(BlueprintReadWrite, Category = "Defaults|CameraRig")
+	TObjectPtr<UCameraRigAsset> ActivateCameraRig;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Defaults|CameraRig")
+	TObjectPtr<UDataTable> CameraRigTable;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Defaults|AbilitySet")
 	TObjectPtr<UGZInputGameplayAbilitySet> AbilitySet;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Animations")
+	UPROPERTY(EditDefaultsOnly, Category = "Defaults|Animations")
 	TObjectPtr<UGZAnimationLayerSet> AnimLayerSet;
-	UPROPERTY(BlueprintAssignable, Category = "Animations")
+	UPROPERTY(BlueprintAssignable, Category = "Defaults|Animations")
 	FOnAnimLayerChangedEventSingnature OnAnimLayerChanged;
+
 private:
 	bool bIsStrafing;
 	void InitializePawnFeature();

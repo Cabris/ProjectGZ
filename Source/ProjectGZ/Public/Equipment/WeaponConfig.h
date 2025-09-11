@@ -82,6 +82,15 @@ struct FWeaponConfig
 	UPROPERTY(EditDefaultsOnly, Category="Anim", meta=(ClampMin="0.0", ClampMax="1.0"))
 	float ShotNotifyNormalizedTime = 0.2f;
 
+	//Camera pose override Tag
+	UPROPERTY(EditDefaultsOnly, Category="Common|Camera")
+	FGameplayTag CameraPoseOverrideTag;
+	//Time for Camera recover to default pose
+	UPROPERTY(EditDefaultsOnly, Category="Common|Camera")
+	float CameraPoseRecoveryTime;
+	
+	UPROPERTY(EditDefaultsOnly, Category="Debug")
+	bool bDrawDebug=false;
 	// 小工具
 	float GetRPM() const { return FireInterval > 0.f ? 60.f / FireInterval : 0.f; }
 };

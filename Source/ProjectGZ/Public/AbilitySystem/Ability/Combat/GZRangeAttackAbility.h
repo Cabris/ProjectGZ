@@ -14,7 +14,6 @@ class PROJECTGZ_API UGZRangeAttackAbility : public UGZWeaponAbility
 
 public:
 	UGZRangeAttackAbility();
-	virtual void OnGiveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec) override;
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
 	                             const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
 	virtual void EndAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
@@ -36,7 +35,6 @@ private:
 	UFUNCTION()
 	void OnInputReleased(float TimeHeld);
 
-	void InitializeCachedData();
 	void StartAutoFire();
 	void StopAutoFire();
 	void HandleDamage(const FHitResult& HitResult);

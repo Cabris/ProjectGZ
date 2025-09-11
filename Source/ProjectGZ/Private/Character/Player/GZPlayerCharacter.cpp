@@ -10,9 +10,13 @@
 #include "Player/GZPlayerState.h"
 #include "ProjectGZ/ProjectGZ.h"
 #include "UI/HUD/GZHUD.h"
+#include "GameFramework/GameplayCameraComponent.h"
 
 AGZPlayerCharacter::AGZPlayerCharacter()
 {
+	GameplayCamera=CreateDefaultSubobject<UGameplayCameraComponent>("GameplayCamera");
+
+	
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>("SpringArm");
 	SpringArm->SetupAttachment(GetRootComponent());
 
@@ -150,7 +154,7 @@ void AGZPlayerCharacter::InitializePawnFeature()
 	if (GZPlayerController)
 	{
 		UGZPawnFeatureComponent* PawnFeature = GZPlayerController->GetPawnFeature();
-		PawnFeature->InitializePawnFeature(GZPlayerController, GZPlayerState, this);
+		PawnFeature->InitializePawnFeature(GZPlayerController, GZPlayerState, ASC, this);
 		//init HUD
 		if (AGZHUD* HUD = GZPlayerController->GetHUD<AGZHUD>())
 		{

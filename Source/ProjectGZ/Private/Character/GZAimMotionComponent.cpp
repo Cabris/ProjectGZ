@@ -1,49 +1,76 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "Character/GZAimMotionComponent.h"
 
-// Sets default values for this component's properties
+#include "GameFramework/SpringArmComponent.h"
+#include "Net/UnrealNetwork.h"
+#include "ProjectGZ/ProjectGZ.h"
+
 UGZAimMotionComponent::UGZAimMotionComponent()
 {
-	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
-	// off to improve performance if you don't need them.
-	PrimaryComponentTick.bCanEverTick = true;
-
-	// ...
+	PrimaryComponentTick.bCanEverTick = false;
+	SetIsReplicatedByDefault(true);
+	CurrentActivateCameraPoseRecoveryTime = 0;
+	bIsAiming = false;
+	RecoveryTimeerHandle.Invalidate();
 }
-
 
 // Called when the game starts
 void UGZAimMotionComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
-	// ...
-	
+	CurrentActivateCameraRigTag = DefaultCameraRigTag;
+	OnCameraRigTagChanged.Broadcast(CurrentActivateCameraRigTag);
 }
 
-
-// Called every frame
-void UGZAimMotionComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+void UGZAimMotionComponent::GetLifetimeReplicatedProps(TArray<class FLifetimeProperty>& OutLifetimeProps) const
 {
-	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-
-	// ...
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(ThisClass, bIsAiming);
 }
 
-void UGZAimMotionComponent:: AimAtRotation(FRotator rotator)
+void UGZAimMotionComponent::SetCameraRigTag(FGameplayTag CameraPoseOverrideTag, float CameraPoseRecoveryTime, bool IsActivate)
 {
-	bIsAiming=true;
+	FTimerManager& WorldTimerManager = GetOwner()->GetWorldTimerManager();
+	//Clear previous 
+	if (RecoveryTimeerHandle.IsValid())
+	{
+		WorldTimerManager.ClearTimer(RecoveryTimeerHandle);
+		RecoveryTimeerHandle.Invalidate();
+	}
+
+	if (IsActivate)
+	{
+		CurrentActivateCameraRigTag = CameraPoseOverrideTag;
+		CurrentActivateCameraPoseRecoveryTime = CameraPoseRecoveryTime;
+	}
+	else
+	{
+		//wait CurrentActivateCameraPoseRecoveryTime
+		WorldTimerManager.SetTimer(RecoveryTimeerHandle, this, &ThisClass::OnCameraRecovery,
+		                           CurrentActivateCameraPoseRecoveryTime, false);
+	}
+}
+
+void UGZAimMotionComponent::OnCameraRecovery()
+{
+	CurrentActivateCameraRigTag = DefaultCameraRigTag;
+	OnCameraRigTagChanged.Broadcast(CurrentActivateCameraRigTag);
+}
+
+void UGZAimMotionComponent::OnRep_bIsAiming(const bool& bOldIsAiming)
+{
+}
+
+void UGZAimMotionComponent::AimAtRotation(FRotator rotator)
+{
+	bIsAiming = true;
 }
 
 void UGZAimMotionComponent::UnAim()
 {
-	bIsAiming=false;
+	bIsAiming = false;
 }
 
 bool UGZAimMotionComponent::GetIsAiming()
 {
 	return bIsAiming;
 }
-

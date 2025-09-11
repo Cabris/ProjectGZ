@@ -8,7 +8,7 @@
 #include "Interfactions/GZPawnFeatureInterface.h"
 #include "GZPlayerController.generated.h"
 
-class UGZWeaponSlotComponent;
+class UGZWeaponSlotsComponent;
 class UGZEquipmentManagerComponent;
 class UGZInventoryManagerComponent;
 class UGZAbilitySystemComponent;

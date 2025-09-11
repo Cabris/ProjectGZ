@@ -3,7 +3,7 @@
 #include "GameFramework/Pawn.h"
 #include "Equipment/GZEquipmentDefinition.h"
 #include "Equipment/GZEquipmentManagerComponent.h"
-#include "Equipment/GZWeaponSlotComponent.h"
+#include "Equipment/GZWeaponSlotsComponent.h"
 #include "Inventory/GZInventoryManagerComponent.h"
 #include "Inventory/GZInventoryItemDefinition.h"
 #include "Equipment/GZEquipmentInstance.h"
@@ -33,7 +33,7 @@ UGZPawnFeatureComponent::UGZPawnFeatureComponent()
 bool UGZPawnFeatureComponent::TryGrantEquipmentToPawn(UGZInventoryItemInstance* ItemInstance)
 {
 	if (!CheckComponents())return false;
-	UGZWeaponSlotComponent* WeaponSlotManager = GetWeaponSlotManager();
+	UGZWeaponSlotsComponent* WeaponSlotManager = GetWeaponSlotsManager();
 	//Check Slot has space
 	int32 Idx = WeaponSlotManager->FindFirstAvailableSlotIndex();
 	if (Idx == INDEX_NONE)
@@ -62,7 +62,7 @@ bool UGZPawnFeatureComponent::TryRemoveEquipmentFromPawn(UGZInventoryItemInstanc
 		return false;
 	}
 	if (!CheckComponents())return false;
-	UGZWeaponSlotComponent* WeaponSlotManager = GetWeaponSlotManager();
+	UGZWeaponSlotsComponent* WeaponSlotManager = GetWeaponSlotsManager();
 	//Remove from slot
 	int32 SlotIdx = WeaponSlotManager->GetWeaponSlot(ItemInstance);
 	if (SlotIdx == INDEX_NONE)
@@ -74,7 +74,8 @@ bool UGZPawnFeatureComponent::TryRemoveEquipmentFromPawn(UGZInventoryItemInstanc
 	return true;
 }
 
-void UGZPawnFeatureComponent::InitializePawnFeature(AGZPlayerController* GZPlayerController, AGZPlayerState* GZPlayerState, APawn* Pawn)
+void UGZPawnFeatureComponent::InitializePawnFeature(AGZPlayerController* GZPlayerController, AGZPlayerState* GZPlayerState,
+                                                    UGZAbilitySystemComponent* ASC, APawn* Pawn)
 {
 	FPawnFeatureStruct FeatureStruct;
 	FeatureStruct.Pawn = Pawn;
@@ -82,7 +83,11 @@ void UGZPawnFeatureComponent::InitializePawnFeature(AGZPlayerController* GZPlaye
 	if (IsValid(GZPlayerState))
 	{
 		FeatureStruct.PlayerState = GZPlayerState;
-		FeatureStruct.AbilitySystem = GZPlayerState->GetAbilitySystemComponent();
+	}
+	
+	if (IsValid(ASC))
+	{
+		FeatureStruct.AbilitySystem = ASC;
 	}
 
 	if (IsValid(GZPlayerController))
@@ -90,16 +95,17 @@ void UGZPawnFeatureComponent::InitializePawnFeature(AGZPlayerController* GZPlaye
 		FeatureStruct.PlayerController = GZPlayerController;
 		FeatureStruct.InventoryManager = GZPlayerController->GetComponentByClass<UGZInventoryManagerComponent>();
 		FeatureStruct.EquipmentManager = GZPlayerController->GetComponentByClass<UGZEquipmentManagerComponent>();
-		FeatureStruct.WeaponMenu = GZPlayerController->GetComponentByClass<UGZWeaponSlotComponent>();
-		FeatureStruct.WeaponMenu->OnSlotSelected.AddDynamic(this, &ThisClass::OnWeaponSlotSelected);
+		FeatureStruct.WeaponMenu = GZPlayerController->GetComponentByClass<UGZWeaponSlotsComponent>();
+		FeatureStruct.WeaponMenu->OnActiveSlotChanged.AddDynamic(this, &ThisClass::OnActiveWeaponSlotChanged);
 	}
 	bool bHasAuthority = GZPlayerController->HasAuthority(); //HasAuthority false
 	FeatureStruct.HasAuthority = bHasAuthority ? 1 : 0;
 	PawnFeatureStruct = FeatureStruct;
 }
 
-void UGZPawnFeatureComponent::OnWeaponSlotSelected(UGZInventoryItemInstance* Instance, int SlotIdx)
+void UGZPawnFeatureComponent::OnActiveWeaponSlotChanged(int ActiveSlot)
 {
+	auto Instance = GetWeaponSlotsManager()->GetWeaponItemInstance(ActiveSlot);
 	if (!IsValid(Instance))return;
 	if (!Instance->IsEquipmentItem())return;
 	TSubclassOf<UGZEquipmentDefinition> EquipmentDefClass = Instance->GetItemDefinition()->GetEquipmentDef();
@@ -120,7 +126,7 @@ bool UGZPawnFeatureComponent::CheckComponents()
 		DEBUG_PRINTF(TEXT("Failed to TryRemoveEquipmentFromPawn: EquipmentManager is NULL"));
 		return false;
 	}
-	UGZWeaponSlotComponent* WeaponSlot = GetWeaponSlotManager();
+	UGZWeaponSlotsComponent* WeaponSlot = GetWeaponSlotsManager();
 	if (!IsValid(WeaponSlot))
 	{
 		DEBUG_PRINTF(TEXT("Failed to TryRemoveEquipmentFromPawn: WeaponSlot is NULL"));
@@ -149,7 +155,7 @@ UGZEquipmentManagerComponent* UGZPawnFeatureComponent::GetEquipmentManager()
 	return PawnFeatureStruct.EquipmentManager;
 }
 
-UGZWeaponSlotComponent* UGZPawnFeatureComponent::GetWeaponSlotManager()
+UGZWeaponSlotsComponent* UGZPawnFeatureComponent::GetWeaponSlotsManager()
 {
 	return PawnFeatureStruct.WeaponMenu;
 }
