@@ -3,14 +3,15 @@
 #include "GameplayTagContainer.h"
 #include "CameraRigTagDataRow.generated.h"
 
-class UCameraRigAsset;
 
 USTRUCT(BlueprintType)
 struct FCameraRigTagDataRow : public FTableRowBase
 {
-GENERATED_BODY()
+	GENERATED_BODY()
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	FGameplayTag CameraRigTag;
-UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
-	TObjectPtr<UCameraRigAsset> TestCameraRig;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	FVector ArmLocation;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+	float ArmLength;
 };

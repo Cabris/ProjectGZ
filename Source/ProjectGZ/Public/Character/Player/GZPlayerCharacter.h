@@ -54,19 +54,19 @@ public:
 	void BindAnimLayerChangedEvent();
 
 protected:
-	UPROPERTY(VisibleAnywhere, Category = "Components")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Defaults|Camera")
 	TObjectPtr<UCameraComponent> Camera;
-	UPROPERTY(VisibleAnywhere, Category = "Components")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Defaults|Camera")
 	TObjectPtr<USpringArmComponent> SpringArm;
-	UPROPERTY(VisibleAnywhere, Category = "Components")
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Defaults|Camera")
 	TObjectPtr<UGZAimMotionComponent> AimMotionComponent;
-	UPROPERTY(VisibleAnywhere, Category = "Components")
-	TObjectPtr<UGameplayCameraComponent> GameplayCamera;
-
-	UPROPERTY(BlueprintReadWrite, Category = "Defaults|CameraRig")
-	TObjectPtr<UCameraRigAsset> ActivateCameraRig;
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Defaults|CameraRig")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Defaults|Camera")
 	TObjectPtr<UDataTable> CameraRigTable;
+
+	// UPROPERTY(VisibleAnywhere,BlueprintReadWrite, Category = "Components")
+	// TObjectPtr<UGameplayCameraComponent> GameplayCamera;
+	// UPROPERTY(BlueprintReadWrite, Category = "Defaults|Camera")
+	// TObjectPtr<UCameraRigAsset> ActivateCameraRig;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Defaults|AbilitySet")
 	TObjectPtr<UGZInputGameplayAbilitySet> AbilitySet;

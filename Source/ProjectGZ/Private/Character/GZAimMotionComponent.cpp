@@ -41,6 +41,7 @@ void UGZAimMotionComponent::SetCameraRigTag(FGameplayTag CameraPoseOverrideTag, 
 	{
 		CurrentActivateCameraRigTag = CameraPoseOverrideTag;
 		CurrentActivateCameraPoseRecoveryTime = CameraPoseRecoveryTime;
+		OnCameraRigTagChanged.Broadcast(CurrentActivateCameraRigTag);
 	}
 	else
 	{

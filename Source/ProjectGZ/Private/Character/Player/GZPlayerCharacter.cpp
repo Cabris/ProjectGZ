@@ -14,15 +14,18 @@
 
 AGZPlayerCharacter::AGZPlayerCharacter()
 {
-	GameplayCamera=CreateDefaultSubobject<UGameplayCameraComponent>("GameplayCamera");
-
-	
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>("SpringArm");
 	SpringArm->SetupAttachment(GetRootComponent());
 
 	Camera = CreateDefaultSubobject<UCameraComponent>("Camera");
 	Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
 
+	SpringArm->bUsePawnControlRotation = true;
+	SpringArm->bInheritPitch = true;
+	SpringArm->bInheritRoll = false;
+	SpringArm->bInheritYaw = true;
+	Camera->bUsePawnControlRotation = false;
+	
 	AimMotionComponent = CreateDefaultSubobject<UGZAimMotionComponent>("AimMotion");
 	const auto CMC = GetCharacterMovement();
 	CMC->bOrientRotationToMovement = true;
@@ -35,12 +38,7 @@ AGZPlayerCharacter::AGZPlayerCharacter()
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
-
-	SpringArm->bUsePawnControlRotation = true;
-	SpringArm->bInheritPitch = true;
-	SpringArm->bInheritRoll = false;
-	SpringArm->bInheritYaw = true;
-	Camera->bUsePawnControlRotation = false;
+	//GameplayCamera = CreateDefaultSubobject<UGameplayCameraComponent>("GameplayCamera");
 }
 
 void AGZPlayerCharacter::BeginPlay()
@@ -161,5 +159,9 @@ void AGZPlayerCharacter::InitializePawnFeature()
 			HUD->InitializeOverlay(GZPlayerController, GZPlayerState, GZPlayerState->GetAbilitySystemComponent(),
 			                       GZPlayerState->GetAttributeSet());
 		}
+		// if (GameplayCamera)
+		// {
+		// 	GameplayCamera->ActivateCameraForPlayerController(GZPlayerController);
+		// }
 	}
 }
