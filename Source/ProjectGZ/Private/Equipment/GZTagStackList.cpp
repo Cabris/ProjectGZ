@@ -3,6 +3,7 @@
 void FGZTagStackList::AddItemStack(FGameplayTag Tag, int32 StackCount)
 {
 	if (StackCount <= 0)return;
+	if (!ContainsItemStack(Tag))return;
 	for (FGZTagStackEntry Entry : Items)
 	{
 		if (Entry.ItemTag == Tag)
@@ -13,11 +14,22 @@ void FGZTagStackList::AddItemStack(FGameplayTag Tag, int32 StackCount)
 			return;
 		}
 	}
-	FGZTagStackEntry& NewEntry = Items.AddDefaulted_GetRef();
-	NewEntry.ItemTag = Tag;
-	NewEntry.StackCount = StackCount;
-	ItemStack.Add(Tag, StackCount);
-	MarkItemDirty(NewEntry);
+}
+
+void FGZTagStackList::RemoveItem(FGameplayTag Tag)
+{
+	if (!ContainsItemStack(Tag))return;
+	for (auto It = Items.CreateIterator(); It; ++It)
+	{
+		FGZTagStackEntry& Entry = *It;
+		if (Entry.ItemTag == Tag)
+		{
+			It.RemoveCurrentSwap();
+			ItemStack.Remove(Tag);
+			MarkArrayDirty();
+			return;
+		}
+	}
 }
 
 void FGZTagStackList::RemoveItemStack(FGameplayTag Tag, int32 StackCount)
@@ -28,16 +40,9 @@ void FGZTagStackList::RemoveItemStack(FGameplayTag Tag, int32 StackCount)
 		FGZTagStackEntry& Entry = *It;
 		if (Entry.ItemTag == Tag)
 		{
-			if (Entry.StackCount <= StackCount) //delete entry
-			{
-				It.RemoveCurrentSwap();
-				ItemStack.Remove(Tag);
-				MarkArrayDirty();
-				return;
-			}
 			Entry.StackCount -= StackCount;
 			ItemStack[Tag] = Entry.StackCount;
-			MarkArrayDirty();
+			MarkItemDirty(Entry);
 			return;
 		}
 	}
@@ -45,15 +50,27 @@ void FGZTagStackList::RemoveItemStack(FGameplayTag Tag, int32 StackCount)
 
 void FGZTagStackList::SetItemStackCount(FGameplayTag Tag, int32 StackCount)
 {
-	for (auto It = Items.CreateIterator(); It; ++It)
+	//Create NewEntry
+	if (!ContainsItemStack(Tag))
 	{
-		FGZTagStackEntry& Entry = *It;
-		if (Entry.ItemTag == Tag)
+		FGZTagStackEntry& NewEntry = Items.AddDefaulted_GetRef();
+		NewEntry.ItemTag = Tag;
+		NewEntry.StackCount = StackCount;
+		ItemStack.Add(Tag, StackCount);
+		MarkItemDirty(NewEntry);
+	}
+	else
+	{
+		for (auto It = Items.CreateIterator(); It; ++It)
 		{
-			Entry.StackCount = StackCount;
-			ItemStack[Tag] = Entry.StackCount;
-			MarkItemDirty(Entry);
-			return;
+			FGZTagStackEntry& Entry = *It;
+			if (Entry.ItemTag == Tag)
+			{
+				Entry.StackCount = StackCount;
+				ItemStack[Tag] = Entry.StackCount;
+				MarkItemDirty(Entry);
+				return;
+			}
 		}
 	}
 }

@@ -15,6 +15,11 @@ void UGZInventoryItemInstance::SetStackByTag(const FGameplayTag& Tag, int32 Stac
 	TagStackList.SetItemStackCount(Tag, Stack);
 }
 
+bool UGZInventoryItemInstance::ContainsStackTag(const FGameplayTag& StackTag)
+{
+	return TagStackList.ContainsItemStack(StackTag);
+}
+
 TSubclassOf<UGZInventoryItemDefinition> UGZInventoryItemInstance::GetItemDefinitionClass() const
 {
 	return ItemDefinitionClass;
@@ -49,4 +54,3 @@ void UGZInventoryItemInstance::GetLifetimeReplicatedProps(TArray<FLifetimeProper
 	DOREPLIFETIME(ThisClass, ItemDefinitionClass);
 	DOREPLIFETIME(ThisClass, TagStackList);
 }
-

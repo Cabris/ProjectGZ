@@ -14,8 +14,6 @@ class PROJECTGZ_API UGZEquipmentAbility : public UGZGameplayAbility
 
 public:
 	UGZEquipmentAbility();
-
-protected:
 	//Get the associated Inventory item instance: ammo quantity stat
 	UFUNCTION(BlueprintPure, Category="Ability|Combat")
 	UGZInventoryItemInstance* GetItemInstance() const;
@@ -23,7 +21,7 @@ protected:
 	//Get the associated weapon instance for weapon attribute stat: damage range, gravity effect factor, projectile attributes
 	UFUNCTION(BlueprintPure, Category="Ability|Combat")
 	UGZEquipmentInstance* GetEquipmentInstance() const;
-
+protected:
 	UPROPERTY(EditDefaultsOnly, Category="Ability|Combat")
 	float AbilityLevel = 1;
 private:

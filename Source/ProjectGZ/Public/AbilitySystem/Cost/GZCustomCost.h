@@ -24,14 +24,36 @@ class PROJECTGZ_API UGZCustomCost : public UObject
 	GENERATED_BODY()
 
 public:
-	virtual bool CheckCost(const UGameplayAbility* Ability, const FGameplayAbilitySpecHandle Handle,
-	                       const FGameplayAbilityActorInfo* ActorInfo,
-	                       OUT FGameplayTagContainer* OptionalRelevantTags) const PURE_VIRTUAL(UGZCustomCost::CheckCost, return true;);
+	bool CheckCost(const UGameplayAbility* Ability, const FGameplayAbilitySpecHandle Handle,
+	               const FGameplayAbilityActorInfo* ActorInfo,
+	               OUT FGameplayTagContainer* OptionalRelevantTags)
+	{
+		if (!K2_CheckCost(Ability, Handle) || !CheckCost_Internal(Ability, Handle, ActorInfo, OptionalRelevantTags))
+			return false;
+		return true;
+	}
 
-	virtual void ApplyCost(const UGameplayAbility* Ability, const FGameplayAbilitySpecHandle Handle,
-	                       const FGameplayAbilityActorInfo* ActorInfo,
-	                       const FGameplayAbilityActivationInfo ActivationInfo) const PURE_VIRTUAL(UGZCustomCost::ApplyCost,);
+	void ApplyCost(const UGameplayAbility* Ability, const FGameplayAbilitySpecHandle Handle,
+	               const FGameplayAbilityActorInfo* ActorInfo,
+	               const FGameplayAbilityActivationInfo ActivationInfo)
+	{
+		ApplyCost_Internal(Ability, Handle, ActorInfo, ActivationInfo);
+		K2_ApplyCost(Ability, Handle);
+	}
 
 protected:
+	virtual bool CheckCost_Internal(const UGameplayAbility* Ability, const FGameplayAbilitySpecHandle Handle,
+	                                const FGameplayAbilityActorInfo* ActorInfo,
+	                                OUT FGameplayTagContainer* OptionalRelevantTags) PURE_VIRTUAL(UGameplayAbility::CheckCost_Internal,return true;);
+	virtual void ApplyCost_Internal(const UGameplayAbility* Ability, const FGameplayAbilitySpecHandle Handle,
+	                                const FGameplayAbilityActorInfo* ActorInfo,
+	                                const FGameplayAbilityActivationInfo ActivationInfo) PURE_VIRTUAL(UGameplayAbility::ApplyCost_Internal,);
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	bool K2_CheckCost(const UGameplayAbility* Ability, const FGameplayAbilitySpecHandle Handle);
+
+	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
+	void K2_ApplyCost(const UGameplayAbility* Ability, const FGameplayAbilitySpecHandle Handle);
+
 private:
 };

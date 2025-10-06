@@ -1,5 +1,8 @@
 ﻿#include "Equipment/GZWeaponInstance.h"
 
+#include "Equipment/GZEquipmentDefinition.h"
+#include "Inventory/GZInventoryItemInstance.h"
+
 void UGZWeaponInstance::BuildCollisionParams(const FAttackFilter& Filter, FCollisionQueryParams& OutQuery)
 {
 	OutQuery = FCollisionQueryParams(SCENE_QUERY_STAT(GZ_FireTrace), Filter.bTraceComplex);
@@ -37,4 +40,16 @@ void UGZWeaponInstance::BuildCollisionParams(const FAttackFilter& Filter, FColli
 			OutQuery.AddIgnoredActor(A);
 		}
 	}
+}
+
+FName UGZWeaponInstance::GetWeaponMuzzleSocketName() const
+{
+	auto EquipmentDefClass = GetItemInstance()->GetItemDefinition()->GetEquipmentDef();
+	auto& ActorsToSpawn = EquipmentDefClass.GetDefaultObject()->ActorsToSpawn;
+	for (auto& SpawnData: ActorsToSpawn)
+	{
+		if (!SpawnData.MuzzleSocket.IsNone())
+			return SpawnData.MuzzleSocket;
+	}
+	return FName();
 }

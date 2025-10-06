@@ -65,6 +65,9 @@ public:
 	static void BuildCollisionParams(const FAttackFilter& Filter, FCollisionQueryParams& OutQuery);
 	UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
 	void FireWeapon(const FHitResult& HitResult);
+
+	UFUNCTION(BlueprintCallable, BlueprintPure)
+	FName GetWeaponMuzzleSocketName() const;
 protected:
 	UPROPERTY(EditDefaultsOnly, Category="Equipment|Weapon")
 	FWeaponConfig WeaponConfig;

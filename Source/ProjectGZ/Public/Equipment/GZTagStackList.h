@@ -21,7 +21,9 @@ struct FGZTagStackEntry : public FFastArraySerializerItem
 	}
 
 	GENERATED_BODY()
+	UPROPERTY()
 	FGameplayTag ItemTag;
+	UPROPERTY()
 	int32 StackCount = 0;
 };
 
@@ -31,16 +33,20 @@ struct FGZTagStackList : public FFastArraySerializer
 	GENERATED_BODY()
 
 public:
+	//Do Nothing if Tag not existed
 	void AddItemStack(FGameplayTag Tag, int32 StackCount);
+	//Do Nothing if Tag not existed
 	void RemoveItemStack(FGameplayTag Tag, int32 StackCount);
-
+	//Overwrite Old or Create New 
 	void SetItemStackCount(FGameplayTag Tag, int32 StackCount);
-	
+	void RemoveItem(FGameplayTag Tag);
+	//Return -1 if Tag not existed
 	int32 GetItemStackCount(FGameplayTag Tag) const
 	{
+		if (!ContainsItemStack(Tag))
+			return -1;
 		return ItemStack.FindRef(Tag);
 	}
-
 	bool ContainsItemStack(FGameplayTag Tag) const
 	{
 		return ItemStack.Contains(Tag);
@@ -54,8 +60,13 @@ public:
 
 	bool NetDeltaSerialize(FNetDeltaSerializeInfo& DeltaParms)
 	{
-		return FastArrayDeltaSerialize<FGZTagStackEntry, FGZTagStackList>(
+		UE_LOG(LogTemp, Warning, TEXT("FGZTagStackList::NetDeltaSerialize: %p, Items.Num(): %d, bIsWritingOnClient: %d"),
+		       this, Items.Num(), DeltaParms. bIsWritingOnClient);
+
+		bool result = FastArrayDeltaSerialize<FGZTagStackEntry, FGZTagStackList>(
 			Items, DeltaParms, *this);
+		UE_LOG(LogTemp, Error, TEXT("FGZTagStackList::NetDeltaSerialize: Result: %s"), result ? TEXT("SUCCESS") : TEXT("FAILED"));
+		return result;
 	}
 
 private:

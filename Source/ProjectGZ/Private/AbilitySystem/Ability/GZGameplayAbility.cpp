@@ -2,6 +2,7 @@
 #include "AbilitySystemComponent.h"
 #include "Abilities/Tasks/AbilityTask_WaitGameplayEvent.h"
 #include "AbilitySystem/GZAbilitySystemComponent.h"
+#include "AbilitySystem/Cost/GZCustomCost.h"
 #include "Character/GZCharacterBase.h"
 #include "Interfactions/GZPawnFeatureInterface.h"
 
@@ -18,9 +19,9 @@ void UGZGameplayAbility::OnGiveAbility(const FGameplayAbilityActorInfo* ActorInf
 		}
 	}
 	const TCHAR* AvatarActorName = ActorInfo->AvatarActor.IsValid() ? *ActorInfo->AvatarActor->GetName() : TEXT("None");
-	
+
 	UE_LOG(LogTemp, Log, TEXT("[UGZGameplayAbility::OnGiveAbility] Ability:[%s], given to: %s, NetExecutionPolicy: %d"),
-		*GetName(), AvatarActorName, NetExecutionPolicy.GetIntValue());
+	       *GetName(), AvatarActorName, NetExecutionPolicy.GetIntValue());
 }
 
 void UGZGameplayAbility::OnRemoveAbility(const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilitySpec& Spec)
@@ -43,6 +44,32 @@ void UGZGameplayAbility::EndAbility(const FGameplayAbilitySpecHandle Handle, con
                                     const FGameplayAbilityActivationInfo ActivationInfo, bool bReplicateEndAbility, bool bWasCancelled)
 {
 	Super::EndAbility(Handle, ActorInfo, ActivationInfo, bReplicateEndAbility, bWasCancelled);
+}
+
+bool UGZGameplayAbility::CheckCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+                                   FGameplayTagContainer* OptionalRelevantTags) const
+{
+	bool bParentCheck = Super::CheckCost(Handle, ActorInfo, OptionalRelevantTags);
+	if (!bParentCheck)
+		return false;
+
+	for (auto& CustomCost : CustomCosts)
+	{
+		bool check = CustomCost->CheckCost(this, Handle, ActorInfo, OptionalRelevantTags);
+		if (!check)
+			return false;
+	}
+	return true;
+}
+
+void UGZGameplayAbility::ApplyCost(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo,
+                                   const FGameplayAbilityActivationInfo ActivationInfo) const
+{
+	Super::ApplyCost(Handle, ActorInfo, ActivationInfo);
+	for (auto& CustomCost : CustomCosts)
+	{
+		CustomCost->ApplyCost(this, Handle, ActorInfo, ActivationInfo);
+	}
 }
 
 

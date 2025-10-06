@@ -1,5 +1,10 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿#include "AbilitySystem/Cost/GZCustomCost.h"
 
+bool UGZCustomCost::K2_CheckCost_Implementation(const UGameplayAbility* Ability, const FGameplayAbilitySpecHandle Handle)
+{
+	return true;
+}
 
-#include "AbilitySystem/GZCustomCost.h"
-
+void UGZCustomCost::K2_ApplyCost_Implementation(const UGameplayAbility* Ability, const FGameplayAbilitySpecHandle Handle)
+{
+}
